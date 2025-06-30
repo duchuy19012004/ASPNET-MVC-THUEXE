@@ -1,0 +1,341 @@
+@model bike.Models.HoaDon
+@{
+    ViewData["Title"] = $"Chi tiết hóa đơn HD{Model.MaHoaDon:D6}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .invoice-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+
+    .invoice-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .invoice-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .invoice-number {
+        font-size: 36px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .invoice-status {
+        display: inline-block;
+        padding: 8px 20px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        margin-top: 10px;
+    }
+
+    .invoice-body {
+        padding: 40px;
+    }
+
+    .section-divider {
+        height: 2px;
+        background: #f0f0f0;
+        margin: 30px 0;
+    }
+
+    .info-section {
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .info-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 3px solid #4CAF50;
+    }
+
+    .info-label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .financial-summary {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .total-amount {
+        font-size: 48px;
+        font-weight: bold;
+        margin: 20px 0;
+    }
+
+    .action-section {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn-print {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+    }
+
+    .btn-back {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+    }
+
+    @@media print {
+        .no-print { display: none; }
+        .invoice-card { box-shadow: none; }
+        body { margin: 0; }
+        .container { max-width: 100%; }
+    }
+</style>
+
+<div class="invoice-container">
+    <div class="invoice-card">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="invoice-number">
+                <i class="bi bi-receipt"></i> HD@(Model.MaHoaDon.ToString("D6"))
+            </div>
+            <div class="invoice-status">
+                @Model.TrangThai
+            </div>
+            <p class="mb-0 mt-3">Ngày tạo: @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <!-- Body -->
+        <div class="invoice-body">
+            <!-- Thông tin hóa đơn -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-info-circle"></i> Thông tin hóa đơn
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Mã hóa đơn</div>
+                        <div class="info-value">HD@(Model.MaHoaDon.ToString("D6"))</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Mã hợp đồng liên quan</div>
+                        <div class="info-value">
+                            <a asp-controller="QuanLyHopDong" asp-action="ChiTiet" asp-route-id="@Model.MaHopDong" 
+                               class="text-decoration-none">
+                                HD@(Model.MaHopDong.ToString("D6"))
+                            </a>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ngày thanh toán</div>
+                        <div class="info-value">@Model.NgayThanhToan.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Người tạo</div>
+                        <div class="info-value">@(Model.NguoiTao?.Ten ?? "N/A")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Thông tin khách hàng -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-person-fill"></i> Thông tin khách hàng
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Họ và tên</div>
+                        <div class="info-value">@Model.HopDong?.HoTenKhach</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Số điện thoại</div>
+                        <div class="info-value">@Model.HopDong?.SoDienThoai</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">CCCD/CMND</div>
+                        <div class="info-value">@Model.HopDong?.SoCCCD</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Địa chỉ</div>
+                        <div class="info-value">@(Model.HopDong?.DiaChi ?? "Không có")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Thông tin xe -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-bicycle"></i> Thông tin xe thuê
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Tên xe</div>
+                        <div class="info-value">@Model.HopDong?.Xe?.TenXe</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Biển số</div>
+                        <div class="info-value">@Model.HopDong?.Xe?.BienSoXe</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Hãng xe</div>
+                        <div class="info-value">@Model.HopDong?.Xe?.HangXe</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Dòng xe</div>
+                        <div class="info-value">@Model.HopDong?.Xe?.DongXe</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Thông tin thời gian thuê -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-calendar-range"></i> Thông tin thời gian thuê
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Ngày nhận xe</div>
+                        <div class="info-value">@Model.HopDong?.NgayNhanXe.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Ngày trả xe thực tế</div>
+                        <div class="info-value">@Model.HopDong?.NgayTraXeThucTe?.ToString("dd/MM/yyyy")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Số ngày thuê</div>
+                        <div class="info-value">@Model.HopDong?.SoNgayThue ngày</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Giá thuê/ngày</div>
+                        <div class="info-value">@Model.HopDong?.GiaThueNgay.ToString("N0")đ</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ghi chú -->
+            @if (!string.IsNullOrEmpty(Model.GhiChu))
+            {
+                <div class="section-divider"></div>
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="bi bi-chat-left-text"></i> Ghi chú
+                    </h3>
+                    <div class="info-item">
+                        <div class="info-value">@Model.GhiChu</div>
+                    </div>
+                </div>
+            }
+
+            <!-- Tổng kết thanh toán -->
+            <div class="financial-summary">
+                <h3>TỔNG TIỀN THANH TOÁN</h3>
+                <div class="total-amount">@Model.SoTien.ToString("N0")đ</div>
+                <p class="mb-0">Đã thanh toán đầy đủ</p>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="action-section no-print">
+                <button onclick="window.print()" class="btn btn-print">
+                    <i class="bi bi-printer"></i> In hóa đơn
+                </button>
+                <a asp-action="Index" class="btn btn-back">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+
+            <!-- Footer thông tin công ty (chỉ hiện khi in) -->
+            <div style="display: none;" class="print-only">
+                <div class="section-divider"></div>
+                <div class="text-center mt-4">
+                    <h4>CÔNG TY CHO THUÊ XE MÁY SÀI GÒN</h4>
+                    <p>Địa chỉ: 95/38 Nguyễn Văn Trỗi, Phường 12, Quận Phú Nhuận, TP.HCM</p>
+                    <p>Điện thoại: 0908.630.065 | Email: info@chothuexe.com</p>
+                    <p><strong>Cảm ơn quý khách đã sử dụng dịch vụ!</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Print formatting
+        window.addEventListener('beforeprint', function() {
+            document.body.style.padding = '0';
+            document.querySelector('.container-fluid').style.maxWidth = '100%';
+            
+            // Show print-only elements
+            document.querySelectorAll('.print-only').forEach(el => {
+                el.style.display = 'block';
+            });
+        });
+
+        window.addEventListener('afterprint', function() {
+            document.body.style.padding = '';
+            document.querySelector('.container-fluid').style.maxWidth = '';
+            
+            // Hide print-only elements
+            document.querySelectorAll('.print-only').forEach(el => {
+                el.style.display = 'none';
+            });
+        });
+
+        // Auto print if print parameter
+        @if (Context.Request.Query.ContainsKey("print"))
+        {
+            <text>
+            window.onload = function() {
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            }
+            </text>
+        }
+    </script>
+}

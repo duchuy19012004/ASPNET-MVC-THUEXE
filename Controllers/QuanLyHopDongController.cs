@@ -25,6 +25,7 @@ namespace bike.Controllers
             var query = _context.HopDong
                 .Include(h => h.Xe)
                 .Include(h => h.DatCho)
+                .Include(h => h.HoaDon) 
                 .AsQueryable();
 
             if (!string.IsNullOrEmpty(trangThai))
@@ -207,6 +208,7 @@ namespace bike.Controllers
             var hopDong = await _context.HopDong
                 .Include(h => h.Xe)
                 .Include(h => h.DatCho)
+                .Include(h => h.HoaDon) 
                 .Include(h => h.NguoiTao)
                 .FirstOrDefaultAsync(h => h.MaHopDong == id);
 

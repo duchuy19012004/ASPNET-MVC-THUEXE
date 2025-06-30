@@ -14,11 +14,12 @@ namespace bike.Repository
         // DbSet đại diện cho bảng Xe trong database
         // Tên DbSet sẽ là tên bảng trong SQL Server
         public DbSet<Xe> Xe { get; set; }
-        public DbSet<LoaiXe> LoaiXe {  get; set;}
+        public DbSet<LoaiXe> LoaiXe { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<DatCho> DatCho { get; set; }   
-        public DbSet<HopDong> HopDong { get;set; }
+        public DbSet<DatCho> DatCho { get; set; }
+        public DbSet<HopDong> HopDong { get; set; }
         public DbSet<ChiTieu> ChiTieu { get; set; }
+        public DbSet<HoaDon> HoaDon { get; set; }
 
         // cấu hình thêm cho database (nếu cần)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -26,13 +27,25 @@ namespace bike.Repository
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<ChiTieu>(e => e.Property(p => p.SoTien).HasColumnType("decimal(18, 2)"));
-            modelBuilder.Entity<HopDong>(e => {
+            modelBuilder.Entity<HopDong>(e =>
+            {
                 e.Property(p => p.GiaThueNgay).HasColumnType("decimal(18, 2)");
                 e.Property(p => p.PhuPhi).HasColumnType("decimal(18, 2)");
                 e.Property(p => p.TienCoc).HasColumnType("decimal(18, 2)");
                 e.Property(p => p.TongTien).HasColumnType("decimal(18, 2)");
             });
             modelBuilder.Entity<Xe>(e => e.Property(p => p.GiaThue).HasColumnType("decimal(18, 2)"));
+            // Cấu hình cho HoaDon
+            modelBuilder.Entity<HoaDon>(e => {
+                e.Property(p => p.SoTien).HasColumnType("decimal(18, 2)");
+                
+                // Cấu hình quan hệ 1-1 với HopDong
+                e.HasOne(h => h.HopDong)
+                 .WithOne(hd => hd.HoaDon)
+                 .HasForeignKey<HoaDon>(h => h.MaHopDong)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
         }
+        
     }
 }

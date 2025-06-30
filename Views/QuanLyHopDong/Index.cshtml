@@ -198,7 +198,8 @@
     </div>
 
     <!-- Table -->
-    <div class="contract-table">
+    <!-- Cập nhật phần table header trong Views/QuanLyHopDong/Index.cshtml -->
+
         <table class="table table-hover mb-0" id="contractTable">
             <thead class="table-light">
                 <tr>
@@ -209,6 +210,7 @@
                     <th>Ngày trả</th>
                     <th>Tổng tiền</th>
                     <th>Trạng thái</th>
+                    <th>Hóa đơn</th> <!-- Thêm cột này -->
                     <th>Thao tác</th>
                 </tr>
             </thead>
@@ -250,6 +252,26 @@
                             }
                             <span class="status-badge @statusClass">@item.TrangThai</span>
                         </td>
+                        <!-- Thêm cột hóa đơn -->
+                        <td>
+                            @if (item.HoaDon != null)
+                            {
+                                <a asp-controller="QuanLyHoaDon" asp-action="ChiTiet" asp-route-id="@item.HoaDon.MaHoaDon" 
+                                   class="badge bg-success text-decoration-none" title="Xem hóa đơn">
+                                    <i class="bi bi-check-circle"></i> HD@(item.HoaDon.MaHoaDon.ToString("D6"))
+                                </a>
+                            }
+                            else if (item.TrangThai == "Hoàn thành")
+                            {
+                                <span class="badge bg-warning">
+                                    <i class="bi bi-exclamation-triangle"></i> Chưa có
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">-</span>
+                            }
+                        </td>
                         <td>
                             <a asp-action="ChiTiet" asp-route-id="@item.MaHopDong" class="btn btn-sm btn-info" title="Chi tiết">
                                 <i class="bi bi-eye"></i>
@@ -260,33 +282,52 @@
                                     <i class="bi bi-check-circle"></i>
                                 </a>
                             }
+                            @if (item.TrangThai == "Hoàn thành" && item.HoaDon == null)
+                            {
+                                <button class="btn btn-sm btn-warning" onclick="taoHoaDonTuIndex(@item.MaHopDong, '@item.HoTenKhach')" title="Tạo hóa đơn">
+                                    <i class="bi bi-receipt"></i>
+                                </button>
+                            }
                         </td>
                     </tr>
                 }
             </tbody>
         </table>
-        <!-- Phân trang -->
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                @for (int i = 1; i <= totalPages; i++)
-                {
-                    <li class="page-item @(i == currentPage ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("Index", new { page = i, pageSize = ViewBag.PageSize, trangThai = ViewBag.TrangThai })">@i</a>
-                    </li>
-                }
-            </ul>
-        </nav>
 
-        <!-- No results message -->
-        <div id="noResults" class="text-center p-5" style="display: none;">
-            <i class="bi bi-search" style="font-size: 48px; color: #ccc;"></i>
-            <p class="mt-3 text-muted">Không tìm thấy hợp đồng với số điện thoại này</p>
-        </div>
 
-        <!-- No results message -->
-        <div id="noResults" class="text-center p-5" style="display: none;">
-            <i class="bi bi-search" style="font-size: 48px; color: #ccc;"></i>
-            <p class="mt-3 text-muted">Không tìm thấy hợp đồng với số điện thoại này</p>
+<!-- Modal tạo hóa đơn từ index -->
+<div class="modal fade" id="taoHoaDonIndexModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo hóa đơn thanh toán</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="taoHoaDonIndexForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="maHopDongIndex" />
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Xác nhận tạo hóa đơn</strong><br />
+                        Khách hàng: <span id="tenKhachHangIndex"></span><br />
+                        Hóa đơn sẽ được tạo với trạng thái "Đã thanh toán"
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú (tùy chọn)</label>
+                        <textarea id="ghiChuHoaDonIndex" class="form-control" rows="3"
+                                  placeholder="Ghi chú thêm cho hóa đơn..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="xacNhanTaoHoaDonIndex()">
+                    <i class="bi bi-check-circle"></i> Xác nhận tạo
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -386,5 +427,70 @@
                 }
             });
         });
+
+        // Function tạo hóa đơn từ index
+        function taoHoaDonTuIndex(maHopDong, tenKhach) {
+            console.log('Tao hoa don tu index:', maHopDong, tenKhach);
+            
+            // Set giá trị
+            $('#maHopDongIndex').val(maHopDong);
+            $('#tenKhachHangIndex').text(tenKhach);
+            $('#ghiChuHoaDonIndex').val('');
+            
+            // Hiển thị modal
+            var myModal = new bootstrap.Modal(document.getElementById('taoHoaDonIndexModal'));
+            myModal.show();
+        }
+
+        function xacNhanTaoHoaDonIndex() {
+            var maHopDong = $('#maHopDongIndex').val();
+            var ghiChu = $('#ghiChuHoaDonIndex').val();
+
+            // Hiển thị loading
+            var btn = $('#taoHoaDonIndexModal .modal-footer .btn-success');
+            var originalText = btn.html();
+            btn.html('<span class="spinner-border spinner-border-sm"></span> Đang tạo...').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("TaoHoaDon", "QuanLyHoaDon")',
+                type: 'POST',
+                data: {
+                    maHopDong: maHopDong,
+                    ghiChu: ghiChu,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(response.message);
+                        } else {
+                            alert(response.message);
+                        }
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message);
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    var errorMsg = 'Có lỗi xảy ra: ' + error;
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMsg);
+                    } else {
+                        alert(errorMsg);
+                    }
+                    btn.html(originalText).prop('disabled', false);
+                },
+                complete: function() {
+                    bootstrap.Modal.getInstance(document.getElementById('taoHoaDonIndexModal')).hide();
+                }
+            });
+        }
     </script>
 }

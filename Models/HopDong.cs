@@ -27,17 +27,17 @@ namespace bike.Models
         [Display(Name = "Họ tên khách")]
         [Required]
         [StringLength(100)]
-        public string ?HoTenKhach { get; set; }
+        public string? HoTenKhach { get; set; }
 
         [Display(Name = "Số điện thoại")]
         [Required]
         [StringLength(20)]
-        public string ?SoDienThoai { get; set; }
+        public string? SoDienThoai { get; set; }
 
         [Display(Name = "CCCD/CMND")]
         [Required]
         [StringLength(20)]
-        public string ?SoCCCD { get; set; }
+        public string? SoCCCD { get; set; }
 
         [Display(Name = "Địa chỉ")]
         [StringLength(255)]
@@ -96,5 +96,11 @@ namespace bike.Models
 
         [NotMapped]
         public decimal TongTienDuKien => GiaThueNgay * SoNgayThue + PhuPhi;
+        // Navigation property cho quan hệ 1-1 với HoaDon
+        public HoaDon? HoaDon { get; set; }
+
+        // Computed property để check đã có hóa đơn chưa
+        [NotMapped]
+        public bool DaCoHoaDon => HoaDon != null;
     }
 }

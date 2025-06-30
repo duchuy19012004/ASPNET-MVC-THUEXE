@@ -275,49 +275,44 @@
                         <span>@((Model.TongTien + Model.TienCoc).ToString("N0"))đ</span>
                     </div>
                 </div>
+
+                <!-- Thông tin hóa đơn -->
+                @if (Model.HoaDon != null)
+                {
+                    <div class="alert alert-success mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-check-circle-fill"></i>
+                                <strong>Đã có hóa đơn:</strong> HD@(Model.HoaDon.MaHoaDon.ToString("D6"))
+                                <br />
+                                <small>Ngày tạo: @Model.HoaDon.NgayTao.ToString("dd/MM/yyyy HH:mm")</small>
+                            </div>
+                            <a asp-controller="QuanLyHoaDon" asp-action="ChiTiet" asp-route-id="@Model.HoaDon.MaHoaDon" 
+                               class="btn btn-success btn-sm">
+                                <i class="bi bi-receipt"></i> Xem hóa đơn
+                            </a>
+                        </div>
+                    </div>
+                }
+                else if (Model.TrangThai == "Hoàn thành")
+                {
+                    <div class="alert alert-warning mt-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <strong>Chưa có hóa đơn</strong>
+                                <br />
+                                <small>Hợp đồng đã hoàn thành nhưng chưa tạo hóa đơn thanh toán</small>
+                            </div>
+                            <button class="btn btn-warning btn-sm" onclick="taoHoaDonNhanh(@Model.MaHopDong)">
+                                <i class="bi bi-plus-circle"></i> Tạo hóa đơn
+                            </button>
+                        </div>
+                    </div>
+                }
             </div>
 
-            <!-- Ghi chú -->
-            @if (!string.IsNullOrEmpty(Model.GhiChu))
-            {
-                <div class="section-divider"></div>
-                <div class="info-section">
-                    <h3 class="section-title">
-                        <i class="bi bi-chat-left-text"></i> Ghi chú
-                    </h3>
-                    <div class="info-item">
-                        <div class="info-value">@Model.GhiChu</div>
-                    </div>
-                </div>
-            }
-
-            <!-- Thông tin phiếu đặt chỗ -->
-            @if (Model.DatCho != null)
-            {
-                <div class="section-divider"></div>
-                <div class="info-section">
-                    <h3 class="section-title">
-                        <i class="bi bi-link-45deg"></i> Liên kết phiếu đặt chỗ
-                    </h3>
-                    <div class="info-item">
-                        <div class="info-label">Mã phiếu đặt chỗ</div>
-                        <div class="info-value">DC@(Model.MaDatCho?.ToString("D6"))</div>
-                    </div>
-                </div>
-            }
-
-            <!-- Người tạo -->
-            @if (Model.NguoiTao != null)
-            {
-                <div class="section-divider"></div>
-                <div class="info-section">
-                    <p class="text-muted text-center mb-0">
-                        <small>Người tạo: @Model.NguoiTao.Ten - @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</small>
-                    </p>
-                </div>
-            }
-
-            <!-- Action buttons -->
+<!-- Thêm vào cuối action buttons -->
             <div class="action-section no-print">
                 <button onclick="window.print()" class="btn btn-print">
                     <i class="bi bi-printer"></i> In hợp đồng
@@ -328,9 +323,50 @@
                         <i class="bi bi-check-circle"></i> Xử lý trả xe
                     </a>
                 }
+                @if (Model.HoaDon != null)
+                {
+                    <a asp-controller="QuanLyHoaDon" asp-action="ChiTiet" asp-route-id="@Model.HoaDon.MaHoaDon" 
+                       class="btn btn-success">
+                        <i class="bi bi-receipt"></i> Xem hóa đơn
+                    </a>
+                }
                 <a asp-action="Index" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Quay lại
                 </a>
+            </div>
+
+<!-- Thêm Modal tạo hóa đơn nhanh vào cuối file -->
+<!-- Modal tạo hóa đơn nhanh -->
+<div class="modal fade" id="taoHoaDonNhanhModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tạo hóa đơn thanh toán</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Xác nhận tạo hóa đơn cho hợp đồng HD@(Model.MaHopDong.ToString("D6"))</strong><br />
+                    Khách hàng: @Model.HoTenKhach<br />
+                    Số tiền: @Model.TongTien.ToString("N0")đ<br />
+                    Hóa đơn sẽ được tạo với trạng thái "Đã thanh toán"
+                </div>
+
+                <form id="taoHoaDonNhanhForm">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú cho hóa đơn (tùy chọn)</label>
+                        <textarea id="ghiChuHoaDonNhanh" class="form-control" rows="3"
+                                  placeholder="Ghi chú thêm cho hóa đơn..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-success" onclick="xacNhanTaoHoaDonNhanh()">
+                    <i class="bi bi-check-circle"></i> Xác nhận tạo
+                </button>
             </div>
         </div>
     </div>
@@ -338,7 +374,7 @@
 
 @section Scripts {
     <script>
-        // Print formatting
+        // Print formatting (giữ nguyên code cũ)
         window.addEventListener('beforeprint', function() {
             document.body.style.padding = '0';
             document.querySelector('.container-fluid').style.maxWidth = '100%';
@@ -348,5 +384,71 @@
             document.body.style.padding = '';
             document.querySelector('.container-fluid').style.maxWidth = '';
         });
+
+        // Thêm function tạo hóa đơn nhanh
+        function taoHoaDonNhanh(maHopDong) {
+            console.log('Tao hoa don nhanh:', maHopDong);
+            
+            // Reset form
+            $('#ghiChuHoaDonNhanh').val('');
+            
+            // Hiển thị modal
+            var myModal = new bootstrap.Modal(document.getElementById('taoHoaDonNhanhModal'));
+            myModal.show();
+        }
+
+        function xacNhanTaoHoaDonNhanh() {
+            var maHopDong = @Model.MaHopDong;
+            var ghiChu = $('#ghiChuHoaDonNhanh').val();
+
+            // Hiển thị loading
+            var btn = $('.modal-footer .btn-success');
+            var originalText = btn.html();
+            btn.html('<span class="spinner-border spinner-border-sm"></span> Đang tạo...').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("TaoHoaDon", "QuanLyHoaDon")',
+                type: 'POST',
+                data: {
+                    maHopDong: maHopDong,
+                    ghiChu: ghiChu,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Hiển thị thông báo thành công
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success(response.message);
+                        } else {
+                            alert(response.message);
+                        }
+                        
+                        // Reload trang để hiển thị thông tin hóa đơn
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message);
+                        } else {
+                            alert('Lỗi: ' + response.message);
+                        }
+                        btn.html(originalText).prop('disabled', false);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    var errorMsg = 'Có lỗi xảy ra: ' + error;
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error(errorMsg);
+                    } else {
+                        alert(errorMsg);
+                    }
+                    btn.html(originalText).prop('disabled', false);
+                },
+                complete: function() {
+                    bootstrap.Modal.getInstance(document.getElementById('taoHoaDonNhanhModal')).hide();
+                }
+            });
+        }
     </script>
 }

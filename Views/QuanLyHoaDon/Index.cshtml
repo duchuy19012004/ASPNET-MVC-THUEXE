@@ -1,0 +1,241 @@
+@model IEnumerable<bike.Models.HoaDon>
+@{
+    ViewData["Title"] = "Quản Lý Hóa Đơn";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int totalPages = (int)Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize);
+    int currentPage = ViewBag.CurrentPage;
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-cards {
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 36px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .stat-revenue {
+        color: #4CAF50;
+    }
+
+    .stat-count {
+        color: #2196F3;
+    }
+
+    .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .invoice-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        background: #d4edda;
+        color: #155724;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-receipt"></i> Quản Lý Hóa Đơn</h1>
+                <p class="mb-0">Theo dõi và quản lý các hóa đơn thanh toán</p>
+            </div>
+            <div>
+                <a asp-action="DanhSachHopDongChuaCoHoaDon" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Tạo hóa đơn
+                </a>
+                <a asp-action="BaoCaoDoanhThu" class="btn btn-warning">
+                    <i class="bi bi-bar-chart"></i> Báo cáo doanh thu
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row stat-cards">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-receipt-cutoff" style="font-size: 40px; color: #666;"></i>
+                <div class="stat-number">@ViewBag.TotalItems</div>
+                <div class="stat-label">Tổng hóa đơn</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-currency-dollar" style="font-size: 40px; color: #4CAF50;"></i>
+                <div class="stat-number stat-revenue">@ViewBag.TongDoanhThu.ToString("N0")đ</div>
+                <div class="stat-label">Tổng doanh thu</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-calendar-day" style="font-size: 40px; color: #2196F3;"></i>
+                <div class="stat-number stat-count">@ViewBag.SoHoaDonHomNay</div>
+                <div class="stat-label">Hóa đơn hôm nay</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-section">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label class="form-label">Tìm theo SĐT/Tên khách:</label>
+                <input type="text" name="searchString" class="form-control" 
+                       placeholder="Nhập số điện thoại hoặc tên..." 
+                       value="@ViewBag.SearchString" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Từ ngày:</label>
+                <input type="date" name="tuNgay" class="form-control" 
+                       value="@ViewBag.TuNgay?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Đến ngày:</label>
+                <input type="date" name="denNgay" class="form-control" 
+                       value="@ViewBag.DenNgay?.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Lọc dữ liệu
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="invoice-table">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã HĐ</th>
+                    <th>Mã hợp đồng</th>
+                    <th>Khách hàng</th>
+                    <th>Xe</th>
+                    <th>Số tiền</th>
+                    <th>Ngày thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var hoaDon in Model)
+                {
+                    <tr>
+                        <td><strong>HD@(hoaDon.MaHoaDon.ToString("D6"))</strong></td>
+                        <td>
+                            <a asp-controller="QuanLyHopDong" asp-action="ChiTiet" asp-route-id="@hoaDon.MaHopDong" 
+                               class="text-decoration-none">
+                                HD@(hoaDon.MaHopDong.ToString("D6"))
+                            </a>
+                        </td>
+                        <td>
+                            @hoaDon.HopDong?.HoTenKhach<br />
+                            <small class="text-muted">@hoaDon.HopDong?.SoDienThoai</small>
+                        </td>
+                        <td>
+                            @hoaDon.HopDong?.Xe?.TenXe<br />
+                            <small class="text-muted">@hoaDon.HopDong?.Xe?.BienSoXe</small>
+                        </td>
+                        <td class="text-success fw-bold">@hoaDon.SoTien.ToString("N0")đ</td>
+                        <td>@hoaDon.NgayThanhToan.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            <span class="status-badge">@hoaDon.TrangThai</span>
+                        </td>
+                        <td>
+                            <a asp-action="ChiTiet" asp-route-id="@hoaDon.MaHoaDon" 
+                               class="btn btn-sm btn-info" title="Chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <button class="btn btn-sm btn-secondary" onclick="printInvoice(@hoaDon.MaHoaDon)" title="In hóa đơn">
+                                <i class="bi bi-printer"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="p-3">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { 
+                                page = i, 
+                                pageSize = ViewBag.PageSize, 
+                                searchString = ViewBag.SearchString,
+                                tuNgay = ViewBag.TuNgay?.ToString("yyyy-MM-dd"),
+                                denNgay = ViewBag.DenNgay?.ToString("yyyy-MM-dd")
+                            })">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function printInvoice(hoaDonId) {
+            window.open('@Url.Action("ChiTiet", "QuanLyHoaDon")/' + hoaDonId + '?print=true', 
+                       '_blank', 'width=800,height=600');
+        }
+
+        // Auto-submit form when date changes
+        $('input[type="date"]').on('change', function() {
+            $(this).closest('form').submit();
+        });
+    </script>
+}
