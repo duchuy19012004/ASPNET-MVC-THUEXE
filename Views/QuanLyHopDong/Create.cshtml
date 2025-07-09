@@ -122,11 +122,11 @@
             </div>
             <div class="form-section">
                 <div class="mb-3">
-                    <label asp-for="MaXe" class="form-label">Xe cho thuê <span class="text-danger">*</span></label>
-                    <select asp-for="MaXe" class="form-select" id="MaXe" asp-items="ViewBag.XeList">
+                    <label for="maXe" class="form-label">Xe cho thuê <span class="text-danger">*</span></label>
+                    <select name="maXe" class="form-select" id="MaXe" asp-items="ViewBag.XeList">
                         <option value="">-- Chọn xe --</option>
                     </select>
-                    <span asp-validation-for="MaXe" class="text-danger"></span>
+                    <span class="text-danger" id="maXeError"></span>
                 </div>
 
                 <!-- Thông tin xe sẽ hiển thị sau khi chọn -->
@@ -222,7 +222,7 @@
                         <div class="mb-3">
                             <label class="form-label">Giá thuê/ngày</label>
                             <input type="text" class="form-control money-input" id="GiaThueDisplay" readonly />
-                            <input asp-for="GiaThueNgay" type="hidden" id="GiaThueNgay" />
+                            <input type="hidden" id="GiaThueNgay" value="0" />
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -348,6 +348,17 @@
 
             // Validate form submit
             $('#createContractForm').on('submit', function(e) {
+                // Validate maXe
+                var maXe = $('#MaXe').val();
+                if (!maXe) {
+                    e.preventDefault();
+                    $('#maXeError').text('Vui lòng chọn xe cho thuê');
+                    $('#MaXe').focus();
+                    return false;
+                } else {
+                    $('#maXeError').text('');
+                }
+
                 if (!$(this).valid()) {
                     return false;
                 }

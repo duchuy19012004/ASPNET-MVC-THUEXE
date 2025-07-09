@@ -22,6 +22,102 @@ namespace bike.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("bike.Models.Banner", b =>
+                {
+                    b.Property<int>("MaBanner")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaBanner"));
+
+                    b.Property<string>("HinhAnh")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("LinkLienKet")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MoTa")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ThuTu")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TieuDe")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("TrangThai")
+                        .HasColumnType("bit");
+
+                    b.HasKey("MaBanner");
+
+                    b.ToTable("Banner");
+                });
+
+            modelBuilder.Entity("bike.Models.ChiTietHopDong", b =>
+                {
+                    b.Property<int>("MaChiTiet")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaChiTiet"));
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("GiaThueNgay")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("MaHopDong")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaXe")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("NgayNhanXe")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTraXeDuKien")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayTraXeThucTe")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("SoNgayThue")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("ThanhTien")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("TrangThaiXe")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("MaChiTiet");
+
+                    b.HasIndex("MaHopDong");
+
+                    b.HasIndex("MaXe");
+
+                    b.ToTable("ChiTietHopDong");
+                });
+
             modelBuilder.Entity("bike.Models.ChiTieu", b =>
                 {
                     b.Property<int>("Id")
@@ -164,9 +260,6 @@ namespace bike.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<decimal>("GiaThueNgay")
-                        .HasColumnType("decimal(18, 2)");
-
                     b.Property<string>("HoTenKhach")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -175,10 +268,10 @@ namespace bike.Migrations
                     b.Property<int?>("MaDatCho")
                         .HasColumnType("int");
 
-                    b.Property<int?>("MaNguoiTao")
+                    b.Property<int?>("MaKhachHang")
                         .HasColumnType("int");
 
-                    b.Property<int>("MaXe")
+                    b.Property<int?>("MaNguoiTao")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("NgayNhanXe")
@@ -221,9 +314,9 @@ namespace bike.Migrations
 
                     b.HasIndex("MaDatCho");
 
-                    b.HasIndex("MaNguoiTao");
+                    b.HasIndex("MaKhachHang");
 
-                    b.HasIndex("MaXe");
+                    b.HasIndex("MaNguoiTao");
 
                     b.ToTable("HopDong");
                 });
@@ -281,7 +374,16 @@ namespace bike.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<decimal?>("MucLuong")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("NgayNghiViec")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayVaoLam")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("SoDienThoai")
@@ -353,6 +455,25 @@ namespace bike.Migrations
                     b.ToTable("Xe");
                 });
 
+            modelBuilder.Entity("bike.Models.ChiTietHopDong", b =>
+                {
+                    b.HasOne("bike.Models.HopDong", "HopDong")
+                        .WithMany("ChiTietHopDong")
+                        .HasForeignKey("MaHopDong")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("bike.Models.Xe", "Xe")
+                        .WithMany("ChiTietHopDong")
+                        .HasForeignKey("MaXe")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("HopDong");
+
+                    b.Navigation("Xe");
+                });
+
             modelBuilder.Entity("bike.Models.ChiTieu", b =>
                 {
                     b.HasOne("bike.Models.Xe", "Xe")
@@ -389,7 +510,8 @@ namespace bike.Migrations
 
                     b.HasOne("bike.Models.User", "NguoiTao")
                         .WithMany()
-                        .HasForeignKey("MaNguoiTao");
+                        .HasForeignKey("MaNguoiTao")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("HopDong");
 
@@ -402,21 +524,21 @@ namespace bike.Migrations
                         .WithMany()
                         .HasForeignKey("MaDatCho");
 
-                    b.HasOne("bike.Models.User", "NguoiTao")
-                        .WithMany()
-                        .HasForeignKey("MaNguoiTao");
+                    b.HasOne("bike.Models.User", "KhachHang")
+                        .WithMany("HopDongKhachHang")
+                        .HasForeignKey("MaKhachHang")
+                        .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("bike.Models.Xe", "Xe")
-                        .WithMany()
-                        .HasForeignKey("MaXe")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("bike.Models.User", "NguoiTao")
+                        .WithMany("HopDongNguoiTao")
+                        .HasForeignKey("MaNguoiTao")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("DatCho");
 
-                    b.Navigation("NguoiTao");
+                    b.Navigation("KhachHang");
 
-                    b.Navigation("Xe");
+                    b.Navigation("NguoiTao");
                 });
 
             modelBuilder.Entity("bike.Models.Xe", b =>
@@ -432,6 +554,8 @@ namespace bike.Migrations
 
             modelBuilder.Entity("bike.Models.HopDong", b =>
                 {
+                    b.Navigation("ChiTietHopDong");
+
                     b.Navigation("HoaDon");
                 });
 
@@ -440,8 +564,17 @@ namespace bike.Migrations
                     b.Navigation("Xes");
                 });
 
+            modelBuilder.Entity("bike.Models.User", b =>
+                {
+                    b.Navigation("HopDongKhachHang");
+
+                    b.Navigation("HopDongNguoiTao");
+                });
+
             modelBuilder.Entity("bike.Models.Xe", b =>
                 {
+                    b.Navigation("ChiTietHopDong");
+
                     b.Navigation("ChiTieu");
                 });
 #pragma warning restore 612, 618

@@ -1,0 +1,310 @@
+@model IEnumerable<bike.Models.User>
+@{
+    ViewData["Title"] = "Quản Lý Nhân Viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int totalPages = (int)Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize);
+    int currentPage = ViewBag.CurrentPage;
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .stat-cards {
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        transition: transform 0.3s;
+        height: 130px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-number {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 10px 0;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .stat-total {
+        color: #3498db;
+    }
+
+    .stat-active {
+        color: #27ae60;
+    }
+
+    .stat-inactive {
+        color: #e74c3c;
+    }
+
+    .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .staff-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .role-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .role-admin {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .role-staff {
+        background: #3498db;
+        color: white;
+    }
+
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-people-fill"></i> Quản Lý Nhân Viên</h1>
+                <p class="mb-0">Quản lý thông tin và phân quyền nhân viên</p>
+            </div>
+            <div>
+                <a asp-action="Create" class="btn btn-light">
+                    <i class="bi bi-person-plus"></i> Thêm nhân viên
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row stat-cards">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-people" style="font-size: 40px; color: #3498db;"></i>
+                <div class="stat-number stat-total">@ViewBag.TongNhanVien</div>
+                <div class="stat-label">Tổng nhân viên</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-person-check" style="font-size: 40px; color: #27ae60;"></i>
+                <div class="stat-number stat-active">@ViewBag.DangLamViec</div>
+                <div class="stat-label">Đang làm việc</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <i class="bi bi-person-x" style="font-size: 40px; color: #e74c3c;"></i>
+                <div class="stat-number stat-inactive">@ViewBag.NghiViec</div>
+                <div class="stat-label">Đã nghỉ việc</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-section">
+        <form method="get" class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <label class="form-label">Tìm kiếm:</label>
+                <input type="text" name="searchString" class="form-control" 
+                       placeholder="Tên, email, SĐT..." 
+                       value="@ViewBag.SearchString" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Vai trò:</label>
+                <select name="vaiTro" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewBag.VaiTro as string) ? "selected" : null)">Tất cả</option>
+                    <option value="Admin" selected="@((ViewBag.VaiTro as string) == "Admin" ? "selected" : null)">Admin</option>
+                    <option value="Staff" selected="@((ViewBag.VaiTro as string) == "Staff" ? "selected" : null)">Staff</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Trạng thái:</label>
+                <select name="trangThai" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewBag.TrangThai as string) ? "selected" : null)">Tất cả</option>
+                    <option value="active" selected="@((ViewBag.TrangThai as string) == "active" ? "selected" : null)">Đang làm việc</option>
+                    <option value="inactive" selected="@((ViewBag.TrangThai as string) == "inactive" ? "selected" : null)">Đã nghỉ việc</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Lọc
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <a href="@Url.Action("Index")" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-clockwise"></i> Làm mới
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="staff-table">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Nhân viên</th>
+                    <th>Liên hệ</th>
+                    <th>Vai trò</th>
+                    <th>Ngày vào làm</th>
+                    <th>Mức lương</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var nhanVien in Model)
+                {
+                    <tr>
+                        <td>
+                            <div>
+                                <strong>@nhanVien.Ten</strong><br />
+                                <small class="text-muted">ID: @nhanVien.Id</small>
+                            </div>
+                        </td>
+                        <td>
+                            @nhanVien.Email<br />
+                            <small class="text-muted">@nhanVien.SoDienThoai</small>
+                        </td>
+                        <td>
+                            <span class="role-badge @(nhanVien.VaiTro == "Admin" ? "role-admin" : "role-staff")">
+                                @nhanVien.VaiTro
+                            </span>
+                        </td>
+                        <td>
+                            @(nhanVien.NgayVaoLam?.ToString("dd/MM/yyyy") ?? "Chưa xác định")
+                        </td>
+                        <td>
+                            @if (nhanVien.MucLuong.HasValue)
+                            {
+                                <span class="text-success fw-bold">@nhanVien.MucLuong.Value.ToString("N0")đ</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa thiết lập</span>
+                            }
+                        </td>
+                        <td>
+                            @if (nhanVien.NgayNghiViec.HasValue)
+                            {
+                                <span class="status-badge status-inactive">
+                                    Nghỉ việc<br />
+                                    <small>@nhanVien.NgayNghiViec.Value.ToString("dd/MM/yyyy")</small>
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-badge status-active">Đang làm việc</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@nhanVien.Id" 
+                               class="btn btn-sm btn-info" title="Chi tiết">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@nhanVien.Id" 
+                               class="btn btn-sm btn-warning" title="Sửa">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            @if (nhanVien.NgayNghiViec.HasValue)
+                            {
+                                <form asp-action="KichHoat" asp-route-id="@nhanVien.Id" method="post" style="display: inline;">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-success" title="Kích hoạt lại"
+                                            onclick="return confirm('Bạn có chắc muốn kích hoạt lại nhân viên này?')">
+                                        <i class="bi bi-arrow-clockwise"></i>
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-action="Delete" asp-route-id="@nhanVien.Id" 
+                                   class="btn btn-sm btn-danger" title="Cho nghỉ việc">
+                                    <i class="bi bi-person-dash"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="p-3">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { 
+                                page = i, 
+                                pageSize = ViewBag.PageSize, 
+                                searchString = ViewBag.SearchString,
+                                vaiTro = ViewBag.VaiTro,
+                                trangThai = ViewBag.TrangThai
+                            })">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
+    </div>
+</div> 

@@ -147,7 +147,6 @@
     <!-- Dashboard Header -->
     <div class="dashboard-header">
         <h1 class="mb-0"><i class="bi bi-bar-chart-line"></i> Báo Cáo Tổng Quan</h1>
-        <p class="mb-0 mt-2">Theo dõi hiệu suất kinh doanh của hệ thống</p>
     </div>
 
     <!-- Filter Section -->
@@ -175,7 +174,7 @@
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-lg-4 col-md-6 mb-3">
             <div class="stat-card">
                 <div class="stat-icon blue text-white">
                     <i class="bi bi-calendar-check"></i>
@@ -192,32 +191,27 @@
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-3">
-            <a href="@Url.Action("DonChoXuLy", "QuanLyHopDong")" class="text-decoration-none">
-                <div class="stat-card" style="cursor: pointer; transition: all 0.3s;">
-                    <div class="stat-icon orange text-white">
-                        <i class="bi bi-hourglass-split"></i>
-                    </div>
-                    <div class="stat-value">@Model.DonChoXuLy</div>
-                    <div class="stat-label">Đơn chờ xử lý</div>
-                    <div class="text-muted small mt-2">
-                        <i class="bi bi-arrow-right-circle"></i> Click để xử lý
-                    </div>
-                </div>
-            </a>
-        </div>
-
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-lg-4 col-md-6 mb-3">
             <div class="stat-card">
                 <div class="stat-icon green text-white">
                     <i class="bi bi-cash-stack"></i>
                 </div>
                 <div class="stat-value">@Model.DoanhThuHomNay.ToString("N0")đ</div>
                 <div class="stat-label">Doanh thu hôm nay</div>
+                <div class="text-muted small mt-2">
+                    <i class="bi bi-info-circle"></i> Chỉ tính xe đã trả thành công
+                </div>
+                @if (Model.PhanTramDoanhThu != 0)
+                {
+                    <div class="stat-change @(Model.PhanTramDoanhThu > 0 ? "positive" : "negative")">
+                        <i class="bi bi-arrow-@(Model.PhanTramDoanhThu > 0 ? "up" : "down")"></i>
+                        @Math.Abs(Model.PhanTramDoanhThu).ToString("F1")% so với kỳ trước
+                    </div>
+                }
             </div>
         </div>
 
-        <div class="col-lg-3 col-md-6 mb-3">
+        <div class="col-lg-4 col-md-6 mb-3">
             <div class="stat-card">
                 <div class="stat-icon purple text-white">
                     <i class="bi bi-bicycle"></i>
@@ -235,7 +229,7 @@
             <div class="chart-card">
                 <div class="chart-header">
                     <h5 class="mb-0">Doanh thu 7 ngày gần nhất</h5>
-                    <small class="text-muted">Đơn vị: VNĐ</small>
+                    <small class="text-muted">Đơn vị: VNĐ (chỉ tính xe đã trả thành công)</small>
                 </div>
                 <canvas id="revenueChart" height="100"></canvas>
             </div>
@@ -260,6 +254,7 @@
             <div class="table-card">
                 <div class="table-header">
                     <i class="bi bi-trophy"></i> Top xe được thuê nhiều nhất
+                    <small class="text-muted ms-2">(chỉ tính hợp đồng đã hoàn thành)</small>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -297,7 +292,7 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Mã</th>
+                                
                                 <th>Khách hàng</th>
                                 <th>Xe</th>
                                 <th>Trạng thái</th>
@@ -308,7 +303,6 @@
                             @foreach (var don in Model.DonDatGanDay)
                             {
                                 <tr>
-                                    <td>DC@(don.MaDatCho.ToString("D6"))</td>
                                     <td>@don.TenKhach</td>
                                     <td>@don.TenXe</td>
                                     <td>

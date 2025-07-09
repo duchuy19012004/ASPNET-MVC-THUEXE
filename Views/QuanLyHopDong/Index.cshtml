@@ -22,21 +22,96 @@
         text-align: center;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         transition: transform 0.3s;
+        height: 190px; /* Tăng thêm chiều cao để có khoảng cách thoáng hơn */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between; /* Phân bố đều các elements */
+        align-items: center;
+        position: relative;
     }
 
         .stat-card:hover {
             transform: translateY(-5px);
         }
 
+    /* Hiệu ứng đặc biệt cho card Đơn chờ xử lý */
+    a .stat-card:hover {
+        transform: translateY(-8px);
+        border-color: #ff6b35 !important;
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.2) !important;
+    }
+
+    /* Đảm bảo các col cards có cùng chiều cao */
+    .stat-cards .col-lg-3 {
+        display: flex;
+    }
+
+    .stat-cards .col-lg-3 > a,
+    .stat-cards .col-lg-3 > .stat-card {
+        width: 100%;
+    }
+
+    /* Container cho icon - đảm bảo thẳng hàng */
+    .stat-icon-container {
+        height: 60px; /* Tăng để tạo thêm khoảng cách */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 5px; /* Thêm margin để tạo khoảng cách với số */
+    }
+
+    /* Icon căn chỉnh chính xác */
+    .stat-card i {
+        font-size: 40px !important;
+        line-height: 1;
+        margin: 0;
+    }
+
+    /* Container cho số - đảm bảo thẳng hàng */
+    .stat-number-container {
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 5px; /* Thêm margin để tạo khoảng cách với label */
+    }
+
     .stat-number {
         font-size: 36px;
         font-weight: bold;
-        margin: 10px 0;
+        line-height: 1;
+        margin: 0;
+    }
+
+    /* Container cho label - đảm bảo thẳng hàng */
+    .stat-label-container {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
     }
 
     .stat-label {
         color: #666;
         font-size: 14px;
+        line-height: 1.2;
+        margin: 0;
+    }
+
+    /* Container cho dòng extra (Click để xử lý) */
+    .stat-extra-container {
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Styling cho dòng "Click để xử lý" */
+    .stat-card .text-muted.small {
+        font-size: 12px;
+        line-height: 1.2;
+        margin: 0;
     }
 
     .stat-active {
@@ -144,25 +219,72 @@
 
     <!-- Statistics -->
     <div class="row stat-cards">
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card">
-                <i class="bi bi-file-text" style="font-size: 40px; color: #666;"></i>
-                <div class="stat-number">@ViewBag.TotalItems</div>
-                <div class="stat-label">Tổng hợp đồng</div>
+                <div class="stat-icon-container">
+                    <i class="bi bi-file-text" style="color: #666;"></i>
+                </div>
+                <div class="stat-number-container">
+                    <div class="stat-number">@ViewBag.TotalItems</div>
+                </div>
+                <div class="stat-label-container">
+                    <div class="stat-label">Tổng hợp đồng</div>
+                </div>
+                <div class="stat-extra-container">
+                    <!-- Empty space for alignment -->
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <a href="@Url.Action("DonChoXuLy")" class="text-decoration-none">
+                <div class="stat-card" style="cursor: pointer; transition: all 0.3s; border: 2px solid transparent;">
+                    <div class="stat-icon-container">
+                        <i class="bi bi-hourglass-split" style="color: #ff6b35;"></i>
+                    </div>
+                    <div class="stat-number-container">
+                        <div class="stat-number" style="color: #ff6b35;">@ViewBag.DonChoXuLy</div>
+                    </div>
+                    <div class="stat-label-container">
+                        <div class="stat-label">Đơn chờ xử lý</div>
+                    </div>
+                    <div class="stat-extra-container">
+                        <div class="text-muted small">
+                            Click để xử lý
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card">
-                <i class="bi bi-clock" style="font-size: 40px; color: #28a745;"></i>
-                <div class="stat-number stat-active">@ViewBag.TongDangThue</div>
-                <div class="stat-label">Đang thuê</div>
+                <div class="stat-icon-container">
+                    <i class="bi bi-clock" style="color: #28a745;"></i>
+                </div>
+                <div class="stat-number-container">
+                    <div class="stat-number stat-active">@ViewBag.TongDangThue</div>
+                </div>
+                <div class="stat-label-container">
+                    <div class="stat-label">Đang thuê</div>
+                </div>
+                <div class="stat-extra-container">
+                    <!-- Empty space for alignment -->
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-lg-3 col-md-6 mb-3">
             <div class="stat-card">
-                <i class="bi bi-check-circle" style="font-size: 40px; color: #17a2b8;"></i>
-                <div class="stat-number stat-completed">@ViewBag.TongHoanThanh</div>
-                <div class="stat-label">Hoàn thành</div>
+                <div class="stat-icon-container">
+                    <i class="bi bi-check-circle" style="color: #17a2b8;"></i>
+                </div>
+                <div class="stat-number-container">
+                    <div class="stat-number stat-completed">@ViewBag.TongHoanThanh</div>
+                </div>
+                <div class="stat-label-container">
+                    <div class="stat-label">Hoàn thành</div>
+                </div>
+                <div class="stat-extra-container">
+                    <!-- Empty space for alignment -->
+                </div>
             </div>
         </div>
     </div>
@@ -224,8 +346,21 @@
                             <small class="text-muted phone-number">@item.SoDienThoai</small>
                         </td>
                         <td>
-                            @item.Xe?.TenXe<br />
-                            <small class="text-muted">@item.Xe?.BienSoXe</small>
+                            @if (item.ChiTietHopDong?.Any() == true)
+                            {
+                                var xe = item.ChiTietHopDong.First();
+                                @xe.Xe?.TenXe<br />
+                                <small class="text-muted">@xe.Xe?.BienSoXe</small>
+                                
+                                @if (item.ChiTietHopDong.Count > 1)
+                                {
+                                    <small class="text-primary">(+@(item.ChiTietHopDong.Count - 1) xe khác)</small>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa có xe</span>
+                            }
                         </td>
                         <td>@item.NgayNhanXe.ToString("dd/MM/yyyy")</td>
                         <td>

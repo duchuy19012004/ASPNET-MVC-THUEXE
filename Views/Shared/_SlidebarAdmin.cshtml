@@ -49,6 +49,11 @@
                     <i class="bi bi-wallet2"></i> <span class="menu-text">Quản lý chi tiêu</span>
                 </a>
             </li>
+            <li>
+                <a asp-controller="QuanLyBanner" asp-action="Index">
+                    <i class="bi bi-image"></i> <span class="menu-text">Quản lý banner</span>
+                </a>
+            </li>
         }
 
         @* Quản lý người dùng - Chỉ Admin *@
@@ -58,6 +63,12 @@
                 <a asp-controller="QuanLyUser" asp-action="Index">
                     <i class="bi bi-people-fill"></i>
                     <span class="menu-text">Quản lý người dùng</span>
+                </a>
+            </li>
+            <li>
+                <a asp-controller="QuanLyNhanVien" asp-action="Index">
+                    <i class="bi bi-person-workspace"></i>
+                    <span class="menu-text">Quản lý nhân viên</span>
                 </a>
             </li>
         }

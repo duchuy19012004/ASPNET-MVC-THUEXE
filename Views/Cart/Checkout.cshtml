@@ -1,0 +1,241 @@
+@model bike.Models.Cart
+@{
+    ViewData["Title"] = "Thanh toán";
+    Layout = "~/Views/Shared/_HomePage.cshtml";
+}
+
+<style>
+    .checkout-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+    
+    .checkout-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+    
+    .checkout-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+    }
+    
+    .section-title {
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+        font-weight: bold;
+    }
+    
+    .order-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-left: 3px solid #667eea;
+    }
+    
+    .vehicle-mini-image {
+        width: 60px;
+        height: 45px;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+    
+    .order-summary {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        position: sticky;
+        top: 20px;
+    }
+    
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+    
+    .summary-total {
+        font-size: 20px;
+        font-weight: bold;
+        border-top: 2px solid rgba(255,255,255,0.3);
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+    
+    .btn-place-order {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px;
+        width: 100%;
+        margin-top: 20px;
+        transition: all 0.3s;
+    }
+    
+    .btn-place-order:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .form-floating {
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="checkout-container">
+    <div class="checkout-header">
+        <h2><i class="bi bi-credit-card"></i> Xác nhận đặt chỗ</h2>
+        <p class="mb-0">Hoàn tất thông tin để đặt @Model.TongSoXe xe</p>
+    </div>
+
+    <div class="checkout-body">
+        <form asp-action="Checkout" method="post">
+            <div class="row">
+                <!-- Cột trái: Thông tin khách hàng -->
+                <div class="col-lg-8">
+                    <h4 class="section-title"><i class="bi bi-person-fill"></i> Thông tin khách hàng</h4>
+                    
+                    @if (ViewData.ModelState.Any(m => m.Value.Errors.Count > 0))
+                    {
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                {
+                                    <li>@error.ErrorMessage</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="HoTen" class="form-control" placeholder="Họ và tên" required />
+                                <label asp-for="HoTen"></label>
+                                <span asp-validation-for="HoTen" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                <input asp-for="SoDienThoai" class="form-control" placeholder="Số điện thoại" required />
+                                <label asp-for="SoDienThoai"></label>
+                                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-floating">
+                        <input asp-for="Email" class="form-control" placeholder="Email" required />
+                        <label asp-for="Email"></label>
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating">
+                        <textarea asp-for="GhiChuChung" class="form-control" placeholder="Ghi chú chung (tùy chọn)" rows="3"></textarea>
+                        <label asp-for="GhiChuChung"></label>
+                    </div>
+
+                    <h4 class="section-title mt-4"><i class="bi bi-list-check"></i> Chi tiết đơn hàng</h4>
+                    
+                    @foreach (var item in Model.Items)
+                    {
+                        <div class="order-item">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    @if (!string.IsNullOrEmpty(item.HinhAnhXe))
+                                    {
+                                        <img src="/images/xe/@item.HinhAnhXe" alt="@item.TenXe" class="vehicle-mini-image" />
+                                    }
+                                    else
+                                    {
+                                        <img src="/images/default.jpg" alt="@item.TenXe" class="vehicle-mini-image" />
+                                    }
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-1">@item.TenXe</h6>
+                                    <small class="text-muted">@item.TenLoaiXe</small><br>
+                                    <small>
+                                        <i class="bi bi-calendar3"></i> 
+                                        @item.NgayNhanXe.ToString("dd/MM/yyyy") - @item.NgayTraXe.ToString("dd/MM/yyyy")
+                                        (@item.SoNgayThue ngày)
+                                    </small>
+                                    @if (!string.IsNullOrEmpty(item.GhiChu))
+                                    {
+                                        <br><small class="text-info"><i class="bi bi-chat-left-text"></i> @item.GhiChu</small>
+                                    }
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span class="badge bg-secondary">@item.GiaThue.ToString("N0")đ/ngày</span>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <strong class="text-primary">@item.TongTien.ToString("N0")đ</strong>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Cột phải: Tóm tắt đơn hàng -->
+                <div class="col-lg-4">
+                    <div class="order-summary">
+                        <h5 class="mb-3"><i class="bi bi-receipt"></i> Tóm tắt đơn hàng</h5>
+                        
+                        <div class="summary-item">
+                            <span>Số lượng xe:</span>
+                            <strong>@Model.TongSoXe xe</strong>
+                        </div>
+
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="summary-item">
+                                <span>@item.TenXe (@item.SoNgayThue ngày):</span>
+                                <span>@item.TongTien.ToString("N0")đ</span>
+                            </div>
+                        }
+
+                        <div class="summary-item summary-total">
+                            <span>Tổng cộng:</span>
+                            <strong>@Model.TongTien.ToString("N0")đ</strong>
+                        </div>
+
+                        <button type="submit" class="btn-place-order">
+                            <i class="bi bi-check-circle"></i> Xác nhận đặt chỗ
+                        </button>
+
+                        <div class="text-center mt-3">
+                            <a href="@Url.Action("Index")" class="btn btn-outline-light">
+                                <i class="bi bi-arrow-left"></i> Quay lại giỏ xe
+                            </a>
+                        </div>
+
+                        <div class="mt-3">
+                            <hr style="border-color: rgba(255,255,255,0.3);">
+                            <small>
+                                <i class="bi bi-info-circle"></i> 
+                                Bằng việc xác nhận, bạn đồng ý với các điều khoản và điều kiện của chúng tôi.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

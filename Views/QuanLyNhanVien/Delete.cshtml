@@ -1,0 +1,258 @@
+@model bike.Models.User
+@{
+    ViewData["Title"] = "Xác Nhận Cho Nghỉ Việc";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .confirm-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        border: 2px solid #e74c3c;
+    }
+
+    .confirm-header {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+        padding: 20px 30px;
+    }
+
+    .confirm-body {
+        padding: 30px;
+    }
+
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .info-box {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .employee-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+
+    .btn-danger-custom {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        border: none;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        border: none;
+        padding: 12px 30px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-exclamation-triangle"></i> Xác Nhận Cho Nghỉ Việc</h1>
+                <p class="mb-0">Bạn có chắc chắn muốn cho nhân viên này nghỉ việc?</p>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="confirm-card">
+                <div class="confirm-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-dash"></i> Xác nhận cho nghỉ việc
+                    </h5>
+                </div>
+                <div class="confirm-body">
+                    <!-- Thông tin nhân viên -->
+                    <div class="employee-info">
+                        <h6 class="text-primary mb-3">
+                            <i class="bi bi-person-badge"></i> Thông tin nhân viên sẽ nghỉ việc
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Họ và tên:</strong> @Model.Ten</p>
+                                <p><strong>Email:</strong> @Model.Email</p>
+                                <p><strong>Vai trò:</strong> 
+                                    <span class="badge @(Model.VaiTro == "Admin" ? "bg-danger" : "bg-primary")">
+                                        @Model.VaiTro
+                                    </span>
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Ngày vào làm:</strong> 
+                                    @(Model.NgayVaoLam.HasValue ? Model.NgayVaoLam.Value.ToString("dd/MM/yyyy") : "Chưa xác định")
+                                </p>
+                                <p><strong>Số ngày làm việc:</strong> 
+                                    @if (Model.NgayVaoLam.HasValue)
+                                    {
+                                        @( (int)(DateTime.Now.Date - Model.NgayVaoLam.Value.Date).TotalDays ) <span>ngày</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Chưa xác định</span>
+                                    }
+                                </p>
+                                <p><strong>Mức lương:</strong> 
+                                    @if (Model.MucLuong.HasValue)
+                                    {
+                                        <span class="text-success">@Model.MucLuong.Value.ToString("N0") VNĐ</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa thiết lập</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cảnh báo -->
+                    <div class="warning-box">
+                        <h6 class="text-warning mb-3">
+                            <i class="bi bi-exclamation-triangle-fill"></i> Lưu ý quan trọng
+                        </h6>
+                        <ul class="mb-0">
+                            <li><strong>Tài khoản sẽ bị vô hiệu hóa:</strong> Nhân viên không thể đăng nhập vào hệ thống</li>
+                            <li><strong>Ngày nghỉ việc:</strong> Sẽ được đặt là ngày hôm nay (@DateTime.Today.ToString("dd/MM/yyyy"))</li>
+                            <li><strong>Dữ liệu được bảo toàn:</strong> Tất cả thông tin và lịch sử làm việc vẫn được lưu</li>
+                            <li><strong>Có thể khôi phục:</strong> Bạn có thể kích hoạt lại nhân viên sau này nếu cần</li>
+                        </ul>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.VaiTro) && Model.VaiTro == "Admin")
+                    {
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">
+                                <i class="bi bi-shield-exclamation"></i> Cảnh báo: Nhân viên có quyền Admin
+                            </h6>
+                            <p class="mb-0">
+                                Nhân viên này có quyền quản trị viên. Hãy đảm bảo có ít nhất một Admin khác 
+                                hoạt động trước khi cho nghỉ việc để tránh mất quyền quản lý hệ thống.
+                            </p>
+                        </div>
+                    }
+
+                    <!-- Thông tin bổ sung -->
+                    <div class="info-box">
+                        <h6 class="text-info mb-3">
+                            <i class="bi bi-info-circle-fill"></i> Sau khi cho nghỉ việc
+                        </h6>
+                        <ul class="mb-0">
+                            <li>Nhân viên sẽ xuất hiện trong danh sách "Đã nghỉ việc"</li>
+                            <li>Bạn có thể xem lại thông tin chi tiết bất cứ lúc nào</li>
+                            <li>Có thể kích hoạt lại bằng nút "Kích hoạt lại" nếu cần thiết</li>
+                            <li>Tất cả báo cáo và thống kê liên quan vẫn được giữ nguyên</li>
+                        </ul>
+                    </div>
+
+                    <!-- Form xác nhận -->
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        
+                        <div class="d-flex justify-content-center gap-3 mt-4">
+                            <a asp-action="Index" class="btn btn-secondary btn-secondary-custom">
+                                <i class="bi bi-x-circle"></i> Hủy bỏ
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-danger-custom"
+                                    onclick="return confirm('Bạn có CHẮC CHẮN muốn cho nhân viên @Model.Ten nghỉ việc? Hành động này sẽ vô hiệu hóa tài khoản của họ.')">
+                                <i class="bi bi-person-dash"></i> Xác nhận cho nghỉ việc
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0">
+                        <i class="bi bi-lightbulb"></i> Các lựa chọn khác
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small">Thay vì cho nghỉ việc, bạn có thể:</p>
+                    <div class="d-grid gap-2">
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-warning btn-sm">
+                            <i class="bi bi-pencil"></i> Chỉnh sửa thông tin
+                        </a>
+                        @if (Model.IsActive)
+                        {
+                            <button type="button" class="btn btn-outline-secondary btn-sm" 
+                                    onclick="toggleAccount(false)">
+                                <i class="bi bi-pause"></i> Tạm khóa tài khoản
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                    onclick="toggleAccount(true)">
+                                <i class="bi bi-play"></i> Kích hoạt tài khoản
+                            </button>
+                        }
+                        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-eye"></i> Xem chi tiết
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-info mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="bi bi-question-circle"></i> Cần hỗ trợ?
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small mb-0">
+                        Nếu bạn không chắc chắn về quyết định này, hãy liên hệ với 
+                        quản trị viên cấp cao hoặc phòng nhân sự để được tư vấn.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function toggleAccount(activate) {
+            var action = activate ? 'kích hoạt' : 'tạm khóa';
+            if (confirm('Bạn có chắc muốn ' + action + ' tài khoản của nhân viên @Model.Ten?')) {
+                // Có thể thay đổi đường dẫn nếu muốn thực hiện tạm khóa/kích hoạt thực sự
+                window.location.href = '@Url.Action("Edit", new { id = Model.Id })';
+            }
+        }
+    </script>
+} 

@@ -288,8 +288,12 @@
                 <div class="action-buttons">
                     @if (Model.TrangThai == "Sẵn sàng")
                     {
-                        
-                        <button class="btn-secondary-custom" onclick="datGiuXe(@Model.MaXe)">ĐẶT GIỮ XE</button>
+                        <button class="btn-secondary-custom" onclick="showQuickBookingModal(@Model.MaXe)" style="margin-right: 10px;">
+                            <i class="bi bi-cart-plus"></i> THÊM VÀO GIỎ
+                        </button>
+                        <button class="btn-primary-custom" onclick="datGiuXe(@Model.MaXe)">
+                            <i class="bi bi-calendar-check"></i> ĐẶT NGAY
+                        </button>
                     }
                     else
                     {
@@ -399,6 +403,46 @@
     </div>
 </section>
 
+<!-- Quick Booking Modal -->
+<div class="modal fade" id="quickBookingModal" tabindex="-1" aria-labelledby="quickBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickBookingModalLabel">
+                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ xe
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addToCartForm">
+                    <div class="mb-3">
+                        <label class="form-label">Ngày nhận xe</label>
+                        <input type="date" class="form-control" id="ngayNhanXe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày trả xe</label>
+                        <input type="date" class="form-control" id="ngayTraXe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú (tùy chọn)</label>
+                        <textarea class="form-control" id="ghiChu" rows="2" placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Số ngày thuê: <span id="soNgayThue">0</span> ngày<br>
+                        <i class="bi bi-cash"></i> Tổng tiền dự kiến: <span id="tongTien">0đ</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="addToCart()">
+                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Thay đổi ảnh chính
@@ -411,9 +455,116 @@
             });
             event.target.classList.add('active');
         }
+
         // Đặt giữ xe
         function datGiuXe(maXe) {
             // Chuyển đến form đặt giữ chỗ
             window.location.href = '@Url.Action("Create", "DatCho", new { id = Model.MaXe })';
-        }    </script>
+        }
+
+        // Show quick booking modal
+        function showQuickBookingModal(maXe) {
+            // Set default dates
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfter = new Date(today);
+            dayAfter.setDate(dayAfter.getDate() + 3);
+
+            document.getElementById('ngayNhanXe').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('ngayTraXe').value = dayAfter.toISOString().split('T')[0];
+            
+            // Set min date to today
+            document.getElementById('ngayNhanXe').min = today.toISOString().split('T')[0];
+            document.getElementById('ngayTraXe').min = tomorrow.toISOString().split('T')[0];
+
+            calculatePrice();
+            $('#quickBookingModal').modal('show');
+        }
+
+        // Calculate price when dates change
+        document.getElementById('ngayNhanXe').addEventListener('change', function() {
+            // Update min date for ngayTraXe
+            const ngayNhanXe = new Date(this.value);
+            ngayNhanXe.setDate(ngayNhanXe.getDate() + 1);
+            document.getElementById('ngayTraXe').min = ngayNhanXe.toISOString().split('T')[0];
+            
+            // If ngayTraXe is before ngayNhanXe, update it
+            const ngayTraXe = document.getElementById('ngayTraXe').value;
+            if (ngayTraXe && new Date(ngayTraXe) <= new Date(this.value)) {
+                document.getElementById('ngayTraXe').value = ngayNhanXe.toISOString().split('T')[0];
+            }
+            
+            calculatePrice();
+        });
+
+        document.getElementById('ngayTraXe').addEventListener('change', calculatePrice);
+
+        function calculatePrice() {
+            const ngayNhanXe = document.getElementById('ngayNhanXe').value;
+            const ngayTraXe = document.getElementById('ngayTraXe').value;
+            
+            if (ngayNhanXe && ngayTraXe) {
+                const startDate = new Date(ngayNhanXe);
+                const endDate = new Date(ngayTraXe);
+                const dayDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (dayDiff > 0) {
+                    const giaThue = @Model.GiaThue;
+                    const tongTien = dayDiff * giaThue;
+                    
+                    document.getElementById('soNgayThue').textContent = dayDiff;
+                    document.getElementById('tongTien').textContent = tongTien.toLocaleString() + 'đ';
+                } else {
+                    document.getElementById('soNgayThue').textContent = '0';
+                    document.getElementById('tongTien').textContent = '0đ';
+                }
+            }
+        }
+
+        // Add to cart function
+        function addToCart() {
+            const ngayNhanXe = document.getElementById('ngayNhanXe').value;
+            const ngayTraXe = document.getElementById('ngayTraXe').value;
+            const ghiChu = document.getElementById('ghiChu').value;
+            
+            if (!ngayNhanXe || !ngayTraXe) {
+                alert('Vui lòng chọn ngày nhận và trả xe');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Add", "Cart")',
+                type: 'POST',
+                data: {
+                    maXe: @Model.MaXe,
+                    ngayNhanXe: ngayNhanXe,
+                    ngayTraXe: ngayTraXe,
+                    ghiChu: ghiChu,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#quickBookingModal').modal('hide');
+                        alert(response.message);
+                        updateCartBadge(response.cartItemCount);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                }
+            });
+        }
+
+        function updateCartBadge(count) {
+            const badge = $('.cart-badge');
+            if (count > 0) {
+                badge.text(count).show();
+            } else {
+                badge.hide();
+            }
+        }
+    </script>
 }

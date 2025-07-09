@@ -40,15 +40,14 @@ namespace bike.Controllers
                 .Where(d => d.NgayDat >= startDate && d.NgayDat <= endDate.AddDays(1))
                 .CountAsync();
 
-            // Đơn chờ xử lý
-            viewModel.DonChoXuLy = await _context.DatCho
-                .Where(d => d.TrangThai == "Chờ xác nhận" || d.TrangThai == "Đang giữ chỗ")
-                .CountAsync();
 
-            // Doanh thu hôm nay
+
+            // Doanh thu hôm nay - CHỈ TÍNH KHI ĐÃ TRẢ XE THÀNH CÔNG
             var today = DateTime.Now.Date;
             viewModel.DoanhThuHomNay = await _context.HopDong
-                .Where(h => h.NgayTao.Date == today)
+                .Where(h => h.TrangThai == "Hoàn thành" && 
+                           h.NgayTraXeThucTe.HasValue && 
+                           h.NgayTraXeThucTe.Value.Date == today)
                 .SumAsync(h => h.TongTien);
 
             // Xe đang cho thuê
@@ -56,7 +55,7 @@ namespace bike.Controllers
                 .Where(x => x.TrangThai == "Đang thuê")
                 .CountAsync();
 
-            // 2. Tính % tăng/giảm so với kỳ trước
+            // 2. Tính % tăng/giảm so với kỳ trước - DỰA TRÊN NGÀY TRẢ XE
             var previousPeriodDays = (endDate - startDate).Days;
             var previousStartDate = startDate.AddDays(-previousPeriodDays - 1);
             var previousEndDate = startDate.AddDays(-1);
@@ -70,7 +69,27 @@ namespace bike.Controllers
                 viewModel.PhanTramDonDat = ((double)(viewModel.TongDonDatXe - previousDonDat) / previousDonDat) * 100;
             }
 
-            // 3. Dữ liệu biểu đồ doanh thu (7 ngày gần nhất)
+            // Tính doanh thu kỳ trước để so sánh
+            var previousRevenue = await _context.HopDong
+                .Where(h => h.TrangThai == "Hoàn thành" && 
+                           h.NgayTraXeThucTe.HasValue &&
+                           h.NgayTraXeThucTe.Value.Date >= previousStartDate && 
+                           h.NgayTraXeThucTe.Value.Date <= previousEndDate)
+                .SumAsync(h => h.TongTien);
+
+            var currentRevenue = await _context.HopDong
+                .Where(h => h.TrangThai == "Hoàn thành" && 
+                           h.NgayTraXeThucTe.HasValue &&
+                           h.NgayTraXeThucTe.Value.Date >= startDate && 
+                           h.NgayTraXeThucTe.Value.Date <= endDate)
+                .SumAsync(h => h.TongTien);
+
+            if (previousRevenue > 0)
+            {
+                viewModel.PhanTramDoanhThu = ((double)(currentRevenue - previousRevenue) / (double)previousRevenue) * 100;
+            }
+
+            // 3. Dữ liệu biểu đồ doanh thu (7 ngày gần nhất) - CHỈ TÍNH KHI ĐÃ TRẢ XE
             var last7Days = Enumerable.Range(0, 7)
                 .Select(i => DateTime.Now.Date.AddDays(-6 + i))
                 .ToList();
@@ -78,7 +97,9 @@ namespace bike.Controllers
             foreach (var date in last7Days)
             {
                 var doanhThuNgay = await _context.HopDong
-                    .Where(h => h.NgayTao.Date == date)
+                    .Where(h => h.TrangThai == "Hoàn thành" && 
+                               h.NgayTraXeThucTe.HasValue && 
+                               h.NgayTraXeThucTe.Value.Date == date)
                     .SumAsync(h => h.TongTien);
 
                 viewModel.BieuDoDoanhThu.Add(new BieuDoItem
@@ -102,16 +123,21 @@ namespace bike.Controllers
                 });
             }
 
-            // 5. Top 5 xe được thuê nhiều nhất
-            var topXe = await _context.HopDong
-                .Where(h => h.NgayTao >= startDate && h.NgayTao <= endDate.AddDays(1))
-                .GroupBy(h => new { h.MaXe, h.Xe.TenXe, h.Xe.BienSoXe })
+            // 5. Top 5 xe được thuê nhiều nhất - CHỈ TÍNH HỢP ĐỒNG ĐÃ HOÀN THÀNH
+            var topXe = await _context.ChiTietHopDong
+                .Include(ct => ct.Xe)
+                .Include(ct => ct.HopDong)
+                .Where(ct => ct.HopDong.TrangThai == "Hoàn thành" && 
+                            ct.HopDong.NgayTraXeThucTe.HasValue &&
+                            ct.HopDong.NgayTraXeThucTe.Value.Date >= startDate && 
+                            ct.HopDong.NgayTraXeThucTe.Value.Date <= endDate)
+                .GroupBy(ct => new { ct.Xe.TenXe, ct.Xe.BienSoXe })
                 .Select(g => new XeThueNhieuItem
                 {
                     TenXe = g.Key.TenXe,
                     BienSo = g.Key.BienSoXe,
                     SoLanThue = g.Count(),
-                    DoanhThu = g.Sum(h => h.TongTien)
+                    DoanhThu = g.Sum(ct => ct.ThanhTien)
                 })
                 .OrderByDescending(x => x.SoLanThue)
                 .Take(5)
@@ -151,8 +177,12 @@ namespace bike.Controllers
                 var startDate = new DateTime(currentYear, month, 1);
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
+                // CHỈ TÍNH DOANH THU KHI ĐÃ TRẢ XE THÀNH CÔNG
                 var revenue = await _context.HopDong
-                    .Where(h => h.NgayTao >= startDate && h.NgayTao <= endDate)
+                    .Where(h => h.TrangThai == "Hoàn thành" && 
+                               h.NgayTraXeThucTe.HasValue &&
+                               h.NgayTraXeThucTe.Value.Date >= startDate && 
+                               h.NgayTraXeThucTe.Value.Date <= endDate)
                     .SumAsync(h => h.TongTien);
 
                 monthlyRevenue.Add(new BieuDoItem

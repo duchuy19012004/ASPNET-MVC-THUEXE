@@ -181,8 +181,21 @@
                             <small class="text-muted">@hoaDon.HopDong?.SoDienThoai</small>
                         </td>
                         <td>
-                            @hoaDon.HopDong?.Xe?.TenXe<br />
-                            <small class="text-muted">@hoaDon.HopDong?.Xe?.BienSoXe</small>
+                            @if (hoaDon.HopDong?.ChiTietHopDong?.Any() == true)
+                            {
+                                var xeDau = hoaDon.HopDong.ChiTietHopDong.First();
+                                @xeDau.Xe?.TenXe
+                                <br />
+                                <small class="text-muted">@xeDau.Xe?.BienSoXe</small>
+                                @if (hoaDon.HopDong.ChiTietHopDong.Count > 1)
+                                {
+                                    <br/><small class="text-info">+@(hoaDon.HopDong.ChiTietHopDong.Count - 1) xe khác</small>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-danger">Không có xe</span>
+                            }
                         </td>
                         <td class="text-success fw-bold">@hoaDon.SoTien.ToString("N0")đ</td>
                         <td>@hoaDon.NgayThanhToan.ToString("dd/MM/yyyy")</td>
@@ -194,9 +207,10 @@
                                class="btn btn-sm btn-info" title="Chi tiết">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <button class="btn btn-sm btn-secondary" onclick="printInvoice(@hoaDon.MaHoaDon)" title="In hóa đơn">
+                            <a href="@Url.Action("InHoaDon", "QuanLyHoaDon", new { id = hoaDon.MaHoaDon })" 
+                               target="_blank" class="btn btn-sm btn-secondary" title="In hóa đơn">
                                 <i class="bi bi-printer"></i>
-                            </button>
+                            </a>
                         </td>
                     </tr>
                 }
@@ -228,11 +242,6 @@
 
 @section Scripts {
     <script>
-        function printInvoice(hoaDonId) {
-            window.open('@Url.Action("ChiTiet", "QuanLyHoaDon")/' + hoaDonId + '?print=true', 
-                       '_blank', 'width=800,height=600');
-        }
-
         // Auto-submit form when date changes
         $('input[type="date"]').on('change', function() {
             $(this).closest('form').submit();

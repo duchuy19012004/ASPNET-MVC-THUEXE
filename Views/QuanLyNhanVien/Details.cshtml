@@ -1,0 +1,369 @@
+@model bike.Models.User
+@{
+    ViewData["Title"] = "Chi Tiết Nhân Viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #6c5ce7 0%, #5f27cd 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, #6c5ce7 0%, #5f27cd 100%);
+        color: white;
+        padding: 20px 30px;
+    }
+
+    .detail-body {
+        padding: 30px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #666;
+        flex: 0 0 180px;
+    }
+
+    .info-value {
+        flex: 1;
+        color: #333;
+    }
+
+    .badge-custom {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-active {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .role-admin {
+        background: #e74c3c;
+        color: white;
+    }
+
+    .role-staff {
+        background: #3498db;
+        color: white;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-person-badge"></i> Chi Tiết Nhân Viên</h1>
+                <p class="mb-0">Thông tin đầy đủ về nhân viên: <strong>@Model.Ten</strong></p>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <!-- Thông tin cá nhân -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person"></i> Thông tin cá nhân
+                    </h5>
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-card-text"></i> Họ và tên:
+                        </div>
+                        <div class="info-value">
+                            <strong>@Model.Ten</strong>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-envelope"></i> Email:
+                        </div>
+                        <div class="info-value">
+                            @Model.Email
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-telephone"></i> Số điện thoại:
+                        </div>
+                        <div class="info-value">
+                            @(Model.SoDienThoai ?? "Chưa cập nhật")
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-geo-alt"></i> Địa chỉ:
+                        </div>
+                        <div class="info-value">
+                            @(Model.DiaChi ?? "Chưa cập nhật")
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin tài khoản -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-key"></i> Thông tin tài khoản
+                    </h5>
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-hash"></i> ID nhân viên:
+                        </div>
+                        <div class="info-value">
+                            <code>@Model.Id</code>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-shield"></i> Vai trò:
+                        </div>
+                        <div class="info-value">
+                            <span class="badge-custom @(Model.VaiTro == "Admin" ? "role-admin" : "role-staff")">
+                                @Model.VaiTro
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-calendar-plus"></i> Ngày tạo tài khoản:
+                        </div>
+                        <div class="info-value">
+                            @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-toggle-on"></i> Trạng thái tài khoản:
+                        </div>
+                        <div class="info-value">
+                            @if (Model.NgayNghiViec.HasValue)
+                            {
+                                <span class="badge-custom status-inactive">
+                                    <i class="bi bi-x-circle"></i> Đã nghỉ việc
+                                </span>
+                            }
+                            else if (Model.IsActive)
+                            {
+                                <span class="badge-custom status-active">
+                                    <i class="bi bi-check-circle"></i> Đang hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-custom" style="background: #f8d7da; color: #721c24;">
+                                    <i class="bi bi-pause-circle"></i> Tạm khóa
+                                </span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông tin công việc -->
+            <div class="detail-card">
+                <div class="detail-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-briefcase"></i> Thông tin công việc
+                    </h5>
+                </div>
+                <div class="detail-body">
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-calendar-check"></i> Ngày vào làm:
+                        </div>
+                        <div class="info-value">
+                            @if (Model.NgayVaoLam.HasValue)
+                            {
+                                <span>@Model.NgayVaoLam.Value.ToString("dd/MM/yyyy")</span>
+                                <small class="text-muted ms-2">
+                                    (Đã làm việc @((DateTime.Now - Model.NgayVaoLam.Value).Days) ngày)
+                                </small>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa xác định</span>
+                            }
+                        </div>
+                    </div>
+                    @if (Model.NgayNghiViec.HasValue)
+                    {
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="bi bi-calendar-x"></i> Ngày nghỉ việc:
+                            </div>
+                            <div class="info-value">
+                                <span class="text-danger">@Model.NgayNghiViec.Value.ToString("dd/MM/yyyy")</span>
+                                @if (Model.NgayVaoLam.HasValue)
+                                {
+                                    <small class="text-muted ms-2">
+                                        (Đã làm việc @((Model.NgayNghiViec.Value - Model.NgayVaoLam.Value).Days) ngày)
+                                    </small>
+                                }
+                            </div>
+                        </div>
+                    }
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-currency-dollar"></i> Mức lương:
+                        </div>
+                        <div class="info-value">
+                            @if (Model.MucLuong.HasValue)
+                            {
+                                <span class="text-success fw-bold">@Model.MucLuong.Value.ToString("N0") VNĐ/tháng</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Chưa thiết lập</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Thao tác -->
+            <div class="action-card">
+                <h6 class="text-primary mb-3">
+                    <i class="bi bi-tools"></i> Thao tác
+                </h6>
+                <div class="d-grid gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">
+                        <i class="bi bi-pencil"></i> Chỉnh sửa thông tin
+                    </a>
+                    @if (Model.NgayNghiViec.HasValue)
+                    {
+                        <form asp-action="KichHoat" asp-route-id="@Model.Id" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-success"
+                                    onclick="return confirm('Bạn có chắc muốn kích hoạt lại nhân viên này?')">
+                                <i class="bi bi-arrow-clockwise"></i> Kích hoạt lại
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">
+                            <i class="bi bi-person-dash"></i> Cho nghỉ việc
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Thống kê nhanh -->
+            <div class="action-card mt-3">
+                <h6 class="text-primary mb-3">
+                    <i class="bi bi-graph-up"></i> Thống kê nhanh
+                </h6>
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary mb-0">
+                                @if (Model.NgayVaoLam.HasValue)
+                                {
+                                    @((DateTime.Now - Model.NgayVaoLam.Value).Days)
+                                }
+                                else
+                                {
+                                    <span>0</span>
+                                }
+                            </h4>
+                            <small class="text-muted">Ngày làm việc</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-success mb-0">
+                            @if (Model.MucLuong.HasValue)
+                            {
+                                @((Model.MucLuong.Value / 1000000).ToString("F1"))
+                            }
+                            else
+                            {
+                                <span>0</span>
+                            }
+                        </h4>
+                        <small class="text-muted">Triệu VNĐ/tháng</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lưu ý -->
+            <div class="action-card mt-3">
+                <h6 class="text-warning">
+                    <i class="bi bi-info-circle"></i> Lưu ý
+                </h6>
+                <ul class="small mb-0">
+                    @if (Model.VaiTro == "Admin")
+                    {
+                        <li class="text-danger">Nhân viên có quyền Admin - Toàn quyền hệ thống</li>
+                    }
+                    @if (!Model.IsActive)
+                    {
+                        <li class="text-warning">Tài khoản đang bị tạm khóa</li>
+                    }
+                    @if (Model.NgayNghiViec.HasValue)
+                    {
+                        <li class="text-danger">Nhân viên đã nghỉ việc</li>
+                    }
+                    @if (!Model.MucLuong.HasValue)
+                    {
+                        <li class="text-info">Chưa thiết lập mức lương</li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+</div> 

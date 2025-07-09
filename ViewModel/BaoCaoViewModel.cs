@@ -11,7 +11,6 @@ namespace bike.ViewModels
 
         // Thống kê tổng quan
         public int TongDonDatXe { get; set; }
-        public int DonChoXuLy { get; set; }
         public decimal DoanhThuHomNay { get; set; }
         public int XeDangChoThue { get; set; }
 

@@ -1,0 +1,304 @@
+@model bike.Models.ChiTietHopDong
+@{
+    ViewData["Title"] = "Sửa Thông Tin Xe";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .edit-vehicle-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+
+    .edit-vehicle-header {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+
+    .edit-vehicle-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .vehicle-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        border-left: 4px solid #ff9800;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #333;
+        font-weight: bold;
+    }
+
+    .edit-form {
+        background: #ffffff;
+        border: 1px solid #e3e6f0;
+        border-radius: 10px;
+        padding: 25px;
+    }
+
+    .calculation-section {
+        background: #fff3e0;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+    .calc-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .calc-total {
+        font-weight: bold;
+        font-size: 18px;
+        color: #ff9800;
+        border-top: 2px solid #ff9800;
+        padding-top: 10px;
+        margin-top: 10px;
+    }
+
+    .btn-update-vehicle {
+        background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        width: 100%;
+    }
+</style>
+
+<div class="edit-vehicle-container">
+    <!-- Header -->
+    <div class="edit-vehicle-header">
+        <h2><i class="bi bi-pencil-square"></i> Sửa Thông Tin Xe</h2>
+        <p class="mb-0">Hợp đồng: HD@(Model.HopDong.MaHopDong.ToString("D6"))</p>
+    </div>
+
+    <!-- Body -->
+    <div class="edit-vehicle-body">
+        <!-- Thông tin xe hiện tại -->
+        <h4 class="mb-3"><i class="bi bi-info-circle"></i> Thông tin xe hiện tại</h4>
+        <div class="vehicle-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-row">
+                        <span class="info-label">Tên xe:</span>
+                        <span class="info-value">@Model.Xe?.TenXe</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Biển số:</span>
+                        <span class="info-value">@Model.Xe?.BienSoXe</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Hãng xe:</span>
+                        <span class="info-value">@Model.Xe?.HangXe @Model.Xe?.DongXe</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái xe:</span>
+                        <span class="info-value text-warning">@Model.TrangThaiXe</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Số ngày thuê hiện tại:</span>
+                        <span class="info-value">@Model.SoNgayThue ngày</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Thành tiền hiện tại:</span>
+                        <span class="info-value text-primary">@Model.ThanhTien.ToString("N0")đ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form sửa thông tin -->
+        <h4 class="mb-3"><i class="bi bi-pencil-square"></i> Cập nhật thông tin</h4>
+        <div class="edit-form">
+            <form asp-action="SuaXe" method="post">
+                <input type="hidden" asp-for="MaChiTiet" />
+                <input type="hidden" asp-for="MaHopDong" />
+                <input type="hidden" asp-for="MaXe" />
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="GiaThueNgay" class="form-label">Giá thuê/ngày <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" asp-for="GiaThueNgay" class="form-control" min="0" step="1000" required onchange="calculateAmount()" />
+                                <span class="input-group-text">đ</span>
+                            </div>
+                            <span asp-validation-for="GiaThueNgay" class="text-danger"></span>
+                            <small class="form-text text-muted">Giá gốc: @Model.Xe?.GiaThue.ToString("N0")đ/ngày</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Thông tin xe (chỉ đọc)</label>
+                            <div class="form-control" style="height: auto; background: #f8f9fa; color: #666;">
+                                <strong>@Model.Xe?.TenXe</strong><br>
+                                Biển số: @Model.Xe?.BienSoXe<br>
+                                Hãng: @Model.Xe?.HangXe @Model.Xe?.DongXe
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="NgayNhanXe" class="form-label">Ngày nhận xe <span class="text-danger">*</span></label>
+                            <input type="date" asp-for="NgayNhanXe" class="form-control" required onchange="calculateAmount()" />
+                            <span asp-validation-for="NgayNhanXe" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="NgayTraXeDuKien" class="form-label">Ngày trả xe dự kiến <span class="text-danger">*</span></label>
+                            <input type="date" asp-for="NgayTraXeDuKien" class="form-control" required onchange="calculateAmount()" />
+                            <span asp-validation-for="NgayTraXeDuKien" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="GhiChu" class="form-label">Ghi chú</label>
+                    <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Ghi chú thêm cho xe này..."></textarea>
+                    <span asp-validation-for="GhiChu" class="text-danger"></span>
+                </div>
+
+                <!-- Tính toán mới -->
+                <div class="calculation-section">
+                    <h5 class="mb-3">Tính toán chi phí mới</h5>
+                    <div class="calc-row">
+                        <span>Số ngày thuê mới:</span>
+                        <span id="soNgayThueMoi">@Model.SoNgayThue ngày</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Giá thuê/ngày:</span>
+                        <span id="giaThueNgayMoi">@Model.GiaThueNgay.ToString("N0")đ</span>
+                    </div>
+                    <div class="calc-row calc-total">
+                        <span>Thành tiền mới:</span>
+                        <span id="thanhTienMoi">@Model.ThanhTien.ToString("N0")đ</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Chênh lệch:</span>
+                        <span id="chenhLech" class="text-info">0đ</span>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-update-vehicle flex-fill" onclick="return confirm('Xác nhận cập nhật thông tin xe?')">
+                        <i class="bi bi-check-circle"></i> Cập Nhật Thông Tin
+                    </button>
+                    <a asp-controller="QuanLyHopDong" asp-action="ChiTiet" asp-route-id="@Model.MaHopDong" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Quay lại
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        const originalAmount = @Model.ThanhTien;
+
+        // Tính toán số tiền mới
+        function calculateAmount() {
+            const ngayNhan = document.getElementById('NgayNhanXe').value;
+            const ngayTra = document.getElementById('NgayTraXeDuKien').value;
+            const giaThue = parseFloat(document.getElementById('GiaThueNgay').value) || 0;
+            
+            if (ngayNhan && ngayTra && giaThue > 0) {
+                const startDate = new Date(ngayNhan);
+                const endDate = new Date(ngayTra);
+                const dayDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (dayDiff > 0) {
+                    const tongTienMoi = dayDiff * giaThue;
+                    const chenhLech = tongTienMoi - originalAmount;
+                    
+                    document.getElementById('soNgayThueMoi').textContent = dayDiff + ' ngày';
+                    document.getElementById('giaThueNgayMoi').textContent = giaThue.toLocaleString('vi-VN') + 'đ';
+                    document.getElementById('thanhTienMoi').textContent = tongTienMoi.toLocaleString('vi-VN') + 'đ';
+                    
+                    const chenhLechElement = document.getElementById('chenhLech');
+                    if (chenhLech > 0) {
+                        chenhLechElement.textContent = '+' + chenhLech.toLocaleString('vi-VN') + 'đ';
+                        chenhLechElement.className = 'text-success';
+                    } else if (chenhLech < 0) {
+                        chenhLechElement.textContent = chenhLech.toLocaleString('vi-VN') + 'đ';
+                        chenhLechElement.className = 'text-danger';
+                    } else {
+                        chenhLechElement.textContent = '0đ';
+                        chenhLechElement.className = 'text-info';
+                    }
+                } else {
+                    resetCalculation();
+                }
+            } else {
+                resetCalculation();
+            }
+        }
+
+        function resetCalculation() {
+            document.getElementById('soNgayThueMoi').textContent = '0 ngày';
+            document.getElementById('giaThueNgayMoi').textContent = '0đ';
+            document.getElementById('thanhTienMoi').textContent = '0đ';
+            document.getElementById('chenhLech').textContent = '0đ';
+            document.getElementById('chenhLech').className = 'text-info';
+        }
+
+        // Set validation cho ngày
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('NgayNhanXe').min = today;
+            
+            document.getElementById('NgayNhanXe').addEventListener('change', function() {
+                const ngayNhanXe = new Date(this.value);
+                ngayNhanXe.setDate(ngayNhanXe.getDate() + 1);
+                document.getElementById('NgayTraXeDuKien').min = ngayNhanXe.toISOString().split('T')[0];
+            });
+
+            // Trigger calculation ban đầu
+            calculateAmount();
+        });
+    </script>
+} 

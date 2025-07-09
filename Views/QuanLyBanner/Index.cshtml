@@ -1,0 +1,157 @@
+@model IEnumerable<bike.Models.Banner>
+@{
+    ViewData["Title"] = "Quản lý Banner";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-image"></i> Quản lý Banner</h2>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Thêm Banner Mới
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle"></i> @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle"></i> @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="card">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+            <i class="bi bi-list"></i> Danh sách Banner
+            <small class="ms-2">(Tối đa 3 banner hiển thị)</small>
+        </h5>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Thứ tự</th>
+                            <th>Hình ảnh</th>
+                            <th>Tiêu đề</th>
+                            <th>Mô tả</th>
+                            <th>Link liên kết</th>
+                            <th>Trạng thái</th>
+                            <th>Ngày tạo</th>
+                            <th width="180">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr class="@(item.TrangThai ? "" : "table-secondary")">
+                                <td>
+                                    <span class="badge bg-info fs-6">@item.ThuTu</span>
+                                </td>
+                                <td>
+                                    <img src="/images/banner/@item.HinhAnh" 
+                                         alt="@item.TieuDe" 
+                                         class="img-thumbnail" 
+                                         style="width: 100px; height: 60px; object-fit: cover;"
+                                         onerror="this.src='/images/default.jpg';">
+                                </td>
+                                <td>
+                                    <strong>@item.TieuDe</strong>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.MoTa))
+                                    {
+                                        @(item.MoTa.Length > 50 ? item.MoTa.Substring(0, 47) + "..." : item.MoTa)
+                                    }
+                                    else
+                                    {
+                                        <em class="text-muted">Chưa có mô tả</em>
+                                    }
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(item.LinkLienKet))
+                                    {
+                                        <a href="@item.LinkLienKet" target="_blank" class="text-decoration-none">
+                                            <i class="bi bi-link-45deg"></i> Link
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <em class="text-muted">Không có</em>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.TrangThai)
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-eye"></i> Hiển thị
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-eye-slash"></i> Ẩn
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <small>@item.NgayTao.ToString("dd/MM/yyyy")</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Edit" asp-route-id="@item.MaBanner" 
+                                           class="btn btn-sm btn-outline-warning" 
+                                           title="Chỉnh sửa">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@item.MaBanner" 
+                                           class="btn btn-sm btn-outline-danger" 
+                                           title="Xóa">
+                                            <i class="bi bi-trash3"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                <h4 class="text-muted mt-3">Chưa có banner nào</h4>
+                <p class="text-muted">Hãy thêm banner đầu tiên để hiển thị trên trang chủ.</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Thêm Banner Đầu Tiên
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="mt-4">
+    <div class="alert alert-info">
+        <h6 class="alert-heading">
+            <i class="bi bi-info-circle"></i> Hướng dẫn sử dụng
+        </h6>
+        <ul class="mb-0">
+            <li>Hệ thống chỉ hiển thị <strong>tối đa 3 banner</strong> cùng lúc trên trang chủ</li>
+            <li>Banner sẽ tự động chạy từ trái sang phải theo thứ tự đã đặt</li>
+            <li>Kích thước hình ảnh khuyến nghị: <strong>1200x400 pixels</strong></li>
+            <li>Định dạng hỗ trợ: JPG, JPEG, PNG, GIF, WEBP</li>
+            <li>Chỉ banner có trạng thái <strong>"Hiển thị"</strong> mới xuất hiện trên trang chủ</li>
+        </ul>
+    </div>
+</div> 

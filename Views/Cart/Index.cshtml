@@ -1,0 +1,255 @@
+@model bike.Models.Cart
+@{
+    ViewData["Title"] = "Giỏ xe của tôi";
+    Layout = "~/Views/Shared/_HomePage.cshtml";
+}
+
+<style>
+    .cart-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+    
+    .cart-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+    
+    .cart-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+    }
+    
+    .cart-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .vehicle-image {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
+    .item-details h5 {
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .item-price {
+        font-size: 18px;
+        font-weight: bold;
+        color: #ff0080;
+    }
+    
+    .btn-remove {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        font-size: 12px;
+    }
+    
+    .btn-remove:hover {
+        background: #c82333;
+    }
+    
+    .cart-summary {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .total-price {
+        font-size: 24px;
+        font-weight: bold;
+        border-top: 2px solid rgba(255,255,255,0.3);
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+    
+    .btn-checkout {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 10px;
+        width: 100%;
+        margin-top: 20px;
+        transition: all 0.3s;
+    }
+    
+    .btn-checkout:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .empty-cart {
+        text-align: center;
+        padding: 50px;
+        color: #666;
+    }
+    
+    .empty-cart i {
+        font-size: 64px;
+        margin-bottom: 20px;
+        color: #ddd;
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h2><i class="bi bi-cart3"></i> Giỏ xe của tôi</h2>
+        <p class="mb-0">@Model.TongSoXe xe đã chọn</p>
+    </div>
+
+    <div class="cart-body">
+        @if (Model.TongSoXe == 0)
+        {
+            <div class="empty-cart">
+                <i class="bi bi-cart-x"></i>
+                <h4>Giỏ xe của bạn đang trống</h4>
+                <p>Hãy chọn những chiếc xe ưa thích để bắt đầu hành trình của bạn!</p>
+                <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Tiếp tục chọn xe
+                </a>
+            </div>
+        }
+        else
+        {
+            <!-- Danh sách xe trong giỏ -->
+            @foreach (var item in Model.Items)
+            {
+                <div class="cart-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            @if (!string.IsNullOrEmpty(item.HinhAnhXe))
+                            {
+                                <img src="/images/xe/@item.HinhAnhXe" alt="@item.TenXe" class="vehicle-image" />
+                            }
+                            else
+                            {
+                                <img src="/images/default.jpg" alt="@item.TenXe" class="vehicle-image" />
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            <div class="item-details">
+                                <h5>@item.TenXe</h5>
+                                <p class="mb-1"><i class="bi bi-tag"></i> @item.TenLoaiXe</p>
+                                <p class="mb-1">
+                                    <i class="bi bi-calendar3"></i> 
+                                    @item.NgayNhanXe.ToString("dd/MM/yyyy") - @item.NgayTraXe.ToString("dd/MM/yyyy")
+                                    <span class="badge bg-info ms-2">@item.SoNgayThue ngày</span>
+                                </p>
+                                @if (!string.IsNullOrEmpty(item.GhiChu))
+                                {
+                                    <p class="mb-0 text-muted"><i class="bi bi-chat-left-text"></i> @item.GhiChu</p>
+                                }
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="item-price">@item.TongTien.ToString("N0")đ</div>
+                            <small class="text-muted">(@item.GiaThue.ToString("N0")đ/ngày)</small>
+                        </div>
+                        <div class="col-md-1 text-center">
+                            <button type="button" class="btn-remove" onclick="removeFromCart(@item.MaXe, '@item.NgayNhanXe.ToString("yyyy-MM-dd")', '@item.NgayTraXe.ToString("yyyy-MM-dd")')">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Tóm tắt giỏ xe -->
+            <div class="cart-summary">
+                <div class="summary-row">
+                    <span>Tổng số xe:</span>
+                    <strong>@Model.TongSoXe xe</strong>
+                </div>
+                <div class="summary-row total-price">
+                    <span>Tổng tiền:</span>
+                    <strong>@Model.TongTien.ToString("N0")đ</strong>
+                </div>
+            </div>
+
+            <!-- Nút thanh toán -->
+            <div class="text-center">
+                <a href="@Url.Action("Checkout")" class="btn-checkout">
+                    <i class="bi bi-credit-card"></i> Tiến hành đặt chỗ
+                </a>
+            </div>
+
+            <!-- Link tiếp tục mua sắm -->
+            <div class="text-center mt-3">
+                <a href="@Url.Action("Index", "Home")" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Tiếp tục chọn xe
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+function removeFromCart(maXe, ngayNhanXe, ngayTraXe) {
+    if (confirm('Bạn có chắc chắn muốn xóa xe này khỏi giỏ?')) {
+        $.ajax({
+            url: '@Url.Action("Remove", "Cart")',
+            type: 'POST',
+            data: {
+                maXe: maXe,
+                ngayNhanXe: ngayNhanXe,
+                ngayTraXe: ngayTraXe,
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Reload trang để cập nhật giỏ xe
+                    location.reload();
+                    
+                    // Cập nhật cart badge nếu có
+                    updateCartBadge(response.cartItemCount);
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('Có lỗi xảy ra. Vui lòng thử lại.');
+            }
+        });
+    }
+}
+
+function updateCartBadge(count) {
+    const badge = $('.cart-badge');
+    if (count > 0) {
+        badge.text(count).show();
+    } else {
+        badge.hide();
+    }
+}
+</script>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

@@ -36,6 +36,13 @@ namespace bike.Controllers
                 .Take(8) // Lấy 8 xe đầu
                 .ToListAsync();
 
+            // Lấy danh sách banner hiển thị
+            ViewBag.Banners = await _context.Banner
+                .Where(b => b.TrangThai) // Chỉ lấy banner đang hiển thị
+                .OrderBy(b => b.ThuTu) // Sắp xếp theo thứ tự
+                .Take(3) // Tối đa 3 banner
+                .ToListAsync();
+
             return View(viewModel);
         }
         // GET: Home/XemChiTiet/5

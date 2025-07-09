@@ -194,27 +194,80 @@
 
             <!-- Thông tin xe -->
             <div class="info-section">
-                <h3 class="section-title">
-                    <i class="bi bi-bicycle"></i> Thông tin xe
-                </h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Tên xe</div>
-                        <div class="info-value">@Model.Xe?.TenXe</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Biển số</div>
-                        <div class="info-value">@Model.Xe?.BienSoXe</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Hãng xe</div>
-                        <div class="info-value">@Model.Xe?.HangXe</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Giá thuê/ngày</div>
-                        <div class="info-value text-danger">@Model.GiaThueNgay.ToString("N0")đ</div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="section-title mb-0">
+                        <i class="bi bi-bicycle"></i> Danh sách xe thuê
+                    </h3>
+                    <div>
+                        @if (Model.TrangThai == "Đang thuê")
+                        {
+                            <a asp-controller="ChiTietHopDong" asp-action="ThemXe" asp-route-hopDongId="@Model.MaHopDong" 
+                               class="btn btn-success btn-sm me-2">
+                                <i class="bi bi-plus-circle"></i> Thêm xe
+                            </a>
+                        }
+                        <a asp-controller="ChiTietHopDong" asp-action="DanhSachXe" asp-route-hopDongId="@Model.MaHopDong" 
+                           class="btn btn-info btn-sm">
+                            <i class="bi bi-list-ul"></i> Xem chi tiết
+                        </a>
                     </div>
                 </div>
+                @if (Model.ChiTietHopDong?.Any() == true)
+                {
+                    foreach (var chiTiet in Model.ChiTietHopDong)
+                    {
+                        <div class="info-grid mb-3" style="position: relative;">
+                            @if (Model.TrangThai == "Đang thuê")
+                            {
+                                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                                    <a asp-controller="ChiTietHopDong" asp-action="SuaXe" asp-route-id="@chiTiet.MaChiTiet" 
+                                       class="btn btn-warning btn-sm me-1" title="Sửa thông tin xe">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm" 
+                                            onclick="confirmDeleteVehicle(@chiTiet.MaChiTiet, '@chiTiet.Xe?.TenXe')" 
+                                            title="Xóa xe khỏi hợp đồng">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                            <div class="info-item">
+                                <div class="info-label">Tên xe</div>
+                                <div class="info-value">@chiTiet.Xe?.TenXe</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Biển số</div>
+                                <div class="info-value">@chiTiet.Xe?.BienSoXe</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Hãng xe</div>
+                                <div class="info-value">@chiTiet.Xe?.HangXe</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Giá thuê/ngày</div>
+                                <div class="info-value text-danger">@chiTiet.GiaThueNgay.ToString("N0")đ</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Số ngày thuê</div>
+                                <div class="info-value">@chiTiet.SoNgayThue ngày</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Thành tiền</div>
+                                <div class="info-value text-success">@chiTiet.ThanhTien.ToString("N0")đ</div>
+                            </div>
+                        </div>
+                        @if (!chiTiet.Equals(Model.ChiTietHopDong.Last()))
+                        {
+                            <hr class="my-3">
+                        }
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Chưa có thông tin xe
+                    </div>
+                }
             </div>
 
             <div class="section-divider"></div>
@@ -241,8 +294,17 @@
                         </div>
                     }
                     <div class="info-item">
-                        <div class="info-label">Số ngày thuê</div>
-                        <div class="info-value">@Model.SoNgayThue ngày</div>
+                        <div class="info-label">Tổng số ngày thuê</div>
+                        <div class="info-value">
+                            @if (Model.NgayTraXeThucTe.HasValue)
+                            {
+                                @((Model.NgayTraXeThucTe.Value - Model.NgayNhanXe).Days + 1) <text>ngày</text>
+                            }
+                            else
+                            {
+                                @((Model.NgayTraXeDuKien - Model.NgayNhanXe).Days + 1) <text>ngày (dự kiến)</text>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
@@ -255,10 +317,14 @@
                     <i class="bi bi-cash-stack"></i> Thông tin tài chính
                 </h3>
                 <div class="financial-summary">
-                    <div class="financial-row">
-                        <span>Tiền thuê xe (@Model.SoNgayThue ngày x @Model.GiaThueNgay.ToString("N0")đ):</span>
-                        <span>@((Model.SoNgayThue * Model.GiaThueNgay).ToString("N0"))đ</span>
-                    </div>
+                    @if (Model.ChiTietHopDong?.Any() == true)
+                    {
+                        var tongTienThueXe = Model.ChiTietHopDong.Sum(ct => ct.ThanhTien);
+                        <div class="financial-row">
+                            <span>Tiền thuê xe:</span>
+                            <span>@tongTienThueXe.ToString("N0")đ</span>
+                        </div>
+                    }
                     <div class="financial-row">
                         <span>Tiền cọc:</span>
                         <span>@Model.TienCoc.ToString("N0")đ</span>
@@ -272,7 +338,7 @@
                     }
                     <div class="financial-row financial-total">
                         <span>Tổng cộng:</span>
-                        <span>@((Model.TongTien + Model.TienCoc).ToString("N0"))đ</span>
+                        <span>@Model.TongTien.ToString("N0")đ</span>
                     </div>
                 </div>
 
@@ -335,6 +401,12 @@
                 </a>
             </div>
 
+<!-- Form xóa xe -->
+<form id="deleteVehicleForm" method="post" style="display: none;" action="">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="" />
+</form>
+
 <!-- Thêm Modal tạo hóa đơn nhanh vào cuối file -->
 <!-- Modal tạo hóa đơn nhanh -->
 <div class="modal fade" id="taoHoaDonNhanhModal" tabindex="-1">
@@ -384,6 +456,16 @@
             document.body.style.padding = '';
             document.querySelector('.container-fluid').style.maxWidth = '';
         });
+
+        // Function xóa xe khỏi hợp đồng
+        function confirmDeleteVehicle(maChiTiet, tenXe) {
+            if (confirm(`Bạn có chắc muốn xóa xe "${tenXe}" khỏi hợp đồng?\n\nLưu ý: Thao tác này không thể hoàn tác!`)) {
+                const form = document.getElementById('deleteVehicleForm');
+                form.action = '@Url.Action("XoaXe", "ChiTietHopDong")';
+                form.querySelector('input[name="id"]').value = maChiTiet;
+                form.submit();
+            }
+        }
 
         // Thêm function tạo hóa đơn nhanh
         function taoHoaDonNhanh(maHopDong) {

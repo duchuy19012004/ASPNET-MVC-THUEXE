@@ -15,15 +15,14 @@ namespace bike.Models
         [ForeignKey("MaDatCho")]
         public DatCho? DatCho { get; set; }
 
-        // Thông tin xe
-        [Display(Name = "Xe")]
-        [Required]
-        public int MaXe { get; set; }
+        // Liên kết với User (khách hàng)
+        [Display(Name = "Khách hàng")]
+        public int? MaKhachHang { get; set; }
 
-        [ForeignKey("MaXe")]
-        public Xe? Xe { get; set; }
+        [ForeignKey("MaKhachHang")]
+        public User? KhachHang { get; set; }
 
-        // Thông tin khách hàng
+        // Thông tin khách hàng (backup cho khách vãng lai)
         [Display(Name = "Họ tên khách")]
         [Required]
         [StringLength(100)]
@@ -55,19 +54,18 @@ namespace bike.Models
         [Display(Name = "Ngày trả xe thực tế")]
         public DateTime? NgayTraXeThucTe { get; set; }
 
-        // Tài chính
-        [Display(Name = "Giá thuê/ngày")]
-        [Required]
-        public decimal GiaThueNgay { get; set; }
-
+        // Tài chính tổng
         [Display(Name = "Tiền cọc")]
         [Required]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TienCoc { get; set; }
 
         [Display(Name = "Phụ phí")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal PhuPhi { get; set; } = 0;
 
         [Display(Name = "Tổng tiền")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal TongTien { get; set; }
 
         // Thông tin khác
@@ -88,18 +86,27 @@ namespace bike.Models
         [ForeignKey("MaNguoiTao")]
         public User? NguoiTao { get; set; }
 
-        // Tính toán
-        [NotMapped]
-        public int SoNgayThue => NgayTraXeThucTe.HasValue
-            ? (NgayTraXeThucTe.Value - NgayNhanXe).Days + 1
-            : (NgayTraXeDuKien - NgayNhanXe).Days + 1;
+        // Navigation property cho chi tiết xe trong hợp đồng (quan hệ n-n)
+        public virtual ICollection<ChiTietHopDong> ChiTietHopDong { get; set; } = new List<ChiTietHopDong>();
 
-        [NotMapped]
-        public decimal TongTienDuKien => GiaThueNgay * SoNgayThue + PhuPhi;
         // Navigation property cho quan hệ 1-1 với HoaDon
         public HoaDon? HoaDon { get; set; }
 
-        // Computed property để check đã có hóa đơn chưa
+        // Computed properties
+        [NotMapped]
+        public int SoNgayThue => ChiTietHopDong.Any() 
+            ? ChiTietHopDong.Max(ct => ct.SoNgayThueTinhToan)
+            : (NgayTraXeDuKien - NgayNhanXe).Days + 1;
+
+        [NotMapped]
+        public decimal TongTienXe => ChiTietHopDong.Sum(ct => ct.ThanhTienTinhToan);
+
+        [NotMapped]
+        public decimal TongTienDuKien => TongTienXe + PhuPhi;
+
+        [NotMapped]
+        public int SoXeThue => ChiTietHopDong.Count;
+
         [NotMapped]
         public bool DaCoHoaDon => HoaDon != null;
     }

@@ -1,0 +1,373 @@
+@model bike.Models.User
+@{
+    ViewData["Title"] = "Chỉnh Sửa Nhân Viên";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .page-header {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .form-header {
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        color: white;
+        padding: 20px 30px;
+    }
+
+    .form-body {
+        padding: 30px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+    }
+
+    .form-control {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 12px 15px;
+        transition: all 0.3s;
+    }
+
+    .form-control:focus {
+        border-color: #f39c12;
+        box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);
+    }
+
+    .btn-custom {
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        border-left: 4px solid #f39c12;
+    }
+
+    .status-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+
+    .required {
+        color: #e74c3c;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-pencil-square"></i> Chỉnh Sửa Nhân Viên</h1>
+                <p class="mb-0">Cập nhật thông tin cho: <strong>@Model.Ten</strong></p>
+            </div>
+            <div>
+                <a asp-action="Index" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-card">
+                <div class="form-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-form"></i> Cập nhật thông tin
+                    </h5>
+                </div>
+                <div class="form-body">
+                    <form asp-action="Edit" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div asp-validation-summary="All" class="alert alert-danger" style="display: none;"></div>
+
+                        <!-- Thông tin cá nhân -->
+                        <h6 class="text-primary mb-3">
+                            <i class="bi bi-person"></i> Thông tin cá nhân
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Ten" class="form-label">
+                                        Họ và tên <span class="required">*</span>
+                                    </label>
+                                    <input asp-for="Ten" class="form-control" required>
+                                    <span asp-validation-for="Ten" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="SoDienThoai" class="form-label">
+                                        Số điện thoại
+                                    </label>
+                                    <input asp-for="SoDienThoai" class="form-control">
+                                    <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                            <textarea asp-for="DiaChi" class="form-control" rows="2"></textarea>
+                            <span asp-validation-for="DiaChi" class="text-danger"></span>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Thông tin tài khoản -->
+                        <h6 class="text-primary mb-3">
+                            <i class="bi bi-key"></i> Thông tin tài khoản
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Email" class="form-label">
+                                        Email <span class="required">*</span>
+                                    </label>
+                                    <input asp-for="Email" class="form-control" type="email" required>
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="MatKhau" class="form-label">
+                                        Mật khẩu mới
+                                    </label>
+                                    <input asp-for="MatKhau" class="form-control" type="password" placeholder="Để trống nếu không thay đổi">
+                                    <span asp-validation-for="MatKhau" class="text-danger"></span>
+                                    <small class="form-text text-muted">Chỉ nhập nếu muốn thay đổi mật khẩu</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="VaiTro" class="form-label">
+                                        Vai trò <span class="required">*</span>
+                                    </label>
+                                    <select asp-for="VaiTro" class="form-select" required>
+                                        <option value="">-- Chọn vai trò --</option>
+                                        <option value="Staff">Staff (Nhân viên)</option>
+                                        <option value="Admin">Admin (Quản trị viên)</option>
+                                    </select>
+                                    <span asp-validation-for="VaiTro" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="IsActive" class="form-label">Trạng thái tài khoản</label>
+                                    <div class="form-check form-switch">
+                                        <input asp-for="IsActive" class="form-check-input" type="checkbox">
+                                        <label asp-for="IsActive" class="form-check-label">
+                                            Tài khoản hoạt động
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Thông tin công việc -->
+                        <h6 class="text-primary mb-3">
+                            <i class="bi bi-briefcase"></i> Thông tin công việc
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="NgayVaoLam" class="form-label">
+                                        Ngày vào làm
+                                    </label>
+                                    <input asp-for="NgayVaoLam" class="form-control" type="date">
+                                    <span asp-validation-for="NgayVaoLam" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="NgayNghiViec" class="form-label">
+                                        Ngày nghỉ việc
+                                    </label>
+                                    <input asp-for="NgayNghiViec" class="form-control" type="date">
+                                    <span asp-validation-for="NgayNghiViec" class="text-danger"></span>
+                                    <small class="form-text text-muted">Để trống nếu đang làm việc</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label asp-for="MucLuong" class="form-label">
+                                        Mức lương (VNĐ)
+                                    </label>
+                                    <input asp-for="MucLuong" class="form-control" type="number" min="0">
+                                    <span asp-validation-for="MucLuong" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a asp-action="Index" class="btn btn-secondary btn-custom me-2">
+                                <i class="bi bi-x-circle"></i> Hủy
+                            </a>
+                            <button type="submit" class="btn btn-warning btn-custom">
+                                <i class="bi bi-save"></i> Cập nhật
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Thông tin hiện tại -->
+            <div class="status-card">
+                <h6 class="text-primary">
+                    <i class="bi bi-info-circle"></i> Thông tin hiện tại
+                </h6>
+                <table class="table table-sm">
+                    <tr>
+                        <td><strong>ID:</strong></td>
+                        <td>@Model.Id</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>@Model.Email</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Vai trò:</strong></td>
+                        <td>
+                            <span class="badge @(Model.VaiTro == "Admin" ? "bg-danger" : "bg-primary")">
+                                @Model.VaiTro
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngày tạo:</strong></td>
+                        <td>@Model.NgayTao.ToString("dd/MM/yyyy")</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trạng thái:</strong></td>
+                        <td>
+                            @if (Model.NgayNghiViec.HasValue)
+                            {
+                                <span class="badge bg-danger">Nghỉ việc</span>
+                            }
+                            else if (Model.IsActive)
+                            {
+                                <span class="badge bg-success">Đang làm việc</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Tạm khóa</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="info-card">
+                <h6 class="text-warning">
+                    <i class="bi bi-exclamation-triangle"></i> Lưu ý khi chỉnh sửa
+                </h6>
+                <ul class="small mb-0">
+                    <li><strong>Email:</strong> Phải duy nhất trong hệ thống</li>
+                    <li><strong>Mật khẩu:</strong> Chỉ nhập nếu muốn thay đổi</li>
+                    <li><strong>Vai trò:</strong> Thay đổi sẽ ảnh hưởng đến quyền truy cập</li>
+                    <li><strong>Ngày nghỉ việc:</strong> Set để đánh dấu nhân viên nghỉ việc</li>
+                    <li><strong>Trạng thái:</strong> Tắt để tạm khóa tài khoản</li>
+                </ul>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="status-card">
+                <h6 class="text-primary">
+                    <i class="bi bi-lightning"></i> Thao tác nhanh
+                </h6>
+                @if (Model.NgayNghiViec.HasValue)
+                {
+                    <form asp-controller="QuanLyNhanVien" asp-action="KichHoat" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success btn-sm w-100 mb-2"
+                                onclick="return confirm('Bạn có chắc muốn kích hoạt lại nhân viên này?')">
+                            <i class="bi bi-arrow-clockwise"></i> Kích hoạt lại
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger btn-sm w-100 mb-2">
+                        <i class="bi bi-person-dash"></i> Cho nghỉ việc
+                    </a>
+                }
+                <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-info btn-sm w-100">
+                    <i class="bi bi-eye"></i> Xem chi tiết
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        // Auto format salary input
+        document.getElementById('MucLuong').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value) {
+                e.target.value = parseInt(value).toLocaleString('vi-VN');
+            }
+        });
+
+        // Date validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const ngayVaoLam = document.getElementById('NgayVaoLam');
+            const ngayNghiViec = document.getElementById('NgayNghiViec');
+            
+            function validateDates() {
+                if (ngayVaoLam.value && ngayNghiViec.value) {
+                    if (new Date(ngayNghiViec.value) <= new Date(ngayVaoLam.value)) {
+                        ngayNghiViec.setCustomValidity('Ngày nghỉ việc phải sau ngày vào làm');
+                    } else {
+                        ngayNghiViec.setCustomValidity('');
+                    }
+                }
+            }
+            
+            ngayVaoLam.addEventListener('change', validateDates);
+            ngayNghiViec.addEventListener('change', validateDates);
+        });
+    </script>
+} 

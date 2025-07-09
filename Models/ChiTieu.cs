@@ -10,7 +10,7 @@ namespace bike.Models
 
         [Required(ErrorMessage = "Vui lòng nhập nội dung chi tiêu")]
         [Display(Name = "Nội dung chi tiêu")]
-        public string NoiDung { get; set; }
+        public string? NoiDung { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập số tiền")]
         [DataType(DataType.Currency)]
@@ -25,7 +25,7 @@ namespace bike.Models
         [Display(Name = "Ghi chú")]
         public string? GhiChu { get; set; } 
 
-
+        
         [Display(Name = "Xe liên quan")]
         public int? MaXe { get; set; } 
 

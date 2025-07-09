@@ -1,0 +1,273 @@
+@model List<bike.Models.DatCho>
+@{
+    ViewData["Title"] = "Đặt chỗ thành công";
+    Layout = "~/Views/Shared/_HomePage.cshtml";
+}
+
+<style>
+    .confirmation-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+    
+    .success-header {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+    
+    .success-icon {
+        font-size: 64px;
+        margin-bottom: 20px;
+        animation: bounceIn 1s;
+    }
+    
+    @@keyframes bounceIn {
+        0% { transform: scale(0.3); opacity: 0; }
+        50% { transform: scale(1.05); }
+        70% { transform: scale(0.9); }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    .confirmation-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 30px rgba(0,0,0,0.1);
+    }
+    
+    .booking-item {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        border-left: 4px solid #28a745;
+        transition: all 0.3s;
+    }
+    
+    .booking-item:hover {
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .vehicle-image {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+    
+    .booking-info h5 {
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .booking-id {
+        background: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-badge {
+        background: #ffc107;
+        color: #000;
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .summary-section {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .total-amount {
+        font-size: 24px;
+        font-weight: bold;
+        border-top: 2px solid rgba(255,255,255,0.3);
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+    
+    .action-buttons {
+        text-align: center;
+        margin-top: 30px;
+    }
+    
+    .btn-home {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 8px;
+        margin: 0 10px;
+        transition: all 0.3s;
+    }
+    
+    .btn-home:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .next-steps {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 20px;
+        border-radius: 0 10px 10px 0;
+        margin-top: 20px;
+    }
+</style>
+
+<div class="confirmation-container">
+    <div class="success-header">
+        <div class="success-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h2>Đặt chỗ thành công!</h2>
+        <p class="mb-0">Chúng tôi đã nhận được yêu cầu đặt @Model.Count xe của bạn</p>
+    </div>
+
+    <div class="confirmation-body">
+        <h4 class="mb-4"><i class="bi bi-list-check"></i> Chi tiết các phiếu đặt chỗ</h4>
+        
+        @foreach (var booking in Model)
+        {
+            <div class="booking-item">
+                <div class="row align-items-center">
+                    <div class="col-md-2">
+                        @if (!string.IsNullOrEmpty(booking.Xe?.HinhAnhXe))
+                        {
+                            <img src="/images/xe/@booking.Xe.HinhAnhXe" alt="@booking.Xe.TenXe" class="vehicle-image" />
+                        }
+                        else
+                        {
+                            <img src="/images/default.jpg" alt="@booking.Xe?.TenXe" class="vehicle-image" />
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <div class="booking-info">
+                            <h5>@booking.Xe?.TenXe</h5>
+                            <p class="mb-1">
+                                <i class="bi bi-tag"></i> @booking.Xe?.LoaiXe?.TenLoaiXe
+                                <span class="booking-id ms-2">Mã: #@booking.MaDatCho</span>
+                            </p>
+                            <p class="mb-1">
+                                <i class="bi bi-calendar3"></i> 
+                                @booking.NgayNhanXe.ToString("dd/MM/yyyy") - @booking.NgayTraXe.ToString("dd/MM/yyyy")
+                                <span class="badge bg-info ms-2">@booking.SoNgayThue ngày</span>
+                            </p>
+                            <p class="mb-0">
+                                <i class="bi bi-clock"></i> Đặt lúc: @booking.NgayDat.ToString("dd/MM/yyyy HH:mm")
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-2 text-center">
+                        <span class="status-badge">@booking.TrangThai</span>
+                    </div>
+                    <div class="col-md-2 text-end">
+                        <div class="text-primary fw-bold">@booking.TongTienDuKien.ToString("N0")đ</div>
+                        <small class="text-muted">(@booking.Xe?.GiaThue.ToString("N0")đ/ngày)</small>
+                    </div>
+                </div>
+                
+                @if (!string.IsNullOrEmpty(booking.GhiChu))
+                {
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <small class="text-muted">
+                                <i class="bi bi-chat-left-text"></i> <strong>Ghi chú:</strong> @booking.GhiChu
+                            </small>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Tóm tắt đơn hàng -->
+        <div class="summary-section">
+            <h5 class="mb-3"><i class="bi bi-receipt"></i> Tóm tắt đơn hàng</h5>
+            
+            <div class="summary-row">
+                <span>Tổng số xe:</span>
+                <strong>@Model.Count xe</strong>
+            </div>
+            
+            <div class="summary-row">
+                <span>Tổng số ngày thuê:</span>
+                <strong>@Model.Sum(x => x.SoNgayThue) ngày</strong>
+            </div>
+            
+            <div class="summary-row">
+                <span>Khách hàng:</span>
+                <strong>@Model.First().HoTen</strong>
+            </div>
+            
+            <div class="summary-row">
+                <span>Số điện thoại:</span>
+                <strong>@Model.First().SoDienThoai</strong>
+            </div>
+            
+            <div class="summary-row">
+                <span>Email:</span>
+                <strong>@Model.First().Email</strong>
+            </div>
+
+            <div class="summary-row total-amount">
+                <span>Tổng tiền dự kiến:</span>
+                <strong>@Model.Sum(x => x.TongTienDuKien).ToString("N0")đ</strong>
+            </div>
+        </div>
+
+        <!-- Thông tin tiếp theo -->
+        <div class="next-steps">
+            <h6><i class="bi bi-info-circle"></i> Bước tiếp theo</h6>
+            <ul class="mb-0">
+                <li>Nhân viên sẽ liên hệ với bạn trong vòng <strong>24 giờ</strong> để xác nhận</li>
+                <li>Vui lòng chuẩn bị CCCD/CMND và tiền cọc khi nhận xe</li>
+                <li>Đến đúng giờ để nhận xe theo lịch đã đặt</li>
+                <li>Liên hệ hotline nếu cần thay đổi hoặc hủy đặt chỗ</li>
+            </ul>
+        </div>
+
+        <!-- Buttons -->
+        <div class="action-buttons">
+            <a href="@Url.Action("Index", "Home")" class="btn-home">
+                <i class="bi bi-house"></i> Về trang chủ
+            </a>
+            
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a href="@Url.Action("MyReservations", "DatCho")" class="btn btn-outline-primary">
+                    <i class="bi bi-list"></i> Xem lịch sử đặt chỗ
+                </a>
+            }
+        </div>
+
+        <!-- Contact info -->
+        <div class="text-center mt-4">
+            <hr>
+            <p class="text-muted">
+                <i class="bi bi-telephone"></i> Hotline: <strong>0123-456-789</strong> | 
+                <i class="bi bi-envelope"></i> Email: <strong>support@bikental.com</strong>
+            </p>
+        </div>
+    </div>
+</div> 

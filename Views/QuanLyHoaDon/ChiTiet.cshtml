@@ -143,7 +143,6 @@
             </div>
             <p class="mb-0 mt-3">Ngày tạo: @Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p>
         </div>
-
         <!-- Body -->
         <div class="invoice-body">
             <!-- Thông tin hóa đơn -->
@@ -210,24 +209,49 @@
                 <h3 class="section-title">
                     <i class="bi bi-bicycle"></i> Thông tin xe thuê
                 </h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <div class="info-label">Tên xe</div>
-                        <div class="info-value">@Model.HopDong?.Xe?.TenXe</div>
+                @if (Model.HopDong?.ChiTietHopDong?.Any() == true)
+                {
+                    @if (Model.HopDong.ChiTietHopDong.Count == 1)
+                    {
+                        var xeDau = Model.HopDong.ChiTietHopDong.First();
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <div class="info-label">Tên xe</div>
+                                <div class="info-value">@xeDau.Xe?.TenXe</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Biển số</div>
+                                <div class="info-value">@xeDau.Xe?.BienSoXe</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Hãng xe</div>
+                                <div class="info-value">@xeDau.Xe?.HangXe</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">Dòng xe</div>
+                                <div class="info-value">@xeDau.Xe?.DongXe</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <strong>Hợp đồng có @Model.HopDong.ChiTietHopDong.Count xe:</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach (var chiTiet in Model.HopDong.ChiTietHopDong)
+                                {
+                                    <li>@chiTiet.Xe?.TenXe (@chiTiet.Xe?.BienSoXe) - @chiTiet.ThanhTien.ToString("N0")đ</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i> Không có thông tin xe
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Biển số</div>
-                        <div class="info-value">@Model.HopDong?.Xe?.BienSoXe</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Hãng xe</div>
-                        <div class="info-value">@Model.HopDong?.Xe?.HangXe</div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-label">Dòng xe</div>
-                        <div class="info-value">@Model.HopDong?.Xe?.DongXe</div>
-                    </div>
-                </div>
+                }
             </div>
 
             <div class="section-divider"></div>
@@ -250,10 +274,14 @@
                         <div class="info-label">Số ngày thuê</div>
                         <div class="info-value">@Model.HopDong?.SoNgayThue ngày</div>
                     </div>
-                    <div class="info-item">
-                        <div class="info-label">Giá thuê/ngày</div>
-                        <div class="info-value">@Model.HopDong?.GiaThueNgay.ToString("N0")đ</div>
-                    </div>
+                    @if (Model.HopDong?.ChiTietHopDong?.Any() == true)
+                    {
+                        var xeDau = Model.HopDong.ChiTietHopDong.First();
+                        <div class="info-item">
+                            <div class="info-label">Giá thuê/ngày</div>
+                            <div class="info-value">@xeDau.GiaThueNgay.ToString("N0")đ</div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -280,9 +308,10 @@
 
             <!-- Action buttons -->
             <div class="action-section no-print">
-                <button onclick="window.print()" class="btn btn-print">
+                <a href="@Url.Action("InHoaDon", "QuanLyHoaDon", new { id = Model.MaHoaDon })" 
+                   target="_blank" class="btn btn-print">
                     <i class="bi bi-printer"></i> In hóa đơn
-                </button>
+                </a>
                 <a asp-action="Index" class="btn btn-back">
                     <i class="bi bi-arrow-left"></i> Quay lại
                 </a>
@@ -304,37 +333,6 @@
 
 @section Scripts {
     <script>
-        // Print formatting
-        window.addEventListener('beforeprint', function() {
-            document.body.style.padding = '0';
-            document.querySelector('.container-fluid').style.maxWidth = '100%';
-            
-            // Show print-only elements
-            document.querySelectorAll('.print-only').forEach(el => {
-                el.style.display = 'block';
-            });
-        });
-
-        window.addEventListener('afterprint', function() {
-            document.body.style.padding = '';
-            document.querySelector('.container-fluid').style.maxWidth = '';
-            
-            // Hide print-only elements
-            document.querySelectorAll('.print-only').forEach(el => {
-                el.style.display = 'none';
-            });
-        });
-
-        // Auto print if print parameter
-        @if (Context.Request.Query.ContainsKey("print"))
-        {
-            <text>
-            window.onload = function() {
-                setTimeout(function() {
-                    window.print();
-                }, 500);
-            }
-            </text>
-        }
+        // Trang chi tiết không cần script in ấn vì đã có trang in riêng
     </script>
 }

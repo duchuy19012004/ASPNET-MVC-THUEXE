@@ -46,5 +46,23 @@ namespace bike.Models
 
         [Display(Name = "Ngày tạo")]
         public DateTime NgayTao { get; set; } = DateTime.Now;
+
+        // Thông tin nhân viên
+        [Display(Name = "Ngày vào làm")]
+        [DataType(DataType.Date)]
+        public DateTime? NgayVaoLam { get; set; }
+
+        [Display(Name = "Ngày nghỉ việc")]
+        [DataType(DataType.Date)]
+        public DateTime? NgayNghiViec { get; set; }
+
+        [Display(Name = "Mức lương")]
+        [DataType(DataType.Currency)]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? MucLuong { get; set; }
+
+        // Navigation properties
+        public virtual ICollection<HopDong> HopDongKhachHang { get; set; } = new List<HopDong>();
+        public virtual ICollection<HopDong> HopDongNguoiTao { get; set; } = new List<HopDong>();
     }
 }

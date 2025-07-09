@@ -23,7 +23,7 @@ namespace bike.Controllers
         private async Task<bool> IsCarRented(int maXe)
         {
             return await _context.HopDong
-                .AnyAsync(h => h.MaXe == maXe && h.TrangThai == "Đang thuê");
+                .AnyAsync(h => h.ChiTietHopDong.Any(ct => ct.MaXe == maXe && ct.TrangThaiXe == "Đang thuê"));
         }
 
         // GET: Xe - Hiển thị danh sách xe
@@ -254,7 +254,7 @@ namespace bike.Controllers
             }
 
             // Kiểm tra xe có lịch sử hợp đồng không
-            var hasContracts = await _context.HopDong.AnyAsync(h => h.MaXe == xe.MaXe);
+            var hasContracts = await _context.HopDong.AnyAsync(h => h.ChiTietHopDong.Any(ct => ct.MaXe == xe.MaXe));
             ViewBag.HasContracts = hasContracts;
 
             return View(xe);
@@ -314,7 +314,9 @@ namespace bike.Controllers
 
             // Lấy lịch sử hợp đồng của xe
             ViewBag.LichSuHopDong = await _context.HopDong
-                .Where(h => h.MaXe == xe.MaXe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
+                .Where(h => h.ChiTietHopDong.Any(ct => ct.MaXe == xe.MaXe))
                 .OrderByDescending(h => h.NgayTao)
                 .Take(5)
                 .ToListAsync();

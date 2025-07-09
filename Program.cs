@@ -8,6 +8,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// Thêm Session support
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(2);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Thêm HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// Đăng ký CartService
+builder.Services.AddScoped<bike.Services.ICartService, bike.Services.CartService>();
+
 // Cấu hình Entity Framework với SQL Server
 builder.Services.AddDbContext<BikeDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BikeConnection")));
@@ -40,6 +54,9 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+// Thêm UseSession() trước UseAuthentication()
+app.UseSession();
 
 // Thêm UseAuthentication() trước UseAuthorization()
 app.UseAuthentication(); 

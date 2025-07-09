@@ -1,0 +1,348 @@
+@model bike.Models.HopDong
+@{
+    ViewData["Title"] = "Xác Nhận Đặt Xe Thành Công";
+    Layout = "~/Views/Shared/_HomePage.cshtml";
+}
+
+<style>
+    .confirmation-container {
+        max-width: 900px;
+        margin: 50px auto;
+        padding: 0 20px;
+    }
+
+    .confirmation-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+
+    .confirmation-icon {
+        font-size: 80px;
+        margin-bottom: 20px;
+        color: rgba(255,255,255,0.9);
+    }
+
+    .confirmation-body {
+        background: white;
+        padding: 40px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .contract-info {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        border-left: 4px solid #4CAF50;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .info-label {
+        color: #666;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #333;
+        font-weight: bold;
+    }
+
+    .vehicle-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+    .vehicle-card:hover {
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .vehicle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .vehicle-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .vehicle-price {
+        font-size: 16px;
+        font-weight: bold;
+        color: #4CAF50;
+    }
+
+    .vehicle-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 10px;
+    }
+
+    .detail-item {
+        text-align: center;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        font-size: 14px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .total-section {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        text-align: center;
+        margin: 30px 0;
+    }
+
+    .total-amount {
+        font-size: 36px;
+        font-weight: bold;
+        margin: 15px 0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 8px 20px;
+        background: #fff3cd;
+        color: #856404;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+        margin-top: 10px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+    }
+
+    .btn-success-custom {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+    }
+
+    .important-notice {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+    }
+
+    .notice-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #1976d2;
+        margin-bottom: 10px;
+    }
+</style>
+
+<div class="confirmation-container">
+    <!-- Header -->
+    <div class="confirmation-header">
+        <div class="confirmation-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <h1>Đặt Xe Thành Công!</h1>
+        <p class="mb-0 fs-5">Hợp đồng HD@(Model.MaHopDong.ToString("D6")) đã được tạo</p>
+    </div>
+
+    <!-- Body -->
+    <div class="confirmation-body">
+        <!-- Thông báo quan trọng -->
+        <div class="important-notice">
+            <div class="notice-title">
+                <i class="bi bi-info-circle"></i> Thông tin quan trọng
+            </div>
+            <ul class="mb-0">
+                <li>Hợp đồng của bạn đang ở trạng thái <strong>"Chờ xác nhận"</strong></li>
+                <li>Chúng tôi sẽ liên hệ với bạn trong vòng <strong>24 giờ</strong> để xác nhận và sắp xếp giao xe</li>
+                <li>Vui lòng chuẩn bị đầy đủ giấy tô CCCD/CMND để làm thủ tục thuê xe</li>
+                <li>Nếu có thay đổi, vui lòng liên hệ <strong>0908.630.065</strong></li>
+            </ul>
+        </div>
+
+        <!-- Thông tin hợp đồng -->
+        <h4 class="mb-3"><i class="bi bi-file-earmark-text"></i> Thông tin hợp đồng</h4>
+        <div class="contract-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-row">
+                        <span class="info-label">Mã hợp đồng:</span>
+                        <span class="info-value">HD@(Model.MaHopDong.ToString("D6"))</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Khách hàng:</span>
+                        <span class="info-value">@Model.HoTenKhach</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Số điện thoại:</span>
+                        <span class="info-value">@Model.SoDienThoai</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-row">
+                        <span class="info-label">Ngày tạo:</span>
+                        <span class="info-value">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Trạng thái:</span>
+                        <span class="status-badge">@Model.TrangThai</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Số xe thuê:</span>
+                        <span class="info-value">@Model.ChiTietHopDong.Count xe</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách xe -->
+        <h4 class="mb-3"><i class="bi bi-bicycle"></i> Danh sách xe đã đặt</h4>
+        @foreach (var chiTiet in Model.ChiTietHopDong)
+        {
+            <div class="vehicle-card">
+                <div class="vehicle-header">
+                    <div class="vehicle-name">@chiTiet.Xe?.TenXe</div>
+                    <div class="vehicle-price">@chiTiet.ThanhTien.ToString("N0")đ</div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Biển số:</strong> @chiTiet.Xe?.BienSoXe<br>
+                            <strong>Hãng xe:</strong> @chiTiet.Xe?.HangXe @chiTiet.Xe?.DongXe<br>
+                            <strong>Loại xe:</strong> @chiTiet.Xe?.LoaiXe?.TenLoaiXe
+                        </small>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            <strong>Từ:</strong> @chiTiet.NgayNhanXe.ToString("dd/MM/yyyy")<br>
+                            <strong>Đến:</strong> @chiTiet.NgayTraXeDuKien.ToString("dd/MM/yyyy")<br>
+                            <strong>Số ngày:</strong> @chiTiet.SoNgayThue ngày
+                        </small>
+                    </div>
+                </div>
+
+                <div class="vehicle-details">
+                    <div class="detail-item">
+                        <div class="detail-label">Giá/ngày</div>
+                        <div class="detail-value">@chiTiet.GiaThueNgay.ToString("N0")đ</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Số ngày</div>
+                        <div class="detail-value">@chiTiet.SoNgayThue ngày</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Thành tiền</div>
+                        <div class="detail-value text-success">@chiTiet.ThanhTien.ToString("N0")đ</div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(chiTiet.GhiChu))
+                {
+                    <div class="mt-2">
+                        <small class="text-muted"><strong>Ghi chú:</strong> @chiTiet.GhiChu</small>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Tổng tiền -->
+        <div class="total-section">
+            <h4>Tổng Tiền Hợp Đồng</h4>
+            <div class="total-amount">@Model.TongTien.ToString("N0")đ</div>
+            <p class="mb-0">Tiền cọc và các khoản phí sẽ được thỏa thuận khi giao xe</p>
+        </div>
+
+        <!-- Ghi chú chung -->
+        @if (!string.IsNullOrEmpty(Model.GhiChu))
+        {
+            <div class="alert alert-info">
+                <strong><i class="bi bi-chat-text"></i> Ghi chú:</strong> @Model.GhiChu
+            </div>
+        }
+
+        <!-- Action buttons -->
+        <div class="action-buttons">
+            <a href="@Url.Action("Index", "Home")" class="btn-success-custom">
+                <i class="bi bi-house"></i> Về trang chủ
+            </a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a asp-controller="QuanLyHopDong" asp-action="ChiTiet" asp-route-id="@Model.MaHopDong" 
+                   class="btn-primary-custom">
+                    <i class="bi bi-eye"></i> Xem chi tiết hợp đồng
+                </a>
+            }
+        </div>
+
+        <!-- Liên hệ -->
+        <div class="text-center mt-4">
+            <p class="text-muted">
+                <i class="bi bi-telephone"></i> Hotline hỗ trợ: <strong>0908.630.065</strong><br>
+                <i class="bi bi-clock"></i> Thời gian làm việc: 8:00 - 20:00 hàng ngày
+            </p>
+        </div>
+    </div>
+</div> 

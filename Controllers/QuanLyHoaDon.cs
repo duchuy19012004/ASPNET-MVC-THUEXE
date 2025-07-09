@@ -22,10 +22,11 @@ namespace bike.Controllers
         {
             var query = _context.HoaDon
                 .Include(h => h.HopDong)
-                    .ThenInclude(hd => hd.Xe)
+                    .ThenInclude(hd => hd.ChiTietHopDong)
+                    .ThenInclude(ct => ct.Xe)
                 .Include(h => h.NguoiTao)
                 .AsQueryable();
-
+            
             // Tìm kiếm theo số điện thoại khách hàng
             if (!string.IsNullOrEmpty(searchString))
             {
@@ -65,7 +66,7 @@ namespace bike.Controllers
             ViewBag.TotalItems = totalItems;
             ViewBag.TongDoanhThu = tongDoanhThu;
             ViewBag.SoHoaDonHomNay = soHoaDonHomNay;
-
+        
             return View(hoaDons);
         }
 
@@ -79,7 +80,8 @@ namespace bike.Controllers
 
             var hoaDon = await _context.HoaDon
                 .Include(h => h.HopDong)
-                    .ThenInclude(hd => hd.Xe)
+                    .ThenInclude(hd => hd.ChiTietHopDong)
+                    .ThenInclude(ct => ct.Xe)
                 .Include(h => h.NguoiTao)
                 .FirstOrDefaultAsync(h => h.MaHoaDon == id);
 
@@ -151,7 +153,8 @@ namespace bike.Controllers
         public async Task<IActionResult> DanhSachHopDongChuaCoHoaDon()
         {
             var hopDongChuaCoHoaDon = await _context.HopDong
-                .Include(h => h.Xe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
                 .Include(h => h.HoaDon)
                 .Where(h => h.TrangThai == "Hoàn thành" && h.HoaDon == null)
                 .OrderByDescending(h => h.NgayTao)
@@ -168,7 +171,8 @@ namespace bike.Controllers
 
             var hoaDons = await _context.HoaDon
                 .Include(h => h.HopDong)
-                    .ThenInclude(hd => hd.Xe)
+                    .ThenInclude(hd => hd.ChiTietHopDong)
+                    .ThenInclude(ct => ct.Xe)
                 .Where(h => h.NgayThanhToan >= startDate && h.NgayThanhToan <= endDate)
                 .OrderByDescending(h => h.NgayThanhToan)
                 .ToListAsync();
@@ -178,6 +182,29 @@ namespace bike.Controllers
             ViewBag.TongDoanhThu = hoaDons.Sum(h => h.SoTien);
 
             return View(hoaDons);
+        }
+
+        // GET: QuanLyHoaDon/InHoaDon/5 - Trang in hóa đơn riêng biệt
+        public async Task<IActionResult> InHoaDon(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var hoaDon = await _context.HoaDon
+                .Include(h => h.HopDong)
+                    .ThenInclude(hd => hd.ChiTietHopDong)
+                    .ThenInclude(ct => ct.Xe)
+                .Include(h => h.NguoiTao)
+                .FirstOrDefaultAsync(h => h.MaHoaDon == id);
+
+            if (hoaDon == null)
+            {
+                return NotFound();
+            }
+
+            return View(hoaDon);
         }
     }
 }

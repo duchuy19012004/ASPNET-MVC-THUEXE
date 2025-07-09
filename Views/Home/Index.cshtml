@@ -2,28 +2,93 @@
 @{
     ViewData["Title"] = "Index";
     Layout = "~/Views/Shared/_HomePage.cshtml";
+    var banners = ViewBag.Banners as List<bike.Models.Banner>;
 }
-<section class="hero-section">
-    <div class="container">
-        <div class="row align-items-center">
-            <div class="col-lg-6 hero-image">
-                <img src="images/cr7.jpg" alt="Woman with helmet" />
+
+<!-- Banner Carousel Section -->
+@if (banners != null && banners.Any())
+{
+    <section class="banner-carousel carousel-cover">
+        <div id="bannerCarousel" class="carousel slide carousel-cover" data-bs-ride="carousel" data-bs-interval="2000" data-bs-pause="hover" data-bs-wrap="true">
+            <div class="carousel-indicators">
+                @for (int i = 0; i < banners.Count; i++)
+                {
+                    <button type="button" data-bs-target="#bannerCarousel" data-bs-slide-to="@i" 
+                            class="@(i == 0 ? "active" : "")" aria-current="true" aria-label="Banner @(i+1)"></button>
+                }
             </div>
-            <div class="col-lg-6">
-                <h1 class="hero-title">CHO THUÊ XE MÁY<br />SÀI GÒN</h1>
-                <ul class="hero-features">
-                    <li>Cam kết xe tốt</li>
-                    <li>Giao xe theo yêu cầu</li>
-                    <li>Giá rẻ nhất</li>
-                    <li>Thủ tục đơn giản</li>
-                </ul>
-                <button class="phone-button">
-                    <i class="bi bi-telephone-fill"></i> 0908 630 065
-                </button>
+            
+            <div class="carousel-inner">
+                @for (int i = 0; i < banners.Count; i++)
+                {
+                    var banner = banners[i];
+                    <div class="carousel-item @(i == 0 ? "active" : "")">
+                        @if (!string.IsNullOrEmpty(banner.LinkLienKet))
+                        {
+                            <a href="@banner.LinkLienKet" target="_blank">
+                                <img src="/images/banner/@banner.HinhAnh" class="d-block w-100 banner-image" 
+                                     alt="@banner.TieuDe" onerror="this.src='/images/default.jpg';">
+                            </a>
+                        }
+                        else
+                        {
+                            <img src="/images/banner/@banner.HinhAnh" class="d-block w-100 banner-image" 
+                                 alt="@banner.TieuDe" onerror="this.src='/images/default.jpg';">
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(banner.TieuDe) || !string.IsNullOrEmpty(banner.MoTa))
+                        {
+                            <div class="carousel-caption d-none d-md-block">
+                                @if (!string.IsNullOrEmpty(banner.TieuDe))
+                                {
+                                    <h3 class="banner-title">@banner.TieuDe</h3>
+                                }
+                                @if (!string.IsNullOrEmpty(banner.MoTa))
+                                {
+                                    <p class="banner-description">@banner.MoTa</p>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+            
+            <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+    </section>
+}
+else
+{
+    <!-- Hero Section hiển thị khi không có banner -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-6 hero-image">
+                    <img src="images/cr7.jpg" alt="Woman with helmet" />
+                </div>
+                <div class="col-lg-6">
+                    <h1 class="hero-title">CHO THUÊ XE MÁY<br />SÀI GÒN</h1>
+                    <ul class="hero-features">
+                        <li>Cam kết xe tốt</li>
+                        <li>Giao xe theo yêu cầu</li>
+                        <li>Giá rẻ nhất</li>
+                        <li>Thủ tục đơn giản</li>
+                    </ul>
+                    <button class="phone-button">
+                        <i class="bi bi-telephone-fill"></i> 0908 630 065
+                    </button>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+}
 
 <section class="container my-5">
     <h2 class="section-title">XE THUÊ NHIỀU NHẤT</h2>
@@ -45,29 +110,97 @@
         @foreach (var item in Model.DanhSachXeMay)
         {
             <div class="col-md-3">
-                <a asp-action="XemChiTiet" asp-route-id="@item.MaXe" class="text-decoration-none">
-                    <div class="bike-card">
-                        <img src="@(string.IsNullOrEmpty(item.HinhAnhXe) ? "/images/default.jpg" : $"/images/xe/{item.HinhAnhXe}")"
-                             alt="@item.TenXe" class="vehicle-image">
-                        <div class="bike-info">
-                            <h3 class="bike-name">CHO THUÊ XE @item.TenXe</h3>
-                            <p class="bike-price">Giá thuê từ: @item.GiaThue.ToString("N0")đ / ngày</p>
-                            <p class="bike-status">
-                                Trạng thái:
-                                <span class="@(item.TrangThai == "Sẵn sàng" ? "text-success" : item.TrangThai == "Đang thuê" ? "text-warning" : "text-danger")">
-                                    @item.TrangThai
-                                </span>
-                            </p>
-                        </div>
+                <div class="bike-card">
+                    <img src="@(string.IsNullOrEmpty(item.HinhAnhXe) ? "/images/default.jpg" : $"/images/xe/{item.HinhAnhXe}")"
+                         alt="@item.TenXe" class="vehicle-image" onclick="window.location.href='@Url.Action("XemChiTiet", "Home", new { id = item.MaXe })'" style="cursor: pointer;">
+                    <div class="bike-info">
+                        <h3 class="bike-name">
+                            <a asp-action="XemChiTiet" asp-route-id="@item.MaXe" class="text-decoration-none text-dark">
+                                Thuê Xe @item.TenXe
+                            </a>
+                        </h3>
+                        <p class="bike-price">Giá thuê từ: @item.GiaThue.ToString("N0")đ / ngày</p>
+                        <p class="bike-status">
+                            Trạng thái:
+                            <span class="@(item.TrangThai == "Sẵn sàng" ? "text-success" : item.TrangThai == "Đang thuê" ? "text-warning" : "text-danger")">
+                                @item.TrangThai
+                            </span>
+                        </p>
+                        @if (item.TrangThai == "Sẵn sàng")
+                        {
+                            <div class="bike-actions mt-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showQuickBookingModal(@item.MaXe, '@item.TenXe', @item.GiaThue, '@item.HinhAnhXe')" style="margin-right: 8px;">
+                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                </button>
+                                <a asp-action="XemChiTiet" asp-route-id="@item.MaXe" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> Xem chi tiết
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="bike-actions mt-2">
+                                <a asp-action="XemChiTiet" asp-route-id="@item.MaXe" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-eye"></i> Xem chi tiết
+                                </a>
+                            </div>
+                        }
                     </div>
-                </a>
+                </div>
             </div>
         }
     </div>
 </section>
 
+<!-- Quick Booking Modal -->
+<div class="modal fade" id="quickBookingModal" tabindex="-1" aria-labelledby="quickBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="quickBookingModalLabel">
+                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ xe
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3 text-center">
+                    <img id="modalVehicleImage" src="" alt="" class="img-thumbnail" style="width: 100px; height: 80px; object-fit: cover;">
+                    <h6 id="modalVehicleName" class="mt-2"></h6>
+                </div>
+                <form id="addToCartForm">
+                    <div class="mb-3">
+                        <label class="form-label">Ngày nhận xe</label>
+                        <input type="date" class="form-control" id="ngayNhanXe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ngày trả xe</label>
+                        <input type="date" class="form-control" id="ngayTraXe" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ghi chú (tùy chọn)</label>
+                        <textarea class="form-control" id="ghiChu" rows="2" placeholder="Nhập ghi chú nếu có..."></textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> Số ngày thuê: <span id="soNgayThue">0</span> ngày<br>
+                        <i class="bi bi-cash"></i> Tổng tiền dự kiến: <span id="tongTien">0đ</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="addToCart()">
+                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        let currentVehicleId = 0;
+        let currentVehiclePrice = 0;
+
         // Script để xử lý tab buttons nếu cần
         $(document).ready(function() {
             $('.tab-btn').click(function() {
@@ -79,5 +212,236 @@
                 // TODO: Implement filtering logic
             });
         });
+
+        // Initialize banner carousel with custom cover effect
+        document.addEventListener('DOMContentLoaded', function() {
+            const bannerCarousel = document.getElementById('bannerCarousel');
+            if (bannerCarousel) {
+                // Initialize Bootstrap carousel with infinite loop
+                const carousel = new bootstrap.Carousel(bannerCarousel, {
+                    interval: 2000,
+                    wrap: true,          // Infinite loop - từ cuối quay về đầu
+                    keyboard: true,
+                    pause: 'hover',
+                    ride: 'carousel',
+                    touch: true
+                });
+                
+                // Custom cover transition handler with infinite loop support
+                bannerCarousel.addEventListener('slide.bs.carousel', function (e) {
+                    const items = bannerCarousel.querySelectorAll('.carousel-item');
+                    const activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+                    const nextIndex = e.to;
+                    const nextItem = items[nextIndex];
+                    const totalItems = items.length;
+                    
+                    // Log transition for debugging
+                    const isWrapping = (activeIndex === totalItems - 1) && (nextIndex === 0);
+                    console.log(`Cover transition: ${activeIndex + 1} → ${nextIndex + 1}${isWrapping ? ' (Wrapping to start)' : ''}`);
+                    
+                    // Add smooth transition class
+                    items.forEach(item => {
+                        item.classList.add('carousel-cover-transition');
+                    });
+                    
+                    // Reset all items position
+                    items.forEach((item, index) => {
+                        if (index === activeIndex) {
+                            // Current item stays visible
+                            item.style.transform = 'translateX(0)';
+                            item.style.zIndex = '1';
+                        } else if (index === nextIndex) {
+                            // Next item starts off-screen (right) - works for wrapping too
+                            item.style.transform = 'translateX(100%)';
+                            item.style.zIndex = '2';
+                        } else {
+                            // All other items off-screen
+                            item.style.transform = 'translateX(100%)';
+                            item.style.zIndex = '0';
+                        }
+                    });
+                    
+                    // Trigger the cover animation (same effect for normal and wrap transitions)
+                    setTimeout(() => {
+                        if (nextItem) {
+                            nextItem.style.transform = 'translateX(0)';
+                            nextItem.style.zIndex = '2';
+                        }
+                    }, 50);
+                });
+                
+                // Initialize first item
+                const firstItem = bannerCarousel.querySelector('.carousel-item.active');
+                if (firstItem) {
+                    firstItem.style.transform = 'translateX(0)';
+                    firstItem.style.zIndex = '2';
+                }
+                
+                // Force start auto-cycling
+                carousel.cycle();
+                
+                // Fallback auto-cycling mechanism with infinite loop
+                let autoSlideInterval = setInterval(() => {
+                    if (!bannerCarousel.matches(':hover')) {
+                        const items = bannerCarousel.querySelectorAll('.carousel-item');
+                        const activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+                        const totalItems = items.length;
+                        
+                        // Always go to next slide (will wrap automatically)
+                        carousel.next();
+                        
+                        console.log(`Auto-cycling: Banner ${activeIndex + 1} → Banner ${(activeIndex + 1) % totalItems + 1} (Total: ${totalItems})`);
+                    }
+                }, 2000);
+                
+                // Pause on hover, resume on mouse leave
+                bannerCarousel.addEventListener('mouseenter', () => {
+                    clearInterval(autoSlideInterval);
+                    carousel.pause();
+                    console.log('Banner paused on hover');
+                });
+                
+                bannerCarousel.addEventListener('mouseleave', () => {
+                    autoSlideInterval = setInterval(() => {
+                        if (!bannerCarousel.matches(':hover')) {
+                            carousel.next();
+                        }
+                    }, 2000);
+                    carousel.cycle();
+                    console.log('Banner resumed - continuing infinite loop');
+                });
+                
+                // Handle carousel cycle completion
+                bannerCarousel.addEventListener('slid.bs.carousel', function (e) {
+                    const items = bannerCarousel.querySelectorAll('.carousel-item');
+                    const activeIndex = Array.from(items).findIndex(item => item.classList.contains('active'));
+                    const totalItems = items.length;
+                    
+                    // Log successful transition
+                    console.log(`✅ Transition complete: Now showing Banner ${activeIndex + 1}/${totalItems}`);
+                    
+                    // Ensure infinite loop continues
+                    if (!bannerCarousel.matches(':hover')) {
+                        carousel.cycle();
+                    }
+                });
+                
+                console.log('Banner carousel initialized with cover effect and infinite auto-cycle loop');
+            }
+        });
+
+        // Show quick booking modal with vehicle info
+        function showQuickBookingModal(maXe, tenXe, giaThue, hinhAnh) {
+            currentVehicleId = maXe;
+            currentVehiclePrice = giaThue;
+            
+            // Set vehicle info in modal
+            document.getElementById('modalVehicleName').textContent = tenXe;
+            const imageUrl = hinhAnh ? `/images/xe/${hinhAnh}` : '/images/default.jpg';
+            document.getElementById('modalVehicleImage').src = imageUrl;
+            
+            // Set default dates
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dayAfter = new Date(today);
+            dayAfter.setDate(dayAfter.getDate() + 3);
+
+            document.getElementById('ngayNhanXe').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('ngayTraXe').value = dayAfter.toISOString().split('T')[0];
+            
+            // Set min date to today
+            document.getElementById('ngayNhanXe').min = today.toISOString().split('T')[0];
+            document.getElementById('ngayTraXe').min = tomorrow.toISOString().split('T')[0];
+
+            calculatePrice();
+            $('#quickBookingModal').modal('show');
+        }
+
+        // Calculate price when dates change
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('ngayNhanXe').addEventListener('change', function() {
+                // Update min date for ngayTraXe
+                const ngayNhanXe = new Date(this.value);
+                ngayNhanXe.setDate(ngayNhanXe.getDate() + 1);
+                document.getElementById('ngayTraXe').min = ngayNhanXe.toISOString().split('T')[0];
+                
+                // If ngayTraXe is before ngayNhanXe, update it
+                const ngayTraXe = document.getElementById('ngayTraXe').value;
+                if (ngayTraXe && new Date(ngayTraXe) <= new Date(this.value)) {
+                    document.getElementById('ngayTraXe').value = ngayNhanXe.toISOString().split('T')[0];
+                }
+                
+                calculatePrice();
+            });
+
+            document.getElementById('ngayTraXe').addEventListener('change', calculatePrice);
+        });
+
+        function calculatePrice() {
+            const ngayNhanXe = document.getElementById('ngayNhanXe').value;
+            const ngayTraXe = document.getElementById('ngayTraXe').value;
+            
+            if (ngayNhanXe && ngayTraXe) {
+                const startDate = new Date(ngayNhanXe);
+                const endDate = new Date(ngayTraXe);
+                const dayDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (dayDiff > 0) {
+                    const tongTien = dayDiff * currentVehiclePrice;
+                    
+                    document.getElementById('soNgayThue').textContent = dayDiff;
+                    document.getElementById('tongTien').textContent = tongTien.toLocaleString() + 'đ';
+                } else {
+                    document.getElementById('soNgayThue').textContent = '0';
+                    document.getElementById('tongTien').textContent = '0đ';
+                }
+            }
+        }
+
+        // Add to cart function
+        function addToCart() {
+            const ngayNhanXe = document.getElementById('ngayNhanXe').value;
+            const ngayTraXe = document.getElementById('ngayTraXe').value;
+            const ghiChu = document.getElementById('ghiChu').value;
+            
+            if (!ngayNhanXe || !ngayTraXe) {
+                alert('Vui lòng chọn ngày nhận và trả xe');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Add", "Cart")',
+                type: 'POST',
+                data: {
+                    maXe: currentVehicleId,
+                    ngayNhanXe: ngayNhanXe,
+                    ngayTraXe: ngayTraXe,
+                    ghiChu: ghiChu,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#quickBookingModal').modal('hide');
+                        alert(response.message);
+                        updateCartBadge(response.cartItemCount);
+                    } else {
+                        alert(response.message);
+                    }
+                },
+                error: function() {
+                    alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                }
+            });
+        }
+
+        function updateCartBadge(count) {
+            const badge = $('.cart-badge');
+            if (count > 0) {
+                badge.text(count).show();
+            } else {
+                badge.hide();
+            }
+        }
     </script>
 }

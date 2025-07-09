@@ -1,0 +1,385 @@
+@model IEnumerable<bike.Models.ChiTietHopDong>
+@{
+    ViewData["Title"] = "Danh Sách Xe Trong Hợp Đồng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var hopDong = ViewBag.HopDong as bike.Models.HopDong;
+}
+
+<style>
+    .vehicle-list-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+
+    .vehicle-list-header {
+        background: linear-gradient(135deg, #3f51b5 0%, #2196f3 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .vehicle-list-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .contract-summary {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        border-left: 4px solid #3f51b5;
+    }
+
+    .vehicle-card {
+        background: white;
+        border: 1px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .vehicle-card:hover {
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+
+    .vehicle-header {
+        display: flex;
+        justify-content: between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .vehicle-name {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .vehicle-license {
+        color: #666;
+        font-size: 14px;
+    }
+
+    .vehicle-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .detail-item {
+        text-align: center;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+
+    .detail-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+    }
+
+    .vehicle-actions {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-renting {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-returned {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .financial-summary {
+        background: linear-gradient(135deg, #3f51b5 0%, #2196f3 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 30px;
+        text-align: center;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .total-amount {
+        font-size: 32px;
+        font-weight: bold;
+        margin: 20px 0;
+        border-top: 2px solid rgba(255,255,255,0.3);
+        padding-top: 15px;
+    }
+
+    .btn-add-more {
+        background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+</style>
+
+<div class="vehicle-list-container">
+    <!-- Header -->
+    <div class="vehicle-list-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="bi bi-list-ul"></i> Danh Sách Xe Trong Hợp Đồng</h2>
+                <p class="mb-0">Hợp đồng: HD@(hopDong.MaHopDong.ToString("D6")) - @hopDong.HoTenKhach</p>
+            </div>
+            <div>
+                @if (hopDong.TrangThai == "Đang thuê")
+                {
+                    <a asp-action="ThemXe" asp-route-hopDongId="@hopDong.MaHopDong" class="btn-add-more">
+                        <i class="bi bi-plus-circle"></i> Thêm xe mới
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Body -->
+    <div class="vehicle-list-body">
+        <!-- Tóm tắt hợp đồng -->
+        <div class="contract-summary">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Trạng thái:</strong> 
+                    <span class="status-badge @(hopDong.TrangThai == "Đang thuê" ? "status-renting" : "status-returned")">
+                        @hopDong.TrangThai
+                    </span>
+                </div>
+                <div class="col-md-3">
+                    <strong>Số xe:</strong> @Model.Count() xe
+                </div>
+                <div class="col-md-3">
+                    <strong>Ngày nhận:</strong> @hopDong.NgayNhanXe.ToString("dd/MM/yyyy")
+                </div>
+                <div class="col-md-3">
+                    <strong>Ngày trả dự kiến:</strong> @hopDong.NgayTraXeDuKien.ToString("dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+
+        <!-- Danh sách xe -->
+        @if (Model.Any())
+        {
+            <h4 class="mb-4"><i class="bi bi-bicycle"></i> Chi tiết xe thuê (@Model.Count() xe)</h4>
+            
+            @foreach (var chiTiet in Model)
+            {
+                <div class="vehicle-card">
+                    <!-- Actions -->
+                    @if (hopDong.TrangThai == "Đang thuê")
+                    {
+                        <div class="vehicle-actions">
+                            <a asp-action="SuaXe" asp-route-id="@chiTiet.MaChiTiet" 
+                               class="btn btn-sm btn-warning" title="Sửa thông tin">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-danger" 
+                                    onclick="confirmDelete(@chiTiet.MaChiTiet, '@chiTiet.Xe?.TenXe')" 
+                                    title="Xóa xe">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    }
+
+                    <!-- Header -->
+                    <div class="vehicle-header">
+                        <div>
+                            <div class="vehicle-name">@chiTiet.Xe?.TenXe</div>
+                            <div class="vehicle-license">Biển số: @chiTiet.Xe?.BienSoXe | @chiTiet.Xe?.HangXe @chiTiet.Xe?.DongXe</div>
+                        </div>
+                        <div>
+                            <span class="status-badge @(chiTiet.TrangThaiXe == "Đang thuê" ? "status-renting" : "status-returned")">
+                                @chiTiet.TrangThaiXe
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="vehicle-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Giá thuê/ngày</div>
+                            <div class="detail-value text-primary">@chiTiet.GiaThueNgay.ToString("N0")đ</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Số ngày thuê</div>
+                            <div class="detail-value">@chiTiet.SoNgayThue ngày</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Thành tiền</div>
+                            <div class="detail-value text-success">@chiTiet.ThanhTien.ToString("N0")đ</div>
+                        </div>
+                    </div>
+
+                    <!-- Thời gian -->
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted">Ngày nhận: @chiTiet.NgayNhanXe.ToString("dd/MM/yyyy")</small>
+                        </div>
+                        <div class="col-md-4">
+                            <small class="text-muted">Ngày trả dự kiến: @chiTiet.NgayTraXeDuKien.ToString("dd/MM/yyyy")</small>
+                        </div>
+                        <div class="col-md-4">
+                            @if (chiTiet.NgayTraXeThucTe.HasValue)
+                            {
+                                <small class="text-success">Đã trả: @chiTiet.NgayTraXeThucTe.Value.ToString("dd/MM/yyyy")</small>
+                            }
+                            else
+                            {
+                                <small class="text-warning">Chưa trả</small>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    @if (!string.IsNullOrEmpty(chiTiet.GhiChu))
+                    {
+                        <div class="mt-2">
+                            <small class="text-muted"><strong>Ghi chú:</strong> @chiTiet.GhiChu</small>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Tổng kết tài chính -->
+            <div class="financial-summary">
+                <h4>Tổng Kết Tài Chính</h4>
+                <div class="summary-row">
+                    <span>Tổng tiền thuê xe:</span>
+                    <span>@Model.Sum(ct => ct.ThanhTien).ToString("N0")đ</span>
+                </div>
+                @if (hopDong.PhuPhi > 0)
+                {
+                    <div class="summary-row">
+                        <span>Phụ phí:</span>
+                        <span>@hopDong.PhuPhi.ToString("N0")đ</span>
+                    </div>
+                }
+                <div class="summary-row">
+                    <span>Tiền cọc:</span>
+                    <span>@hopDong.TienCoc.ToString("N0")đ</span>
+                </div>
+                <div class="total-amount">
+                    Tổng cộng: @hopDong.TongTien.ToString("N0")đ
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning text-center">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h5>Chưa có xe nào trong hợp đồng</h5>
+                <p>Hợp đồng này chưa có xe thuê nào.</p>
+                @if (hopDong.TrangThai == "Đang thuê")
+                {
+                    <a asp-action="ThemXe" asp-route-hopDongId="@hopDong.MaHopDong" class="btn-add-more">
+                        <i class="bi bi-plus-circle"></i> Thêm xe đầu tiên
+                    </a>
+                }
+            </div>
+        }
+
+        <!-- Back button -->
+        <div class="text-center mt-4">
+            <a asp-controller="QuanLyHopDong" asp-action="ChiTiet" asp-route-id="@hopDong.MaHopDong" 
+               class="btn btn-secondary btn-lg">
+                <i class="bi bi-arrow-left"></i> Quay lại chi tiết hợp đồng
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Form xóa xe -->
+<form id="deleteForm" method="post" style="display: none;">
+    @Html.AntiForgeryToken()
+</form>
+
+@section Scripts {
+    <script>
+        function confirmDelete(maChiTiet, tenXe) {
+            if (confirm(`Bạn có chắc muốn xóa xe "${tenXe}" khỏi hợp đồng?\n\nLưu ý: Thao tác này không thể hoàn tác!`)) {
+                const form = document.getElementById('deleteForm');
+                form.action = '@Url.Action("XoaXe", "ChiTietHopDong")';
+                
+                // Add hidden input for id
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = maChiTiet;
+                form.appendChild(idInput);
+                
+                // Submit form
+                form.submit();
+            }
+        }
+
+        // Handle delete response
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                setTimeout(function() {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.success('@TempData["Success"]');
+                    } else {
+                        alert('@TempData["Success"]');
+                    }
+                }, 100);
+            </text>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                setTimeout(function() {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('@TempData["Error"]');
+                    } else {
+                        alert('@TempData["Error"]');
+                    }
+                }, 100);
+            </text>
+        }
+    </script>
+} 

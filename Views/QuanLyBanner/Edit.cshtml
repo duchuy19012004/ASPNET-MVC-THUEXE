@@ -1,0 +1,189 @@
+@model bike.Models.Banner
+@{
+    ViewData["Title"] = "Chỉnh sửa Banner";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil-square"></i> Chỉnh sửa Banner</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="bi bi-form"></i> Cập nhật thông tin Banner
+                </h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <input asp-for="MaBanner" type="hidden" />
+                    <input asp-for="NgayTao" type="hidden" />
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label asp-for="TieuDe" class="form-label"></label>
+                                <input asp-for="TieuDe" class="form-control" placeholder="Nhập tiêu đề banner">
+                                <span asp-validation-for="TieuDe" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label asp-for="ThuTu" class="form-label"></label>
+                                <select asp-for="ThuTu" class="form-select">
+                                    <option value="1">1 - Đầu tiên</option>
+                                    <option value="2">2 - Giữa</option>
+                                    <option value="3">3 - Cuối cùng</option>
+                                </select>
+                                <span asp-validation-for="ThuTu" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="MoTa" class="form-label"></label>
+                        <textarea asp-for="MoTa" class="form-control" rows="3" placeholder="Nhập mô tả banner (tùy chọn)"></textarea>
+                        <span asp-validation-for="MoTa" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="imageFile" class="form-label">
+                            <i class="bi bi-image"></i> Hình ảnh Banner
+                        </label>
+                        <input type="file" class="form-control" id="imageFile" name="imageFile" accept="image/*">
+                        <div class="form-text">
+                            Để trống nếu không muốn thay đổi hình ảnh. Kích thước khuyến nghị: 1200x400 pixels
+                        </div>
+                        <span asp-validation-for="HinhAnh" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="LinkLienKet" class="form-label"></label>
+                        <input asp-for="LinkLienKet" class="form-control" type="url" placeholder="https://example.com">
+                        <div class="form-text">
+                            Link sẽ được mở khi người dùng click vào banner (tùy chọn)
+                        </div>
+                        <span asp-validation-for="LinkLienKet" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input asp-for="TrangThai" class="form-check-input" type="checkbox">
+                            <label asp-for="TrangThai" class="form-check-label">
+                                Hiển thị banner trên trang chủ
+                            </label>
+                        </div>
+                        <span asp-validation-for="TrangThai" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a asp-action="Index" class="btn btn-secondary me-2">
+                            <i class="bi bi-x-circle"></i> Hủy
+                        </a>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="bi bi-save"></i> Cập nhật Banner
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Current image -->
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-image"></i> Hình ảnh hiện tại
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <img src="/images/banner/@Model.HinhAnh" 
+                     alt="@Model.TieuDe" 
+                     class="img-fluid rounded"
+                     onerror="this.src='/images/default.jpg';">
+                <p class="mt-2 small text-muted">@Model.HinhAnh</p>
+            </div>
+        </div>
+
+        <!-- Preview new image -->
+        <div class="card mt-3" id="imagePreview" style="display: none;">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-eye"></i> Hình ảnh mới
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <img id="previewImg" src="" alt="Preview" class="img-fluid rounded">
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="card mt-3">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Thông tin
+                </h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Ngày tạo:</strong><br>@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</p>
+                @if (Model.NgayCapNhat.HasValue)
+                {
+                    <p><strong>Lần cập nhật cuối:</strong><br>@Model.NgayCapNhat.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                }
+                <p><strong>Trạng thái hiện tại:</strong><br>
+                    @if (Model.TrangThai)
+                    {
+                        <span class="badge bg-success">Hiển thị</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Ẩn</span>
+                    }
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    
+    <script>
+        // Image preview functionality
+        document.getElementById('imageFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImg').src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imagePreview').style.display = 'none';
+            }
+        });
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const imageFile = document.getElementById('imageFile').files[0];
+            
+            // Check file size if new image is selected (max 5MB)
+            if (imageFile && imageFile.size > 5 * 1024 * 1024) {
+                e.preventDefault();
+                alert('Kích thước file không được vượt quá 5MB!');
+                return false;
+            }
+        });
+    </script>
+} 

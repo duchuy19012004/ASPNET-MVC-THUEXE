@@ -51,5 +51,8 @@ namespace bike.Models
         public LoaiXe? LoaiXe { get; set; }
 
         public virtual ICollection<ChiTieu> ChiTieu { get; set; } = new List<ChiTieu>();
+        
+        // Navigation property cho quan hệ n-n với HopDong thông qua ChiTietHopDong
+        public virtual ICollection<ChiTietHopDong> ChiTietHopDong { get; set; } = new List<ChiTietHopDong>();
     }
 }

@@ -23,7 +23,8 @@ namespace bike.Controllers
         public async Task<IActionResult> Index(string trangThai = "", int page = 1, int pageSize = 10)
         {
             var query = _context.HopDong
-                .Include(h => h.Xe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
                 .Include(h => h.DatCho)
                 .Include(h => h.HoaDon) 
                 .AsQueryable();
@@ -43,6 +44,10 @@ namespace bike.Controllers
             // Đếm tổng số hợp đồng theo trạng thái trên toàn bộ bảng
             int tongDangThue = await _context.HopDong.CountAsync(h => h.TrangThai == "Đang thuê");
             int tongHoanThanh = await _context.HopDong.CountAsync(h => h.TrangThai == "Hoàn thành");
+            
+            // Đếm đơn chờ xử lý (phiếu đặt chỗ)
+            int donChoXuLy = await _context.DatCho
+                .CountAsync(d => d.TrangThai == "Chờ xác nhận" || d.TrangThai == "Đang giữ chỗ");
 
             ViewBag.TrangThai = trangThai;
             ViewBag.CurrentPage = page;
@@ -50,6 +55,7 @@ namespace bike.Controllers
             ViewBag.TotalItems = totalItems;
             ViewBag.TongDangThue = tongDangThue;
             ViewBag.TongHoanThanh = tongHoanThanh;
+            ViewBag.DonChoXuLy = donChoXuLy;
 
             return View(hopDongs);
         }
@@ -115,23 +121,33 @@ namespace bike.Controllers
             var hopDong = new HopDong
             {
                 MaDatCho = datCho.MaDatCho,
-                MaXe = datCho.MaXe,
+                MaKhachHang = datCho.MaUser,
                 HoTenKhach = datCho.HoTen,
                 SoDienThoai = datCho.SoDienThoai,
                 NgayNhanXe = datCho.NgayNhanXe,
                 NgayTraXeDuKien = datCho.NgayTraXe,
-                GiaThueNgay = datCho.Xe.GiaThue,
                 TienCoc = 0, 
                 PhuPhi = 0,
                 GhiChu = datCho.GhiChu
             };
 
-            // Gán thông tin xe cho hợp đồng
-            hopDong.Xe = datCho.Xe;
+                    // Gán thông tin xe cho hợp đồng
+        hopDong.ChiTietHopDong = new List<ChiTietHopDong>
+        {
+            new ChiTietHopDong
+            {
+                MaXe = datCho.MaXe,
+                GiaThueNgay = datCho.Xe.GiaThue,
+                NgayNhanXe = datCho.NgayNhanXe,
+                NgayTraXeDuKien = datCho.NgayTraXe,
+                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1,
+                ThanhTien = datCho.Xe.GiaThue * ((datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1),
+                TrangThaiXe = "Đang thuê"
+            }
+        };
 
-            // Tính tổng tiền dự kiến (chỉ tiền thuê, chưa có cọc)
-            var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
-            hopDong.TongTien = hopDong.GiaThueNgay * soNgay;
+        // Tính tổng tiền dự kiến (chỉ tiền thuê, chưa có cọc)
+        hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien);
 
             return View(hopDong);
         }
@@ -141,60 +157,130 @@ namespace bike.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> TaoHopDong(HopDong hopDong)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                using (var transaction = await _context.Database.BeginTransactionAsync())
+                // Load lại thông tin nếu có lỗi
+                if (hopDong.MaDatCho.HasValue)
                 {
-                    try
+                    var datCho = await _context.DatCho
+                        .Include(d => d.Xe)
+                        .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho);
+                    
+                    if (datCho != null && hopDong.ChiTietHopDong == null)
                     {
-                        // Lưu người tạo
-                        hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                        hopDong.NgayTao = DateTime.Now;
-                        hopDong.TrangThai = "Đang thuê";
+                        hopDong.ChiTietHopDong = new List<ChiTietHopDong>
+                        {
+                            new ChiTietHopDong
+                            {
+                                MaXe = datCho.MaXe,
+                                GiaThueNgay = datCho.Xe.GiaThue,
+                                NgayNhanXe = datCho.NgayNhanXe,
+                                NgayTraXeDuKien = datCho.NgayTraXe,
+                                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1
+                            }
+                        };
+                    }
+                }
+                return View(hopDong);
+            }
 
-                        // Tính tổng tiền
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // Lưu người tạo
+                    hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                    hopDong.NgayTao = DateTime.Now;
+                    hopDong.TrangThai = "Đang thuê";
+
+                    // TÁI TẠO ChiTietHopDong từ thông tin DatCho
+                    if (hopDong.MaDatCho.HasValue)
+                    {
+                        var datCho = await _context.DatCho
+                            .Include(d => d.Xe)
+                            .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho.Value);
+
+                        if (datCho == null)
+                        {
+                            TempData["Error"] = "Không tìm thấy phiếu đặt chỗ!";
+                            return View(hopDong);
+                        }
+
+                        // Tính toán chi tiết hợp đồng từ DatCho
                         var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
-                        hopDong.TongTien = hopDong.GiaThueNgay * soNgay + hopDong.PhuPhi;
+                        var tienThueXe = datCho.Xe.GiaThue * soNgay;
+                        
+                        hopDong.TongTien = tienThueXe + hopDong.PhuPhi;
 
-                        // Lưu hợp đồng
+                        // Lưu hợp đồng trước để có MaHopDong
                         _context.HopDong.Add(hopDong);
                         await _context.SaveChangesAsync();
 
+                        // Tạo và lưu chi tiết hợp đồng
+                        var chiTietHopDong = new ChiTietHopDong
+                        {
+                            MaHopDong = hopDong.MaHopDong,
+                            MaXe = datCho.MaXe,
+                            GiaThueNgay = datCho.Xe.GiaThue,
+                            NgayNhanXe = hopDong.NgayNhanXe,
+                            NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
+                            SoNgayThue = soNgay,
+                            ThanhTien = tienThueXe,
+                            TrangThaiXe = "Đang thuê",
+                            NgayTao = DateTime.Now
+                        };
+                        
+                        _context.ChiTietHopDong.Add(chiTietHopDong);
+                        await _context.SaveChangesAsync();
+
                         // Cập nhật trạng thái xe
-                        var xe = await _context.Xe.FindAsync(hopDong.MaXe);
-                        if (xe != null)
-                        {
-                            xe.TrangThai = "Đang thuê";
-                        }
-
+                        datCho.Xe.TrangThai = "Đang thuê";
+                        
                         // Cập nhật trạng thái phiếu đặt chỗ
-                        if (hopDong.MaDatCho.HasValue)
-                        {
-                            var datCho = await _context.DatCho.FindAsync(hopDong.MaDatCho.Value);
-                            if (datCho != null)
-                            {
-                                datCho.TrangThai = "Đã xử lý";
-                            }
-                        }
-
+                        datCho.TrangThai = "Đã xử lý";
+                        
                         await _context.SaveChangesAsync();
                         await transaction.CommitAsync();
 
                         TempData["Success"] = $"Tạo hợp đồng thành công! Mã HĐ: HD{hopDong.MaHopDong:D6}";
-                        // Quay về trang Index sau khi tạo hợp đồng
-                        return RedirectToAction("Index");
+                        return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        await transaction.RollbackAsync();
-                        ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
+                        TempData["Error"] = "Thiếu thông tin phiếu đặt chỗ!";
+                        return View(hopDong);
                     }
                 }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    TempData["Error"] = $"Có lỗi xảy ra: {ex.Message}";
+                    
+                    // Load lại thông tin nếu có lỗi
+                    if (hopDong.MaDatCho.HasValue)
+                    {
+                        var datCho = await _context.DatCho
+                            .Include(d => d.Xe)
+                            .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho);
+                        
+                        if (datCho != null && hopDong.ChiTietHopDong == null)
+                        {
+                            hopDong.ChiTietHopDong = new List<ChiTietHopDong>
+                            {
+                                new ChiTietHopDong
+                                {
+                                    MaXe = datCho.MaXe,
+                                    GiaThueNgay = datCho.Xe.GiaThue,
+                                    NgayNhanXe = datCho.NgayNhanXe,
+                                    NgayTraXeDuKien = datCho.NgayTraXe,
+                                    SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1
+                                }
+                            };
+                        }
+                    }
+                    return View(hopDong);
+                }
             }
-
-            // Nếu có lỗi, load lại thông tin xe
-            hopDong.Xe = await _context.Xe.FindAsync(hopDong.MaXe);
-            return View(hopDong);
         }
 
         // GET: QuanLyHopDong/ChiTiet/5 - Xem chi tiết hợp đồng
@@ -206,7 +292,8 @@ namespace bike.Controllers
             }
 
             var hopDong = await _context.HopDong
-                .Include(h => h.Xe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
                 .Include(h => h.DatCho)
                 .Include(h => h.HoaDon) 
                 .Include(h => h.NguoiTao)
@@ -230,7 +317,8 @@ namespace bike.Controllers
             }
 
             var hopDong = await _context.HopDong
-                .Include(h => h.Xe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
                 .FirstOrDefaultAsync(h => h.MaHopDong == id && h.TrangThai == "Đang thuê");
 
             if (hopDong == null)
@@ -250,7 +338,8 @@ namespace bike.Controllers
         public async Task<IActionResult> TraXe(int id, DateTime ngayTraThucTe, decimal phuPhi, string ghiChu)
         {
             var hopDong = await _context.HopDong
-                .Include(h => h.Xe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
                 .FirstOrDefaultAsync(h => h.MaHopDong == id);
 
             if (hopDong == null)
@@ -262,21 +351,31 @@ namespace bike.Controllers
             {
                 try
                 {
-                    // Cập nhật hợp đồng
-                    hopDong.NgayTraXeThucTe = ngayTraThucTe;
-                    hopDong.PhuPhi += phuPhi;
-                    hopDong.GhiChu += ghiChu;
-                    hopDong.TrangThai = "Hoàn thành";
+                                    // Cập nhật hợp đồng
+                hopDong.NgayTraXeThucTe = ngayTraThucTe;
+                hopDong.PhuPhi += phuPhi;
+                hopDong.GhiChu += ghiChu;
+                hopDong.TrangThai = "Hoàn thành";
 
-                    // Tính lại tổng tiền
-                    var soNgayThucTe = (ngayTraThucTe - hopDong.NgayNhanXe).Days + 1;
-                    hopDong.TongTien = hopDong.GiaThueNgay * soNgayThucTe + hopDong.PhuPhi;
+                // Cập nhật chi tiết từng xe
+                foreach (var ct in hopDong.ChiTietHopDong)
+                {
+                    ct.NgayTraXeThucTe = ngayTraThucTe;
+                    ct.TrangThaiXe = "Đã trả";
+                    // Tính lại thành tiền theo ngày thực tế
+                    var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days + 1;
+                    ct.SoNgayThue = soNgayThucTe;
+                    ct.ThanhTien = ct.GiaThueNgay * soNgayThucTe;
+                }
 
-                    // Cập nhật trạng thái xe
-                    if (hopDong.Xe != null)
-                    {
-                        hopDong.Xe.TrangThai = "Sẵn sàng";
-                    }
+                // Tính lại tổng tiền
+                hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + hopDong.PhuPhi;
+
+                // Cập nhật trạng thái xe
+                foreach (var ct in hopDong.ChiTietHopDong)
+                {
+                    ct.Xe.TrangThai = "Sẵn sàng";
+                }
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
@@ -302,7 +401,8 @@ namespace bike.Controllers
             }
 
             var lichSu = await _context.HopDong
-                .Include(h => h.Xe)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
                 .Where(h => h.SoDienThoai == soDienThoai)
                 .OrderByDescending(h => h.NgayTao)
                 .ToListAsync();
@@ -343,13 +443,13 @@ namespace bike.Controllers
         // POST: QuanLyHopDong/Create - Xử lý tạo hợp đồng mới
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(HopDong hopDong)
+        public async Task<IActionResult> Create(HopDong hopDong, int maXe)
         {
             // Kiểm tra xe có sẵn không
-            var xe = await _context.Xe.FindAsync(hopDong.MaXe);
+            var xe = await _context.Xe.FindAsync(maXe);
             if (xe == null || xe.TrangThai != "Sẵn sàng")
             {
-                ModelState.AddModelError("MaXe", "Xe không khả dụng!");
+                ModelState.AddModelError("MaXe", "Xe không khả dụng! Vui lòng chọn lại xe.");
             }
 
             // Kiểm tra CCCD đã tồn tại trong hợp đồng đang thuê chưa
@@ -370,14 +470,32 @@ namespace bike.Controllers
                         hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                         hopDong.NgayTao = DateTime.Now;
                         hopDong.TrangThai = "Đang thuê";
-                        hopDong.GiaThueNgay = xe.GiaThue;
 
-                        // Tính tổng tiền
+                        // Tính tổng tiền trước (chưa có ChiTietHopDong)
                         var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
-                        hopDong.TongTien = (hopDong.GiaThueNgay * soNgay) + hopDong.PhuPhi;
+                        var tienThueXe = xe.GiaThue * soNgay;
+                        hopDong.TongTien = tienThueXe + hopDong.PhuPhi;
 
-                        // Lưu hợp đồng
+                        // Lưu hợp đồng trước để có MaHopDong
                         _context.HopDong.Add(hopDong);
+                        await _context.SaveChangesAsync();
+
+                        // Sau khi có MaHopDong, tạo chi tiết hợp đồng
+                        var chiTietHopDong = new ChiTietHopDong
+                        {
+                            MaHopDong = hopDong.MaHopDong, 
+                            MaXe = maXe,
+                            GiaThueNgay = xe.GiaThue,
+                            NgayNhanXe = hopDong.NgayNhanXe,
+                            NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
+                            SoNgayThue = soNgay,
+                            ThanhTien = tienThueXe,
+                            TrangThaiXe = "Đang thuê",
+                            NgayTao = DateTime.Now
+                        };
+
+                        // Lưu chi tiết hợp đồng
+                        _context.ChiTietHopDong.Add(chiTietHopDong);
                         await _context.SaveChangesAsync();
 
                         // Cập nhật trạng thái xe
@@ -409,7 +527,7 @@ namespace bike.Controllers
                     .ToListAsync(),
                 "MaXe",
                 "Display",
-                hopDong.MaXe
+                maXe
             );
 
             return View(hopDong);

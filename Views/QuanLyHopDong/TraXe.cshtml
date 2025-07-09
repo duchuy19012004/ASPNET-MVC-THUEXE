@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Xử Lý Trả Xe";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var hasChiTiet = Model.ChiTietHopDong?.Any() == true;
 }
 
 <style>
@@ -100,6 +101,11 @@
         border-radius: 10px;
         margin-bottom: 20px;
     }
+
+    .form-disabled {
+        pointer-events: none;
+        opacity: 0.5;
+    }
 </style>
 
 <div class="return-container">
@@ -130,18 +136,29 @@
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="info-row">
-                        <span class="info-label">Xe:</span>
-                        <span class="info-value">@Model.Xe?.TenXe</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Biển số:</span>
-                        <span class="info-value">@Model.Xe?.BienSoXe</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Giá thuê/ngày:</span>
-                        <span class="info-value text-danger">@Model.GiaThueNgay.ToString("N0")đ</span>
-                    </div>
+                    @if (hasChiTiet)
+                    {
+                        var chiTietDau = Model.ChiTietHopDong.First();
+                        <div class="info-row">
+                            <span class="info-label">Xe:</span>
+                            <span class="info-value">@chiTietDau.Xe?.TenXe</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Biển số:</span>
+                            <span class="info-value">@chiTietDau.Xe?.BienSoXe</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Giá thuê/ngày:</span>
+                            <span class="info-value text-danger">@chiTietDau.GiaThueNgay.ToString("N0")đ</span>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="info-row">
+                            <span class="info-label">Xe:</span>
+                            <span class="info-value text-danger">Chưa có thông tin xe</span>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -160,8 +177,16 @@
             </div>
         }
 
+        @if (!hasChiTiet)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <strong>Lỗi:</strong> Hợp đồng này không có thông tin xe thuê! Vui lòng kiểm tra lại dữ liệu.
+            </div>
+        }
+    
         <!-- Form trả xe -->
-        <form asp-action="TraXe" method="post">
+        <form asp-action="TraXe" method="post" class="@(!hasChiTiet ? "form-disabled" : "")">
             <input type="hidden" name="id" value="@Model.MaHopDong" />
 
             <h4 class="mb-3"><i class="bi bi-calendar-check"></i> Thông tin trả xe</h4>
@@ -190,7 +215,7 @@
                     <span id="soNgayThue">0 ngày</span>
                 </div>
                 <div class="calc-row">
-                    <span>Tiền thuê xe (@Model.GiaThueNgay.ToString("N0")đ/ngày):</span>
+                    <span>Tiền thuê xe (@(hasChiTiet ? Model.ChiTietHopDong.First().GiaThueNgay.ToString("N0") : "0")đ/ngày):</span>
                     <span id="tienThueXe">0đ</span>
                 </div>
                 <div class="calc-row">
@@ -240,7 +265,7 @@
             const ngayNhan = new Date('@Model.NgayNhanXe.ToString("yyyy-MM-dd")');
             const ngayTraInput = document.querySelector('input[name="ngayTraThucTe"]').value;
             const ngayTra = new Date(ngayTraInput);
-            const giaThue = @Model.GiaThueNgay;
+            const giaThue = @(hasChiTiet ? Model.ChiTietHopDong.First().GiaThueNgay : 0);
             const phuPhi = parseFloat(document.querySelector('input[name="phuPhi"]').value) || 0;
 
             if (ngayTra && ngayTra >= ngayNhan) {

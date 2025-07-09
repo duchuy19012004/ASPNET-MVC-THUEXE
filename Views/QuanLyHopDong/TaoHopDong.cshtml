@@ -107,38 +107,39 @@
     <div class="contract-body">
         <form asp-action="TaoHopDong" method="post">
             <input type="hidden" asp-for="MaDatCho" />
-            <input type="hidden" asp-for="MaXe" />
 
             <!-- Thông tin xe -->
             <div class="section-title">
                 <i class="bi bi-bicycle"></i> Thông tin xe
             </div>
-            <div class="info-group">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="info-row">
-                            <span class="info-label">Tên xe:</span>
-                            <span class="info-value">@Model.Xe?.TenXe</span>
+            @if (Model.ChiTietHopDong?.Any() == true)
+            {
+                var chiTiet = Model.ChiTietHopDong.First();
+                <div class="info-group">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <span class="info-label">Tên xe:</span>
+                                <span class="info-value">@chiTiet.Xe?.TenXe</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Biển số:</span>
+                                <span class="info-value">@chiTiet.Xe?.BienSoXe</span>
+                            </div>
                         </div>
-                        @*
-                        <div class="info-row">
-                            <span class="info-label">Biển số:</span>
-                            <span class="info-value">@Model.Xe?.BienSoXe</span>
-                        </div>
-                       *@
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-row">
-                            <span class="info-label">Hãng xe:</span>
-                            <span class="info-value">@Model.Xe?.HangXe</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Giá thuê/ngày:</span>
-                            <span class="info-value text-danger">@Model.GiaThueNgay.ToString("N0")đ</span>
+                        <div class="col-md-6">
+                            <div class="info-row">
+                                <span class="info-label">Hãng xe:</span>
+                                <span class="info-value">@chiTiet.Xe?.HangXe</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Giá thuê/ngày:</span>
+                                <span class="info-value text-danger">@chiTiet.GiaThueNgay.ToString("N0")đ</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            }
 
             <!-- Thông tin khách hàng -->
             <div class="section-title">
@@ -201,8 +202,17 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label asp-for="GiaThueNgay" class="form-label"></label>
-                            <input asp-for="GiaThueNgay" class="form-control money-input" readonly />
+                            <label class="form-label">Giá thuê/ngày</label>
+                            @if (Model.ChiTietHopDong?.Any() == true)
+                            {
+                                <input value="@Model.ChiTietHopDong.First().GiaThueNgay.ToString("N0")đ" class="form-control money-input" readonly />
+                                <input type="hidden" id="GiaThueNgay" value="@Model.ChiTietHopDong.First().GiaThueNgay" />
+                            }
+                            else
+                            {
+                                <input value="0đ" class="form-control money-input" readonly />
+                                <input type="hidden" id="GiaThueNgay" value="0" />
+                            }
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -225,7 +235,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label asp-for="GhiChu" class="form-label">Ghi chú</label>
                     <textarea asp-for="GhiChu" class="form-control" rows="3"></textarea>

@@ -1,0 +1,143 @@
+@model bike.Models.Banner
+@{
+    ViewData["Title"] = "Xóa Banner";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="text-danger"><i class="bi bi-trash3"></i> Xóa Banner</h2>
+    <a asp-action="Index" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Quay lại
+    </a>
+</div>
+
+<div class="alert alert-danger">
+    <h5 class="alert-heading">
+        <i class="bi bi-exclamation-triangle"></i> Xác nhận xóa
+    </h5>
+    <p>Bạn có chắc chắn muốn xóa banner này? Hành động này không thể hoàn tác!</p>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Thông tin Banner sẽ bị xóa
+                </h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Tiêu đề:</dt>
+                    <dd class="col-sm-9">@Model.TieuDe</dd>
+
+                    <dt class="col-sm-3">Mô tả:</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.MoTa))
+                        {
+                            @Model.MoTa
+                        }
+                        else
+                        {
+                            <em class="text-muted">Không có mô tả</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Thứ tự hiển thị:</dt>
+                    <dd class="col-sm-9">
+                        <span class="badge bg-info">@Model.ThuTu</span>
+                    </dd>
+
+                    <dt class="col-sm-3">Link liên kết:</dt>
+                    <dd class="col-sm-9">
+                        @if (!string.IsNullOrEmpty(Model.LinkLienKet))
+                        {
+                            <a href="@Model.LinkLienKet" target="_blank" class="text-decoration-none">
+                                @Model.LinkLienKet <i class="bi bi-box-arrow-up-right"></i>
+                            </a>
+                        }
+                        else
+                        {
+                            <em class="text-muted">Không có link</em>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Trạng thái:</dt>
+                    <dd class="col-sm-9">
+                        @if (Model.TrangThai)
+                        {
+                            <span class="badge bg-success">
+                                <i class="bi bi-eye"></i> Hiển thị
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                <i class="bi bi-eye-slash"></i> Ẩn
+                            </span>
+                        }
+                    </dd>
+
+                    <dt class="col-sm-3">Ngày tạo:</dt>
+                    <dd class="col-sm-9">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                    @if (Model.NgayCapNhat.HasValue)
+                    {
+                        <dt class="col-sm-3">Lần cập nhật cuối:</dt>
+                        <dd class="col-sm-9">@Model.NgayCapNhat.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                    }
+                </dl>
+
+                <form asp-action="Delete" method="post" class="mt-4">
+                    <input asp-for="MaBanner" type="hidden" />
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Hủy bỏ
+                            </a>
+                        </div>
+                        <div>
+                            <button type="submit" class="btn btn-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa banner này?')">
+                                <i class="bi bi-trash3"></i> Xác nhận xóa
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h6 class="mb-0">
+                    <i class="bi bi-image"></i> Hình ảnh sẽ bị xóa
+                </h6>
+            </div>
+            <div class="card-body text-center">
+                <img src="/images/banner/@Model.HinhAnh" 
+                     alt="@Model.TieuDe" 
+                     class="img-fluid rounded"
+                     style="max-height: 200px; object-fit: cover;"
+                     onerror="this.src='/images/default.jpg';">
+                <p class="mt-2 small text-muted">@Model.HinhAnh</p>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Cảnh báo
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="small mb-0">
+                    <li>Banner sẽ bị xóa khỏi hệ thống</li>
+                    <li>File hình ảnh sẽ bị xóa khỏi server</li>
+                    <li>Hành động này không thể hoàn tác</li>
+                    <li>Banner sẽ không còn hiển thị trên trang chủ</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div> 
