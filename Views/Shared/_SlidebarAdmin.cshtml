@@ -1,5 +1,18 @@
-﻿@{
+﻿@using bike.Repository
+@using Microsoft.EntityFrameworkCore
+@inject BikeDbContext _context
+@{
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    
+    // Lấy số đơn chờ xử lý mới trong ngày
+    int donChoXuLyMoi = 0;
+    if (userRole == "Admin" || userRole == "Staff")
+    {
+        var homNay = DateTime.Today;
+        donChoXuLyMoi = await _context.DatCho
+            .CountAsync(d => (d.TrangThai == "Chờ xác nhận" || d.TrangThai == "Đang giữ chỗ") 
+                           && d.NgayDat.Date == homNay);
+    }
 }
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -21,9 +34,13 @@
         @if (userRole == "Admin" || userRole == "Staff")
         {
             <li>
-                <a asp-controller="QuanLyHopDong" asp-action="Index">
+                <a asp-controller="QuanLyHopDong" asp-action="Index" style="position: relative;">
                     <i class="bi bi-receipt"></i>
                     <span class="menu-text">Quản lý thuê</span>
+                    @if (donChoXuLyMoi > 0)
+                    {
+                        <span class="sidebar-notification-badge">@donChoXuLyMoi</span>
+                    }
                 </a>
             </li>
             <li>
@@ -74,3 +91,55 @@
         }
     </ul>
 </div>
+
+<style>
+    /* Badge thông báo cho sidebar menu */
+    .sidebar-notification-badge {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+        color: white;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+        border: 2px solid white;
+        animation: pulse-sidebar 2s infinite;
+        z-index: 10;
+    }
+
+    @@keyframes pulse-sidebar {
+        0%, 100% { 
+            transform: scale(1); 
+            box-shadow: 0 2px 6px rgba(255, 71, 87, 0.4);
+        }
+        50% { 
+            transform: scale(1.1); 
+            box-shadow: 0 4px 12px rgba(255, 71, 87, 0.6);
+        }
+    }
+
+    /* Đảm bảo sidebar menu item có đủ không gian cho badge */
+    .sidebar-menu li a {
+        position: relative;
+        padding-right: 45px !important; /* Tăng padding bên phải để có chỗ cho badge */
+    }
+
+    /* Responsive cho badge trên màn hình nhỏ */
+    @@media (max-width: 768px) {
+        .sidebar-notification-badge {
+            width: 18px;
+            height: 18px;
+            font-size: 9px;
+            right: 8px;
+            top: 6px;
+        }
+    }
+</style>

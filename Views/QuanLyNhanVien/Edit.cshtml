@@ -1,4 +1,4 @@
-@model bike.Models.User
+@model bike.ViewModel.EditUserViewModel
 @{
     ViewData["Title"] = "Chỉnh Sửa Nhân Viên";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
@@ -77,6 +77,19 @@
 
     .required {
         color: #e74c3c;
+    }
+
+    .optional-field {
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    .password-info {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-top: 10px;
     }
 </style>
 
@@ -161,11 +174,14 @@
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label asp-for="MatKhau" class="form-label">
-                                        Mật khẩu mới
+                                        Mật khẩu mới <span class="optional-field">(Tùy chọn)</span>
                                     </label>
-                                    <input asp-for="MatKhau" class="form-control" type="password" placeholder="Để trống nếu không thay đổi">
+                                    <input asp-for="MatKhau" class="form-control" type="password" placeholder="Để trống nếu không thay đổi" value="">
                                     <span asp-validation-for="MatKhau" class="text-danger"></span>
-                                    <small class="form-text text-muted">Chỉ nhập nếu muốn thay đổi mật khẩu</small>
+                                    <div class="password-info">
+                                        <i class="bi bi-info-circle"></i> 
+                                        <strong>Lưu ý:</strong> Chỉ nhập mật khẩu mới nếu muốn thay đổi. Để trống để giữ nguyên mật khẩu hiện tại.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -229,8 +245,9 @@
                                     <label asp-for="MucLuong" class="form-label">
                                         Mức lương (VNĐ)
                                     </label>
-                                    <input asp-for="MucLuong" class="form-control" type="number" min="0">
+                                    <input asp-for="MucLuong" class="form-control" type="number" min="0" step="1000">
                                     <span asp-validation-for="MucLuong" class="text-danger"></span>
+                                    <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                                 </div>
                             </div>
                         </div>
@@ -338,19 +355,7 @@
 </div>
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
-    
     <script>
-        // Auto format salary input
-        document.getElementById('MucLuong').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value) {
-                e.target.value = parseInt(value).toLocaleString('vi-VN');
-            }
-        });
-
         // Date validation
         document.addEventListener('DOMContentLoaded', function() {
             const ngayVaoLam = document.getElementById('NgayVaoLam');
@@ -368,6 +373,43 @@
             
             ngayVaoLam.addEventListener('change', validateDates);
             ngayNghiViec.addEventListener('change', validateDates);
+
+            // Add live preview for salary formatting (display only)
+            const salaryInput = document.getElementById('MucLuong');
+            if (salaryInput) {
+                const salaryPreview = document.createElement('small');
+                salaryPreview.className = 'form-text text-info';
+                salaryInput.parentNode.appendChild(salaryPreview);
+
+                salaryInput.addEventListener('input', function(e) {
+                    const value = parseInt(e.target.value);
+                    if (value && !isNaN(value)) {
+                        salaryPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ';
+                    } else {
+                        salaryPreview.innerHTML = '';
+                    }
+                });
+
+                // Initialize preview if there's already a value
+                if (salaryInput.value) {
+                    const value = parseInt(salaryInput.value);
+                    if (value && !isNaN(value)) {
+                        salaryPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ';
+                    }
+                }
+            }
+
+            // Đảm bảo form có thể submit mà không cần mật khẩu
+            const form = document.querySelector('form');
+            const passwordInput = document.getElementById('MatKhau');
+            
+            if (form && passwordInput) {
+                form.addEventListener('submit', function(e) {
+                    // Xóa các client-side validation cho mật khẩu
+                    passwordInput.removeAttribute('required');
+                    passwordInput.removeAttribute('data-val-required');
+                });
+            }
         });
     </script>
 } 

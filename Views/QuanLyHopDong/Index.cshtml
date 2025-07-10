@@ -198,6 +198,154 @@
         background-color: #fff3cd !important;
         transition: background-color 0.3s;
     }
+
+    /* Badge "new" cho đơn chờ xử lý */
+    .new-notification-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+        animation: pulse-new 2s infinite;
+        z-index: 10;
+        border: 2px solid white;
+    }
+
+    @@keyframes pulse-new {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    /* Hiệu ứng đặc biệt khi có đơn mới */
+    .has-new-orders .stat-card {
+        border: 2px solid #ff4757 !important;
+        box-shadow: 0 4px 15px rgba(255, 71, 87, 0.2) !important;
+    }
+
+    .has-new-orders .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 8px 25px rgba(255, 71, 87, 0.3) !important;
+    }
+
+    /* Notification Banner */
+    .notification-banner {
+        background: linear-gradient(135deg, #ff4757 0%, #ff3838 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(255, 71, 87, 0.3);
+        position: relative;
+        overflow: hidden;
+        animation: slideInDown 0.5s ease-out;
+    }
+
+    .notification-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        animation: shimmer 2s infinite;
+    }
+
+    .notification-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 2;
+    }
+
+    .notification-text {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+    }
+
+    .notification-text i {
+        font-size: 24px;
+        margin-right: 12px;
+        animation: pulse-icon 1.5s infinite;
+    }
+
+    .notification-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-notification {
+        background: rgba(255,255,255,0.2);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 16px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .btn-notification:hover {
+        background: rgba(255,255,255,0.3);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .close-notification {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+
+    .close-notification:hover {
+        background: rgba(255,255,255,0.2);
+        transform: rotate(90deg);
+    }
+
+    @@keyframes slideInDown {
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    @@keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 100%; }
+    }
+
+    @@keyframes pulse-icon {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
 </style>
 
 <div class="container-fluid">
@@ -216,6 +364,32 @@
             </a>
         </div>
     </div>
+
+    <!-- Notification Banner khi có đơn mới -->
+    @if (ViewBag.DonChoXuLyMoi > 0)
+    {
+        <div class="notification-banner" id="newOrderNotification">
+            <div class="notification-content">
+                <div class="notification-text">
+                    <i class="bi bi-exclamation-triangle-fill"></i>
+                    <div>
+                        <strong>Có @ViewBag.DonChoXuLyMoi đơn đặt xe mới hôm nay!</strong>
+                        <div style="font-size: 14px; opacity: 0.9; margin-top: 2px;">
+                            Các đơn đang chờ xử lý cần được xác nhận và tạo hợp đồng.
+                        </div>
+                    </div>
+                </div>
+                <div class="notification-actions">
+                    <a href="@Url.Action("DonChoXuLy")" class="btn-notification">
+                        <i class="bi bi-arrow-right"></i> Xử lý ngay
+                    </a>
+                    <button type="button" class="close-notification" onclick="closeNotification()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Statistics -->
     <div class="row stat-cards">
@@ -236,8 +410,15 @@
             </div>
         </div>
         <div class="col-lg-3 col-md-6 mb-3">
-            <a href="@Url.Action("DonChoXuLy")" class="text-decoration-none">
+            <a href="@Url.Action("DonChoXuLy")" class="text-decoration-none @(ViewBag.DonChoXuLyMoi > 0 ? "has-new-orders" : "")">
                 <div class="stat-card" style="cursor: pointer; transition: all 0.3s; border: 2px solid transparent;">
+                    <!-- Badge "new" chỉ hiện khi có đơn mới -->
+                    @if (ViewBag.DonChoXuLyMoi > 0)
+                    {
+                        <div class="new-notification-badge" title="@ViewBag.DonChoXuLyMoi đơn mới hôm nay">
+                            @ViewBag.DonChoXuLyMoi
+                        </div>
+                    }
                     <div class="stat-icon-container">
                         <i class="bi bi-hourglass-split" style="color: #ff6b35;"></i>
                     </div>
@@ -249,7 +430,14 @@
                     </div>
                     <div class="stat-extra-container">
                         <div class="text-muted small">
-                            Click để xử lý
+                            @if (ViewBag.DonChoXuLyMoi > 0)
+                            {
+                                <span class="text-danger fw-bold">@ViewBag.DonChoXuLyMoi mới hôm nay!</span>
+                            }
+                            else
+                            {
+                                <span>Click để xử lý</span>
+                            }
                         </div>
                     </div>
                 </div>
@@ -627,5 +815,48 @@
                 }
             });
         }
+
+        // Function để đóng notification banner
+        function closeNotification() {
+            const notification = document.getElementById('newOrderNotification');
+            if (notification) {
+                // Thêm animation fade out
+                notification.style.animation = 'slideOutUp 0.3s ease-in forwards';
+                
+                // Xóa element sau khi animation hoàn thành
+                setTimeout(function() {
+                    notification.remove();
+                }, 300);
+                
+                // Lưu vào localStorage để không hiện lại trong phiên làm việc
+                localStorage.setItem('hiddenNotification_' + new Date().toDateString(), 'true');
+            }
+        }
+
+        // Kiểm tra xem có nên hiện notification không (tùy chọn)
+        $(document).ready(function() {
+            const notification = document.getElementById('newOrderNotification');
+            if (notification) {
+                const today = new Date().toDateString();
+                const isHidden = localStorage.getItem('hiddenNotification_' + today);
+                
+                if (isHidden === 'true') {
+                    notification.style.display = 'none';
+                }
+            }
+        });
     </script>
+
+    <style>
+        @@keyframes slideOutUp {
+            from {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+        }
+    </style>
 }

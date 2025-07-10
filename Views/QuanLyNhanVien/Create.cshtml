@@ -195,9 +195,9 @@
                                     <label asp-for="MucLuong" class="form-label">
                                         Mức lương (VNĐ)
                                     </label>
-                                    <input asp-for="MucLuong" class="form-control" type="number" min="0" placeholder="Ví dụ: 10000000">
+                                    <input asp-for="MucLuong" class="form-control" type="number" min="0" step="1000" placeholder="Ví dụ: 10000000">
                                     <span asp-validation-for="MucLuong" class="text-danger"></span>
-                                    <small class="form-text text-muted">Có thể thiết lập sau</small>
+                                    <small class="form-text text-muted">Có thể thiết lập sau. Nhập số nguyên không có dấu phẩy</small>
                                 </div>
                             </div>
                         </div>
@@ -256,14 +256,6 @@
     }
     
     <script>
-        // Auto format salary input
-        document.getElementById('MucLuong').addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            if (value) {
-                e.target.value = parseInt(value).toLocaleString('vi-VN');
-            }
-        });
-
         // Form validation
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
@@ -289,6 +281,21 @@
                     window.scrollTo(0, 0);
                 } else {
                     errorContainer.style.display = 'none';
+                }
+            });
+
+            // Add live preview for salary formatting (display only)
+            const salaryInput = document.getElementById('MucLuong');
+            const salaryPreview = document.createElement('small');
+            salaryPreview.className = 'form-text text-info';
+            salaryInput.parentNode.appendChild(salaryPreview);
+
+            salaryInput.addEventListener('input', function(e) {
+                const value = parseInt(e.target.value);
+                if (value && !isNaN(value)) {
+                    salaryPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ';
+                } else {
+                    salaryPreview.innerHTML = '';
                 }
             });
         });

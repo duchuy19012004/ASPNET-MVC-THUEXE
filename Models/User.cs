@@ -57,8 +57,7 @@ namespace bike.Models
         public DateTime? NgayNghiViec { get; set; }
 
         [Display(Name = "Mức lương")]
-        [DataType(DataType.Currency)]
-        [Column(TypeName = "decimal(18,2)")]
+        [Column(TypeName = "decimal(18,0)")]
         public decimal? MucLuong { get; set; }
 
         // Navigation properties

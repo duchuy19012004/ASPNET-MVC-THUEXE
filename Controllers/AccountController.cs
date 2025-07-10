@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using bike.Models;
-using bike.ViewModels;
+using bike.ViewModel;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
@@ -303,14 +303,14 @@ namespace bike.Controllers
                 }
 
                 // Kiểm tra mật khẩu hiện tại
-                if (!VerifyPassword(model.CurrentPassword, user.MatKhau))
+                if (!VerifyPassword(model.MatKhauHienTai, user.MatKhau))
                 {
-                    ModelState.AddModelError("CurrentPassword", "Mật khẩu hiện tại không đúng!");
+                    ModelState.AddModelError("MatKhauHienTai", "Mật khẩu hiện tại không đúng!");
                     return View(model);
                 }
 
                 // Cập nhật mật khẩu mới
-                user.MatKhau = HashPassword(model.NewPassword);
+                user.MatKhau = HashPassword(model.MatKhauMoi);
 
                 try
                 {

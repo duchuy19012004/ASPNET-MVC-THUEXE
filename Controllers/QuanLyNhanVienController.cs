@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using bike.Repository;
 using bike.Models;
 using bike.Attributes;
+using bike.ViewModel;
 using System.Security.Claims;
 
 namespace bike.Controllers
@@ -141,6 +142,12 @@ namespace bike.Controllers
                     nhanVien.NgayVaoLam = DateTime.Today;
                 }
 
+                // Đảm bảo mức lương được xử lý đúng cách
+                if (nhanVien.MucLuong.HasValue && nhanVien.MucLuong.Value < 0)
+                {
+                    nhanVien.MucLuong = null;
+                }
+
                 _context.Users.Add(nhanVien);
                 await _context.SaveChangesAsync();
 
@@ -170,17 +177,40 @@ namespace bike.Controllers
                 return NotFound();
             }
 
-            return View(nhanVien);
+            // Map User model sang EditUserViewModel
+            var editViewModel = new EditUserViewModel
+            {
+                Id = nhanVien.Id,
+                Ten = nhanVien.Ten,
+                Email = nhanVien.Email,
+                VaiTro = nhanVien.VaiTro,
+                SoDienThoai = nhanVien.SoDienThoai,
+                DiaChi = nhanVien.DiaChi,
+                IsActive = nhanVien.IsActive,
+                NgayVaoLam = nhanVien.NgayVaoLam,
+                NgayNghiViec = nhanVien.NgayNghiViec,
+                MucLuong = nhanVien.MucLuong,
+                NgayTao = nhanVien.NgayTao,
+                MatKhau = null // Không set mật khẩu
+            };
+
+            return View(editViewModel);
         }
 
         // POST: QuanLyNhanVien/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, User nhanVien)
+        public async Task<IActionResult> Edit(int id, EditUserViewModel editModel)
         {
-            if (id != nhanVien.Id)
+            if (id != editModel.Id)
             {
                 return NotFound();
+            }
+
+            // Kiểm tra ModelState (EditUserViewModel không có [Required] cho MatKhau)
+            if (!ModelState.IsValid)
+            {
+                return View(editModel);
             }
 
             try
@@ -193,28 +223,37 @@ namespace bike.Controllers
 
                 // Kiểm tra email trùng lặp (trừ chính user này)
                 var duplicateEmail = await _context.Users
-                    .FirstOrDefaultAsync(u => u.Email == nhanVien.Email && u.Id != id);
+                    .FirstOrDefaultAsync(u => u.Email == editModel.Email && u.Id != id);
                 if (duplicateEmail != null)
                 {
                     ModelState.AddModelError("Email", "Email này đã được sử dụng!");
-                    return View(nhanVien);
+                    return View(editModel);
                 }
 
-                // Cập nhật thông tin
-                existingUser.Ten = nhanVien.Ten;
-                existingUser.Email = nhanVien.Email;
-                existingUser.SoDienThoai = nhanVien.SoDienThoai;
-                existingUser.DiaChi = nhanVien.DiaChi;
-                existingUser.VaiTro = nhanVien.VaiTro;
-                existingUser.IsActive = nhanVien.IsActive;
-                existingUser.NgayVaoLam = nhanVien.NgayVaoLam;
-                existingUser.NgayNghiViec = nhanVien.NgayNghiViec;
-                existingUser.MucLuong = nhanVien.MucLuong;
+                // Cập nhật thông tin từ EditUserViewModel
+                existingUser.Ten = editModel.Ten;
+                existingUser.Email = editModel.Email;
+                existingUser.SoDienThoai = editModel.SoDienThoai;
+                existingUser.DiaChi = editModel.DiaChi;
+                existingUser.VaiTro = editModel.VaiTro;
+                existingUser.IsActive = editModel.IsActive;
+                existingUser.NgayVaoLam = editModel.NgayVaoLam;
+                existingUser.NgayNghiViec = editModel.NgayNghiViec;
+                
+                // Đảm bảo mức lương được xử lý đúng cách
+                if (editModel.MucLuong.HasValue && editModel.MucLuong.Value < 0)
+                {
+                    existingUser.MucLuong = null;
+                }
+                else
+                {
+                    existingUser.MucLuong = editModel.MucLuong;
+                }
 
                 // Chỉ cập nhật mật khẩu nếu có nhập mới
-                if (!string.IsNullOrEmpty(nhanVien.MatKhau))
+                if (!string.IsNullOrEmpty(editModel.MatKhau))
                 {
-                    existingUser.MatKhau = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(nhanVien.MatKhau)).ToString();
+                    existingUser.MatKhau = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(editModel.MatKhau)).ToString();
                 }
 
                 await _context.SaveChangesAsync();
@@ -225,7 +264,7 @@ namespace bike.Controllers
             catch (Exception ex)
             {
                 ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
-                return View(nhanVien);
+                return View(editModel);
             }
         }
 

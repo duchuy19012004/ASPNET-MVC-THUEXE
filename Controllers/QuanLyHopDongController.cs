@@ -49,6 +49,12 @@ namespace bike.Controllers
             int donChoXuLy = await _context.DatCho
                 .CountAsync(d => d.TrangThai == "Chờ xác nhận" || d.TrangThai == "Đang giữ chỗ");
 
+            // Đếm đơn chờ xử lý mới trong ngày hôm nay
+            var homNay = DateTime.Today;
+            int donChoXuLyMoi = await _context.DatCho
+                .CountAsync(d => (d.TrangThai == "Chờ xác nhận" || d.TrangThai == "Đang giữ chỗ") 
+                               && d.NgayDat.Date == homNay);
+
             ViewBag.TrangThai = trangThai;
             ViewBag.CurrentPage = page;
             ViewBag.PageSize = pageSize;
@@ -56,6 +62,7 @@ namespace bike.Controllers
             ViewBag.TongDangThue = tongDangThue;
             ViewBag.TongHoanThanh = tongHoanThanh;
             ViewBag.DonChoXuLy = donChoXuLy;
+            ViewBag.DonChoXuLyMoi = donChoXuLyMoi;
 
             return View(hopDongs);
         }

@@ -226,32 +226,54 @@
                             DANH SÁCH XE CHO THUÊ
                         </a>
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li class="dropdown-header">XE TAY GA</li>
-                            <li><a class="dropdown-item" href="#">Honda SH Mode</a></li>
-                            <li><a class="dropdown-item" href="#">Honda SH 125/150</a></li>
-                            <li><a class="dropdown-item" href="#">Honda Air Blade</a></li>
-                            <li><a class="dropdown-item" href="#">Honda Vision</a></li>
-                            <li><a class="dropdown-item" href="#">Honda Lead</a></li>
-                            <li><a class="dropdown-item" href="#">Yamaha NVX</a></li>
-                            <li><a class="dropdown-item" href="#">Yamaha Janus</a></li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li class="dropdown-header">XE SỐ</li>
-                            <li><a class="dropdown-item" href="#">Honda Wave Alpha</a></li>
-                            <li><a class="dropdown-item" href="#">Honda Wave RSX</a></li>
-                            <li><a class="dropdown-item" href="#">Honda Future</a></li>
-                            <li><a class="dropdown-item" href="#">Yamaha Sirius</a></li>
-                            <li><a class="dropdown-item" href="#">Yamaha Jupiter</a></li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li class="dropdown-header">XE CÔN TAY</li>
-                            <li>
-                                <a class="dropdown-item" href="#">Yamaha Exciter 150</a>
-                            </li>
-                            <li><a class="dropdown-item" href="#">Honda Winner 150</a></li>
-                            <li><a class="dropdown-item" href="#">Suzuki Raider 150</a></li>
-                            <li><hr class="dropdown-divider" /></li>
-                            <li>
-                                <a class="dropdown-item" href="#"><strong>Xem tất cả xe</strong></a>
-                            </li>
+                            @if (ViewBag.DanhSachLoaiXe != null)
+                            {
+                                var danhSachLoaiXe = ViewBag.DanhSachLoaiXe as List<bike.Models.LoaiXe>;
+                                var xeTheoLoai = ViewBag.XeTheoLoai as Dictionary<int, List<bike.Models.Xe>>;
+                                
+                                @foreach (var loaiXe in danhSachLoaiXe)
+                                {
+                                    <li class="dropdown-header">@loaiXe.TenLoaiXe.ToUpper()</li>
+                                    
+                                    @if (xeTheoLoai != null && xeTheoLoai.ContainsKey(loaiXe.MaLoaiXe))
+                                    {
+                                        @foreach (var xe in xeTheoLoai[loaiXe.MaLoaiXe])
+                                        {
+                                            <li><a class="dropdown-item" href="@Url.Action("XemChiTiet", "Home", new { id = xe.MaXe })">@xe.TenXe</a></li>
+                                        }
+                                    }
+                                    
+                                    <li><a class="dropdown-item text-primary fw-bold" href="@Url.Action("Index", "Home", new { loaiXe = loaiXe.MaLoaiXe })">
+                                        <i class="bi bi-arrow-right"></i> Xem tất cả @loaiXe.TenLoaiXe
+                                    </a></li>
+                                    
+                                    @if (loaiXe != danhSachLoaiXe.Last())
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                    }
+                                }
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item fw-bold" href="@Url.Action("Index", "Home")">
+                                        <strong><i class="bi bi-grid"></i> Xem tất cả xe</strong>
+                                    </a>
+                                </li>
+                            }
+                            else
+                            {
+                                <!-- Fallback nếu không có dữ liệu -->
+                                <li class="dropdown-header">XE TAY GA</li>
+                                <li><a class="dropdown-item" href="#">Honda SH Mode</a></li>
+                                <li><a class="dropdown-item" href="#">Honda Air Blade</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li class="dropdown-header">XE SỐ</li>
+                                <li><a class="dropdown-item" href="#">Honda Wave Alpha</a></li>
+                                <li><a class="dropdown-item" href="#">Honda Future</a></li>
+                                <li><hr class="dropdown-divider" /></li>
+                                <li>
+                                    <a class="dropdown-item" href="@Url.Action("Index", "Home")"><strong>Xem tất cả xe</strong></a>
+                                </li>
+                            }
                         </ul>
                     </li>
                     <li class="nav-item">

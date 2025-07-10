@@ -16,10 +16,23 @@
     .breadcrumb-item a {
         color: #666;
         text-decoration: none;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .breadcrumb-item a:hover {
+        color: #667eea;
+        text-decoration: underline;
     }
 
     .breadcrumb-item.active {
         color: #333;
+        font-weight: 600;
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: #667eea;
+        font-weight: bold;
     }
 
     /* Product Detail */
@@ -205,6 +218,42 @@
         color: #6c757d;
         font-size: 14px;
     }
+
+    /* Related bikes styling */
+    .related-bikes .bike-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .related-bikes .bike-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+        border-color: #667eea !important;
+    }
+
+    .related-bikes .bike-card img {
+        transition: all 0.3s ease;
+    }
+
+    .related-bikes .bike-card:hover img {
+        transform: scale(1.05);
+    }
+    
+    /* Custom styling for view all button */
+    .btn-outline-primary {
+        border: 2px solid #667eea;
+        color: #667eea;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-outline-primary:hover {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: #667eea;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
 </style>
 
 <!-- Breadcrumb -->
@@ -212,9 +261,13 @@
     <div class="container">
         <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Trang chủ</a></li>
-            <li class="breadcrumb-item"><a href="#">Sản phẩm</a></li>
+            <li class="breadcrumb-item">
+                <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe">
+                    @Model.LoaiXe?.TenLoaiXe
+                </a>
+            </li>
             <li class="breadcrumb-item active" aria-current="page">
-                Cho Thuê Xe @Model.TenXe
+                @Model.TenXe
             </li>
         </ol>
     </div>
@@ -380,23 +433,51 @@
         @if (ViewBag.XeLienQuan != null && ((List<bike.Models.Xe>)ViewBag.XeLienQuan).Any())
         {
             <div class="related-bikes mt-5">
-                <h3 class="mb-4">Xe cùng loại</h3>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Xe cùng loại: @Model.LoaiXe?.TenLoaiXe</h3>
+                    <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe" 
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-grid"></i> Xem tất cả xe @Model.LoaiXe?.TenLoaiXe
+                    </a>
+                </div>
                 <div class="row">
                     @foreach (var xe in (List<bike.Models.Xe>)ViewBag.XeLienQuan)
                     {
-                        <div class="col-md-3">
-                            <a asp-action="XemChiTiet" asp-route-id="@xe.MaXe" class="text-decoration-none">
-                                <div class="bike-card">
+                        <div class="col-md-3 mb-3">
+                            <div class="bike-card" style="border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                                <a asp-action="XemChiTiet" asp-route-id="@xe.MaXe" class="text-decoration-none">
                                     <img src="@(!string.IsNullOrEmpty(xe.HinhAnhXe) ? $"/images/xe/{xe.HinhAnhXe}" : "/images/default.jpg")"
                                          alt="@xe.TenXe" class="w-100" style="height: 200px; object-fit: cover;">
                                     <div class="p-3">
-                                        <h5>@xe.TenXe</h5>
-                                        <p class="text-danger fw-bold">@xe.GiaThue.ToString("N0")đ/ngày</p>
+                                        <h6 class="text-dark mb-2">@xe.TenXe</h6>
+                                        <p class="text-danger fw-bold mb-2">@xe.GiaThue.ToString("N0")đ/ngày</p>
+                                        <p class="mb-0">
+                                            <small class="@(xe.TrangThai == "Sẵn sàng" ? "text-success" : xe.TrangThai == "Đang thuê" ? "text-warning" : "text-danger")">
+                                                <i class="bi bi-circle-fill" style="font-size: 8px;"></i> @xe.TrangThai
+                                            </small>
+                                        </p>
                                     </div>
-                                </div>
-                            </a>
+                                </a>
+                            </div>
                         </div>
                     }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="related-bikes mt-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="mb-0">Xe cùng loại: @Model.LoaiXe?.TenLoaiXe</h3>
+                    <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe" 
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-grid"></i> Xem tất cả xe @Model.LoaiXe?.TenLoaiXe
+                    </a>
+                </div>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> 
+                    Hiện tại không có xe cùng loại khác. 
+                    <a asp-action="Index" asp-controller="Home" class="alert-link">Xem tất cả xe khác</a>
                 </div>
             </div>
         }

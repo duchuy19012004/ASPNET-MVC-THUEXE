@@ -274,12 +274,11 @@
                 const tienThue = soNgay * giaThue;
                 const tongTien = tienThue + phuPhi;
 
-                document.getElementById('soNgayThue').textContent = soNgay + ' ngày';
-                document.getElementById('tienThueXe').textContent = tienThue.toLocaleString('vi-VN') + 'đ';
-                document.getElementById('tongTienFinal').textContent = tongTien.toLocaleString('vi-VN') + 'đ';
+                document.getElementById('soNgayThue').innerHTML = soNgay + ' ngày';
+                document.getElementById('tienThueXe').innerHTML = tienThue.toLocaleString('vi-VN') + 'đ';
+                document.getElementById('tongTienFinal').innerHTML = tongTien.toLocaleString('vi-VN') + 'đ';
             }
         }
-
         // Tính toán khi load
         $(document).ready(function() {
             calculateFinal();

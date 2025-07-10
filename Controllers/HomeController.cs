@@ -4,6 +4,7 @@ using bike.Repository;
 using bike.Models;
 using bike.ViewModel;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace bike.Controllers
 {
@@ -19,7 +20,7 @@ namespace bike.Controllers
         }
 
         // GET: Home/Index
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? loaiXe)
         {
             // Tạo ViewModel
             var viewModel = new XeMayLoaiXe();
@@ -29,9 +30,16 @@ namespace bike.Controllers
                 .OrderBy(l => l.TenLoaiXe)
                 .ToListAsync();
 
-            // Lấy danh sách xe (có thể lọc theo xe thuê nhiều nhất)
-            viewModel.DanhSachXeMay = await _context.Xe
-                .Include(x => x.LoaiXe)
+            // Lấy danh sách xe với filtering
+            var queryXe = _context.Xe.Include(x => x.LoaiXe).AsQueryable();
+            
+            // Nếu có filter theo loại xe
+            if (loaiXe.HasValue)
+            {
+                queryXe = queryXe.Where(x => x.MaLoaiXe == loaiXe.Value);
+            }
+
+            viewModel.DanhSachXeMay = await queryXe
                 .OrderByDescending(x => x.MaXe) // Hoặc order theo số lần thuê nếu có
                 .Take(8) // Lấy 8 xe đầu
                 .ToListAsync();
@@ -42,6 +50,23 @@ namespace bike.Controllers
                 .OrderBy(b => b.ThuTu) // Sắp xếp theo thứ tự
                 .Take(3) // Tối đa 3 banner
                 .ToListAsync();
+
+            // Truyền dữ liệu cho navbar dropdown (cho layout)
+            ViewBag.DanhSachLoaiXe = viewModel.DanhSachLoaiXe;
+            
+            // Lấy tất cả xe theo từng loại để hiển thị trong dropdown
+            ViewBag.XeTheoLoai = new Dictionary<int, List<Xe>>();
+            foreach (var loai in viewModel.DanhSachLoaiXe)
+            {
+                var xeTheoLoai = await _context.Xe
+                    .Include(x => x.LoaiXe)
+                    .Where(x => x.MaLoaiXe == loai.MaLoaiXe && x.TrangThai == "Sẵn sàng")
+                    .Take(5) // Chỉ lấy 5 xe đầu để không quá dài
+                    .ToListAsync();
+                ViewBag.XeTheoLoai.Add(loai.MaLoaiXe, xeTheoLoai);
+            }
+
+            ViewBag.LoaiXeSelected = loaiXe;
 
             return View(viewModel);
         }
@@ -69,6 +94,24 @@ namespace bike.Controllers
                 .Where(x => x.MaLoaiXe == xe.MaLoaiXe && x.MaXe != xe.MaXe)
                 .Take(4)
                 .ToListAsync();
+
+            // Truyền dữ liệu cho navbar dropdown (giống như Index)
+            var danhSachLoaiXe = await _context.LoaiXe
+                .OrderBy(l => l.TenLoaiXe)
+                .ToListAsync();
+            ViewBag.DanhSachLoaiXe = danhSachLoaiXe;
+            
+            // Lấy tất cả xe theo từng loại để hiển thị trong dropdown
+            ViewBag.XeTheoLoai = new Dictionary<int, List<Xe>>();
+            foreach (var loai in danhSachLoaiXe)
+            {
+                var xeTheoLoai = await _context.Xe
+                    .Include(x => x.LoaiXe)
+                    .Where(x => x.MaLoaiXe == loai.MaLoaiXe && x.TrangThai == "Sẵn sàng")
+                    .Take(5) // Chỉ lấy 5 xe đầu để không quá dài
+                    .ToListAsync();
+                ViewBag.XeTheoLoai.Add(loai.MaLoaiXe, xeTheoLoai);
+            }
 
             return View(xe);
         }
