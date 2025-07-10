@@ -64,11 +64,13 @@ namespace bike.Controllers
             ViewBag.XeSanSang = await _context.Xe.CountAsync(x => x.TrangThai == "Sẵn sàng");
             ViewBag.DangChoThue = await _context.Xe.CountAsync(x => x.TrangThai == "Đang thuê");
             ViewBag.BaoTri = await _context.Xe.CountAsync(x => x.TrangThai == "Bảo trì");
+            ViewBag.HuHong = await _context.Xe.CountAsync(x => x.TrangThai == "Hư hỏng");
+            ViewBag.Mat = await _context.Xe.CountAsync(x => x.TrangThai == "Mất");
 
             // Dropdown lists
             ViewBag.LoaiXeList = new SelectList(await _context.LoaiXe.ToListAsync(), "MaLoaiXe", "TenLoaiXe");
             ViewBag.HangXeList = new SelectList(await _context.Xe.Select(x => x.HangXe).Distinct().ToListAsync());
-            ViewBag.TrangThaiList = new SelectList(new[] { "Sẵn sàng", "Đang thuê", "Bảo trì" });
+            ViewBag.TrangThaiList = new SelectList(new[] { "Sẵn sàng", "Đang thuê", "Bảo trì", "Hư hỏng", "Mất" });
 
             return View(await xeQuery.ToListAsync());
         }

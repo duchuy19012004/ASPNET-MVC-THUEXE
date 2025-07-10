@@ -224,19 +224,83 @@
                 </div>
             </div>
 
+            <!-- Báo cáo tình trạng xe -->
+            @if (hasChiTiet)
+            {
+                <h4 class="mb-3"><i class="bi bi-shield-exclamation"></i> Báo cáo tình trạng xe</h4>
+                <div class="damage-report-section">
+                    @foreach (var chiTiet in Model.ChiTietHopDong.Select((ct, index) => new { ct, index }))
+                    {
+                        <div class="vehicle-damage-card mb-4" style="border: 1px solid #dee2e6; border-radius: 10px; padding: 20px; background: #f8f9fa;">
+                            <h5 class="mb-3">
+                                <i class="bi bi-bicycle"></i> 
+                                @chiTiet.ct.Xe?.TenXe - @chiTiet.ct.Xe?.BienSoXe
+                                <small class="text-muted">(Giá trị xe: @chiTiet.ct.Xe?.GiaTriXe.ToString("N0")đ)</small>
+                            </h5>
+                            
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label class="form-label">Tình trạng xe <span class="text-danger">*</span></label>
+                                        <select name="tinhTrangTraXe" class="form-select" onchange="handleDamageChange(@chiTiet.index)" data-index="@chiTiet.index">
+                                            <option value="Bình thường">Bình thường - Không có vấn đề</option>
+                                            <option value="Hư hỏng nhẹ">Hư hỏng nhẹ - Có thể sửa chữa nhanh</option>
+                                            <option value="Hư hỏng nặng">Hư hỏng nặng - Cần sửa chữa lớn</option>
+                                            <option value="Mất">Mất - Xe bị mất trộm/bị tai nạn nặng</option>
+                                            <option value="Tai nạn">Tai nạn - Xe bị hỏng do tai nạn</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="mb-3">
+                                        <label class="form-label">Mô tả thiệt hại (nếu có)</label>
+                                        <textarea name="moTaThietHai" class="form-control" rows="2" 
+                                                  placeholder="Mô tả chi tiết về thiệt hại: vị trí, mức độ..."
+                                                  data-index="@chiTiet.index"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="damage-cost-section" id="damageCost_@chiTiet.index" style="display: none;">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Chi phí sửa chữa ước tính</label>
+                                            <input type="number" name="chiPhiSuaChua" class="form-control" value="0"
+                                                   placeholder="Nhập chi phí ước tính..." 
+                                                   onchange="calculateCompensation(@chiTiet.index)"
+                                                   data-index="@chiTiet.index" />
+                                            <small class="text-muted">Ước tính chi phí sửa chữa (VNĐ)</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="compensation-display" id="compensationDisplay_@chiTiet.index">
+                                            <label class="form-label">Phí đền bù dự kiến</label>
+                                            <div class="compensation-amount" id="compensationAmount_@chiTiet.index" 
+                                                 style="font-size: 18px; font-weight: bold; color: #dc3545;">0đ</div>
+                                            <small class="text-muted compensation-note" id="compensationNote_@chiTiet.index"></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+
             <!-- Phụ phí -->
             <div class="mb-3">
-                <label class="form-label">Phụ phí (nếu có)</label>
+                <label class="form-label">Phụ phí khác (nếu có)</label>
                 <input type="number" name="phuPhi" class="form-control" value="0"
-                       placeholder="Nhập phụ phí: hư hỏng, xăng, vệ sinh..." onchange="calculateFinal()" />
-                <small class="text-muted">Phụ phí cho hư hỏng, thiếu xăng, vệ sinh xe, phạt trả trễ...</small>
+                       placeholder="Phụ phí khác: xăng, vệ sinh, phạt trả trễ..." onchange="calculateFinal()" />
+                <small class="text-muted">Phụ phí khác ngoài đền bù thiệt hại</small>
             </div>
 
             <!-- Ghi chú -->
             <div class="mb-3">
                 <label class="form-label">Ghi chú khi trả xe</label>
                 <textarea name="ghiChu" class="form-control" rows="3"
-                          placeholder="Tình trạng xe, vấn đề phát sinh..."></textarea>
+                          placeholder="Ghi chú chung về quá trình trả xe..."></textarea>
             </div>
 
             <!-- Tổng tiền -->
@@ -261,27 +325,213 @@
 
 @section Scripts {
     <script>
+        // Dữ liệu xe để tính toán
+        const vehicleData = [
+            @foreach (var chiTiet in Model.ChiTietHopDong.Select((ct, index) => new { ct, index }))
+            {
+                @:{
+                    @:giaTriXe: @chiTiet.ct.Xe?.GiaTriXe,
+                    @:giaThueNgay: @chiTiet.ct.GiaThueNgay
+                @:}@(chiTiet.index < Model.ChiTietHopDong.Count - 1 ? "," : "")
+            }
+        ];
+
+        let totalCompensation = 0;
+
+        // Xử lý thay đổi tình trạng xe
+        function handleDamageChange(index) {
+            const damageSelect = document.querySelector(`select[name="tinhTrangTraXe"][data-index="${index}"]`);
+            const damageCostSection = document.getElementById(`damageCost_${index}`);
+            const damageType = damageSelect.value;
+
+            if (damageType === "Bình thường") {
+                damageCostSection.style.display = "none";
+                updateCompensationDisplay(index, 0, "Không có thiệt hại");
+            } else {
+                damageCostSection.style.display = "block";
+                calculateCompensation(index);
+            }
+
+            calculateFinal();
+        }
+
+        // Tính toán phí đền bù cho xe
+        function calculateCompensation(index) {
+            const damageSelect = document.querySelector(`select[name="tinhTrangTraXe"][data-index="${index}"]`);
+            const repairCostInput = document.querySelector(`input[name="chiPhiSuaChua"][data-index="${index}"]`);
+            
+            const damageType = damageSelect.value;
+            const repairCost = parseFloat(repairCostInput.value) || 0;
+            const vehicleValue = vehicleData[index]?.giaTriXe || 0;
+
+            let compensation = 0;
+            let note = "";
+
+            switch (damageType) {
+                case "Bình thường":
+                    compensation = 0;
+                    note = "Không có thiệt hại";
+                    break;
+                case "Hư hỏng nhẹ":
+                    compensation = Math.min(repairCost * 1.2, vehicleValue * 0.15);
+                    note = "120% chi phí sửa chữa (tối đa 15% giá trị xe)";
+                    break;
+                case "Hư hỏng nặng":
+                    compensation = Math.min(repairCost * 1.3, vehicleValue * 0.6);
+                    note = "130% chi phí sửa chữa (tối đa 60% giá trị xe)";
+                    break;
+                case "Mất":
+                    compensation = vehicleValue;
+                    note = "100% giá trị xe - Xe không thể phục hồi";
+                    break;
+                case "Tai nạn":
+                    compensation = Math.min(repairCost * 1.5, vehicleValue * 0.8);
+                    note = "150% chi phí sửa chữa (tối đa 80% giá trị xe)";
+                    break;
+            }
+
+            updateCompensationDisplay(index, compensation, note);
+            calculateFinal();
+        }
+
+        // Cập nhật hiển thị phí đền bù
+        function updateCompensationDisplay(index, amount, note) {
+            const amountElement = document.getElementById(`compensationAmount_${index}`);
+            const noteElement = document.getElementById(`compensationNote_${index}`);
+            
+            if (amountElement) {
+                amountElement.innerHTML = amount.toLocaleString('vi-VN') + 'đ';
+                amountElement.style.color = amount > 0 ? '#dc3545' : '#28a745';
+            }
+            
+            if (noteElement) {
+                noteElement.innerHTML = note;
+            }
+        }
+
+        // Tính tổng phí đền bù
+        function getTotalCompensation() {
+            let total = 0;
+            const vehicleCount = vehicleData.length;
+            
+            for (let i = 0; i < vehicleCount; i++) {
+                const damageSelect = document.querySelector(`select[name="tinhTrangTraXe"][data-index="${i}"]`);
+                const repairCostInput = document.querySelector(`input[name="chiPhiSuaChua"][data-index="${i}"]`);
+                
+                if (damageSelect && repairCostInput) {
+                    const damageType = damageSelect.value;
+                    const repairCost = parseFloat(repairCostInput.value) || 0;
+                    const vehicleValue = vehicleData[i]?.giaTriXe || 0;
+
+                    if (damageType !== "Bình thường") {
+                        let compensation = 0;
+                        switch (damageType) {
+                            case "Hư hỏng nhẹ":
+                                compensation = Math.min(repairCost * 1.2, vehicleValue * 0.15);
+                                break;
+                            case "Hư hỏng nặng":
+                                compensation = Math.min(repairCost * 1.3, vehicleValue * 0.6);
+                                break;
+                            case "Mất":
+                                compensation = vehicleValue;
+                                break;
+                            case "Tai nạn":
+                                compensation = Math.min(repairCost * 1.5, vehicleValue * 0.8);
+                                break;
+                        }
+                        total += compensation;
+                    }
+                }
+            }
+            
+            return total;
+        }
+
         function calculateFinal() {
             const ngayNhan = new Date('@Model.NgayNhanXe.ToString("yyyy-MM-dd")');
             const ngayTraInput = document.querySelector('input[name="ngayTraThucTe"]').value;
             const ngayTra = new Date(ngayTraInput);
             const giaThue = @(hasChiTiet ? Model.ChiTietHopDong.First().GiaThueNgay : 0);
             const phuPhi = parseFloat(document.querySelector('input[name="phuPhi"]').value) || 0;
+            const phiDenBu = getTotalCompensation();
 
             if (ngayTra && ngayTra >= ngayNhan) {
                 // Tính số ngày thuê
                 const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
                 const tienThue = soNgay * giaThue;
-                const tongTien = tienThue + phuPhi;
+                const tongTien = tienThue + phuPhi + phiDenBu;
 
                 document.getElementById('soNgayThue').innerHTML = soNgay + ' ngày';
                 document.getElementById('tienThueXe').innerHTML = tienThue.toLocaleString('vi-VN') + 'đ';
+                
+                // Cập nhật hiển thị trong calculation section
+                const calcSection = document.querySelector('.calculation-section');
+                
+                // Xóa dòng phí đền bù cũ nếu có
+                const existingCompensationRow = calcSection.querySelector('.compensation-row');
+                if (existingCompensationRow) {
+                    existingCompensationRow.remove();
+                }
+                
+                // Thêm dòng phí đền bù nếu > 0
+                if (phiDenBu > 0) {
+                    const compensationRow = document.createElement('div');
+                    compensationRow.className = 'calc-row compensation-row';
+                    compensationRow.innerHTML = `
+                        <span>Phí đền bù thiệt hại:</span>
+                        <span style="color: #dc3545; font-weight: bold;">${phiDenBu.toLocaleString('vi-VN')}đ</span>
+                    `;
+                    calcSection.appendChild(compensationRow);
+                }
+                
                 document.getElementById('tongTienFinal').innerHTML = tongTien.toLocaleString('vi-VN') + 'đ';
+                
+                // Thay đổi màu sắc tổng tiền nếu có đền bù
+                const tongTienElement = document.getElementById('tongTienFinal');
+                if (phiDenBu > 0) {
+                    tongTienElement.style.color = '#dc3545';
+                } else {
+                    tongTienElement.style.color = 'white';
+                }
             }
         }
-        // Tính toán khi load
+
+        // Khởi tạo khi load trang
         $(document).ready(function() {
             calculateFinal();
+            
+            // Validate form trước khi submit
+            $('form').on('submit', function(e) {
+                let hasUnreportedDamage = false;
+                $('select[name="tinhTrangTraXe"]').each(function() {
+                    const index = $(this).data('index');
+                    const damageType = $(this).val();
+                    const description = $(`textarea[name="moTaThietHai"][data-index="${index}"]`).val();
+                    
+                    if (damageType !== "Bình thường" && !description.trim()) {
+                        hasUnreportedDamage = true;
+                        $(this).addClass('is-invalid');
+                        $(`textarea[name="moTaThietHai"][data-index="${index}"]`).addClass('is-invalid');
+                    } else {
+                        $(this).removeClass('is-invalid');
+                        $(`textarea[name="moTaThietHai"][data-index="${index}"]`).removeClass('is-invalid');
+                    }
+                });
+                
+                if (hasUnreportedDamage) {
+                    e.preventDefault();
+                    alert('Vui lòng mô tả chi tiết về thiệt hại cho các xe bị hư hỏng!');
+                    return false;
+                }
+                
+                const totalCompensation = getTotalCompensation();
+                if (totalCompensation > 0) {
+                    const confirmMessage = `Tổng phí đền bù: ${totalCompensation.toLocaleString('vi-VN')}đ\n\nXác nhận hoàn tất trả xe với phí đền bù này?`;
+                    return confirm(confirmMessage);
+                }
+                
+                return confirm('Xác nhận hoàn tất trả xe?');
+            });
         });
     </script>
 }

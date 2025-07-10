@@ -54,7 +54,19 @@ namespace bike.Models
 
         [Display(Name = "Trạng thái xe")]
         [StringLength(50)]
-        public string TrangThaiXe { get; set; } = "Đang thuê"; // Đang thuê, Đã trả, Quá hạn
+        public string TrangThaiXe { get; set; } = "Đang thuê"; // Đang thuê, Đã trả, Quá hạn, Mất, Hư hỏng
+
+        [Display(Name = "Tình trạng xe khi trả")]
+        [StringLength(50)]
+        public string? TinhTrangTraXe { get; set; } // Bình thường, Hư hỏng nhẹ, Hư hỏng nặng, Mất
+
+        [Display(Name = "Mô tả thiệt hại")]
+        [StringLength(1000)]
+        public string? MoTaThietHai { get; set; }
+
+        [Display(Name = "Phí đền bù")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PhiDenBu { get; set; } = 0;
 
         [Display(Name = "Ghi chú")]
         [StringLength(500)]

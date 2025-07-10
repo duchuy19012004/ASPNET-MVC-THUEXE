@@ -7,7 +7,7 @@
 
 <style>
     .create-container {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
         padding: 30px 0;
     }
@@ -79,28 +79,170 @@
             color: white;
         }
 
-    .vehicle-info {
-        background: #f8f9fa;
+    /* Styles cho chọn nhiều xe với search và filter */
+    .vehicle-selection {
+        border: 2px dashed #ddd;
         padding: 20px;
         border-radius: 10px;
         margin-bottom: 20px;
-        display: none;
+        background: #f8f9fa;
     }
 
-    .info-row {
+    .vehicle-filters {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #e0e0e0;
+    }
+
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        align-items: end;
+        flex-wrap: wrap;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 150px;
+    }
+
+    .filter-group label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+        display: block;
+    }
+
+    .quick-filter-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-quick-filter {
+        padding: 4px 8px;
+        font-size: 11px;
+        border: 1px solid #ccc;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-quick-filter:hover, .btn-quick-filter.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    .vehicle-item {
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
         display: flex;
         justify-content: space-between;
-        margin-bottom: 10px;
+        align-items: center;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    .info-label {
-        color: #666;
-        font-weight: 500;
+    .vehicle-info-display {
+        flex: 1;
     }
 
-    .info-value {
+    .vehicle-info-display h6 {
+        margin: 0;
         color: #333;
         font-weight: bold;
+    }
+
+    .vehicle-info-display small {
+        color: #666;
+    }
+
+    .vehicle-price {
+        color: #dc3545;
+        font-weight: bold;
+        font-size: 16px;
+        margin-right: 15px;
+    }
+
+    .btn-remove-vehicle {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-size: 12px;
+    }
+
+    .btn-add-vehicle {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 10px;
+    }
+
+    .selected-vehicles-summary {
+        background: #e9ecef;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+    .no-vehicles-selected {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        padding: 40px;
+    }
+
+    /* Select2 customization */
+    .select2-container--default .select2-selection--single {
+        height: 38px;
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 36px;
+        padding-left: 12px;
+    }
+
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 36px;
+    }
+
+    .select2-dropdown {
+        border-radius: 0.375rem;
+    }
+
+    .vehicle-search-info {
+        background: #e3f2fd;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        color: #1565c0;
+    }
+
+    /* Currency preview styling giống QuanLyNhanVien */
+    .currency-preview {
+        color: #17a2b8 !important;
+        font-weight: 500;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .currency-preview i {
+        margin-right: 5px;
     }
 </style>
 
@@ -116,42 +258,97 @@
         <form asp-action="Create" method="post" id="createContractForm">
             @Html.AntiForgeryToken()
 
-            <!-- Chọn xe -->
+            <!-- Chọn nhiều xe với search và filter -->
             <div class="section-title">
                 <i class="bi bi-bicycle"></i> Chọn xe thuê
             </div>
             <div class="form-section">
-                <div class="mb-3">
-                    <label for="maXe" class="form-label">Xe cho thuê <span class="text-danger">*</span></label>
-                    <select name="maXe" class="form-select" id="MaXe" asp-items="ViewBag.XeList">
-                        <option value="">-- Chọn xe --</option>
-                    </select>
-                    <span class="text-danger" id="maXeError"></span>
-                </div>
-
-                <!-- Thông tin xe sẽ hiển thị sau khi chọn -->
-                <div class="vehicle-info" id="vehicleInfo">
-                    <h5>Thông tin xe đã chọn:</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="info-row">
-                                <span class="info-label">Tên xe:</span>
-                                <span class="info-value" id="tenXe">-</span>
+                <div class="vehicle-selection">
+                    <!-- Filter và search -->
+                    <div class="vehicle-filters">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label>Hãng xe</label>
+                                <select id="filterHang" class="form-select form-select-sm">
+                                    <option value="">Tất cả hãng</option>
+                                </select>
                             </div>
-                            <div class="info-row">
-                                <span class="info-label">Biển số:</span>
-                                <span class="info-value" id="bienSo">-</span>
+                            <div class="filter-group">
+                                <label>Loại xe</label>
+                                <select id="filterLoai" class="form-select form-select-sm">
+                                    <option value="">Tất cả loại</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Khoảng giá (đ/ngày)</label>
+                                <select id="filterGia" class="form-select form-select-sm">
+                                    <option value="">Tất cả giá</option>
+                                    <option value="0-100000">Dưới 100k</option>
+                                    <option value="100000-200000">100k - 200k</option>
+                                    <option value="200000-300000">200k - 300k</option>
+                                    <option value="300000-500000">300k - 500k</option>
+                                    <option value="500000-999999999">Trên 500k</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <button type="button" id="btnClearFilters" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-arrow-clockwise"></i> Reset
+                                </button>
                             </div>
                         </div>
+                        
+                                                 <!-- Quick filter buttons -->
+                         <div class="quick-filter-buttons">
+                             <button type="button" class="btn-quick-filter" data-filter="honda">Honda</button>
+                             <button type="button" class="btn-quick-filter" data-filter="yamaha">Yamaha</button>
+                             <button type="button" class="btn-quick-filter" data-filter="suzuki">Suzuki</button>
+                             <button type="button" class="btn-quick-filter" data-filter="cheap">Giá rẻ (&lt;150k)</button>
+                             <button type="button" class="btn-quick-filter" data-filter="premium">Cao cấp (&gt;300k)</button>
+                             <button type="button" class="btn-quick-filter" data-filter="xe-may">Xe máy</button>
+                             <button type="button" class="btn-quick-filter" data-filter="xe-so">Xe số</button>
+                         </div>
+                    </div>
+
+                    <!-- Search info -->
+                    <div class="vehicle-search-info">
+                        <i class="bi bi-info-circle"></i> 
+                        <span id="searchInfo">Hiển thị <span id="availableCount">0</span> xe khả dụng. Sử dụng tìm kiếm hoặc bộ lọc để tìm xe nhanh hơn.</span>
+                    </div>
+
+                    <!-- Chọn xe với Select2 -->
+                    <div class="row mb-3">
+                        <div class="col-md-10">
+                            <select id="availableVehicles" class="form-select" style="width: 100%;">
+                                <option value="">-- Gõ để tìm kiếm xe (tên, biển số, hãng) --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" id="btnAddVehicle" class="btn btn-add-vehicle w-100">
+                                <i class="bi bi-plus-circle"></i> Thêm
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách xe đã chọn -->
+                    <div id="selectedVehiclesList">
+                        <div class="no-vehicles-selected" id="noVehiclesMessage">
+                            <i class="bi bi-info-circle"></i> Chưa có xe nào được chọn
+                        </div>
+                    </div>
+
+                    <!-- Validation error -->
+                    <div class="text-danger" id="vehicleSelectionError"></div>
+                </div>
+
+                <!-- Tóm tắt xe đã chọn -->
+                <div class="selected-vehicles-summary" id="vehiclesSummary" style="display: none;">
+                    <h6><i class="bi bi-list-check"></i> Tóm tắt xe đã chọn:</h6>
+                    <div class="row">
                         <div class="col-md-6">
-                            <div class="info-row">
-                                <span class="info-label">Hãng xe:</span>
-                                <span class="info-value" id="hangXe">-</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Giá thuê/ngày:</span>
-                                <span class="info-value text-danger" id="giaThue">-</span>
-                            </div>
+                            <strong>Số lượng xe:</strong> <span id="totalVehicles">0</span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Tổng giá thuê/ngày:</strong> <span id="totalDailyPrice" class="text-danger">0đ</span>
                         </div>
                     </div>
                 </div>
@@ -220,9 +417,8 @@
                 <div class="row">
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label class="form-label">Giá thuê/ngày</label>
-                            <input type="text" class="form-control money-input" id="GiaThueDisplay" readonly />
-                            <input type="hidden" id="GiaThueNgay" value="0" />
+                            <label class="form-label">Tổng giá thuê/ngày</label>
+                            <input type="text" class="form-control money-input" id="TotalDailyRateDisplay" readonly />
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -233,15 +429,25 @@
                                    id="TienCoc"
                                    type="number"
                                    min="0"
+                                   step="1000"
                                    value="0"
-                                   placeholder="Nhập tiền cọc (không bắt buộc)" />
+                                   placeholder="Ví dụ: 500000" />
                             <span asp-validation-for="TienCoc" class="text-danger"></span>
+                            <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label asp-for="PhuPhi" class="form-label">Phụ phí</label>
-                            <input asp-for="PhuPhi" class="form-control money-input" value="0" id="PhuPhi" />
+                            <input asp-for="PhuPhi" 
+                                   class="form-control money-input" 
+                                   type="number" 
+                                   min="0" 
+                                   step="1000"
+                                   value="0" 
+                                   id="PhuPhi" 
+                                   placeholder="Ví dụ: 100000" />
+                            <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                         </div>
                     </div>
                 </div>
@@ -257,12 +463,14 @@
                 <h4 class="text-center">Tổng kết hợp đồng</h4>
                 <div class="row mt-3">
                     <div class="col-6">
+                        <p>Số xe thuê:</p>
                         <p>Số ngày thuê:</p>
                         <p>Tiền thuê xe:</p>
                         <p>Tiền cọc:</p>
                         <p>Phụ phí:</p>
                     </div>
                     <div class="col-6 text-end">
+                        <p><span id="soXeThue">0</span> xe</p>
                         <p><span id="soNgayThue">0</span> ngày</p>
                         <p><span id="tienThue">0</span>đ</p>
                         <p><span id="tienCocDisplay">0</span>đ</p>
@@ -292,49 +500,155 @@
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    
+    <!-- Select2 CSS và JS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
     <script>
-        var giaThueNgay = 0;
+        var selectedVehicles = [];
+        var totalDailyRate = 0;
+        var allVehicles = @Html.Raw(Json.Serialize(ViewBag.XeList ?? new List<object>()));
+        var filteredVehicles = [];
 
         $(document).ready(function() {
-            // Khi chọn xe
-            $('#MaXe').on('change', function() {
-                var maXe = $(this).val();
-                if (maXe) {
-                    // Gọi AJAX lấy thông tin xe
-                    $.get('@Url.Action("GetXeInfo", "QuanLyHopDong")', { maXe: maXe }, function(response) {
-                        if (response.success) {
-                            var xe = response.data;
+            // Initialize
+            initializeData();
+            initializeSelect2();
+            setupEventHandlers();
+            
+            // Set tiền cọc mặc định = 0
+            $('#TienCoc').val(0);
+            
+            // Add live preview for currency formatting
+            setupCurrencyPreview();
+        });
 
-                            // Hiển thị thông tin xe
-                            $('#tenXe').text(xe.tenXe);
-                            $('#bienSo').text(xe.bienSoXe);
-                            $('#hangXe').text(xe.hangXe);
-                            $('#giaThue').text(xe.giaThue.toLocaleString('vi-VN') + 'đ');
+        function setupCurrencyPreview() {
+            // Tiền cọc preview
+            const tienCocInput = document.getElementById('TienCoc');
+            const tienCocPreview = document.createElement('small');
+            tienCocPreview.className = 'form-text text-info currency-preview';
+            tienCocInput.parentNode.appendChild(tienCocPreview);
 
-                            // Set giá thuê
-                            giaThueNgay = xe.giaThue;
-                            $('#GiaThueNgay').val(giaThueNgay);
-                            $('#GiaThueDisplay').val(giaThueNgay.toLocaleString('vi-VN') + 'đ');
-
-                            // Hiển thị box thông tin xe
-                            $('#vehicleInfo').slideDown();
-
-                            // Tính toán lại
-                            calculateTotal();
-                        }
-                    });
+            tienCocInput.addEventListener('input', function(e) {
+                const value = parseInt(e.target.value);
+                if (value && !isNaN(value) && value > 0) {
+                    tienCocPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + ' VNĐ';
                 } else {
-                    $('#vehicleInfo').slideUp();
-                    giaThueNgay = 0;
-                    $('#GiaThueNgay').val(0);
-                    $('#GiaThueDisplay').val('0đ');
-                    calculateTotal();
+                    tienCocPreview.innerHTML = '';
                 }
             });
 
-            // Set tiền cọc mặc định = 0
-            $('#TienCoc').val(0);
+            // Phụ phí preview
+            const phuPhiInput = document.getElementById('PhuPhi');
+            const phuPhiPreview = document.createElement('small');
+            phuPhiPreview.className = 'form-text text-info currency-preview';
+            phuPhiInput.parentNode.appendChild(phuPhiPreview);
+
+            phuPhiInput.addEventListener('input', function(e) {
+                const value = parseInt(e.target.value);
+                if (value && !isNaN(value) && value > 0) {
+                    phuPhiPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + ' VNĐ';
+                } else {
+                    phuPhiPreview.innerHTML = '';
+                }
+            });
+        }
+
+        function initializeData() {
+            filteredVehicles = [...allVehicles];
+            updateFilterOptions();
+            updateSearchInfo();
+        }
+
+        function initializeSelect2() {
+            $('#availableVehicles').select2({
+                placeholder: 'Gõ để tìm kiếm xe (tên, biển số, hãng)',
+                allowClear: true,
+                language: {
+                    noResults: function () {
+                        return "Không tìm thấy xe nào";
+                    },
+                    searching: function () {
+                        return "Đang tìm kiếm...";
+                    }
+                }
+            });
+            
+            populateVehicleSelect();
+        }
+
+        function setupEventHandlers() {
+            // Thêm xe vào danh sách
+            $('#btnAddVehicle').on('click', function() {
+                var vehicleId = $('#availableVehicles').val();
+                
+                if (!vehicleId) {
+                    alert('Vui lòng chọn xe!');
+                    return;
+                }
+
+                // Kiểm tra xe đã được chọn chưa
+                if (selectedVehicles.some(v => v.id == vehicleId)) {
+                    alert('Xe này đã được chọn!');
+                    return;
+                }
+
+                                 // Tìm thông tin xe
+                 var vehicle = allVehicles.find(v => v.maXe == vehicleId);
+                 if (vehicle) {
+                     var vehicleObj = {
+                         id: vehicle.maXe,
+                         ten: vehicle.tenXe,
+                         bien: vehicle.bienSoXe,
+                         hang: vehicle.hangXe,
+                         dong: vehicle.dongXe,
+                         gia: vehicle.giaThue,
+                         loaiXe: vehicle.loaiXe,
+                         display: vehicle.display
+                     };
+
+                    selectedVehicles.push(vehicleObj);
+                    updateVehiclesList();
+                    updateSummary();
+                    calculateTotal();
+
+                    // Reset selection và refresh dropdown
+                    $('#availableVehicles').val(null).trigger('change');
+                    populateVehicleSelect(); // Refresh để loại bỏ xe đã chọn
+                }
+            });
+
+            // Xóa xe khỏi danh sách
+            $(document).on('click', '.btn-remove-vehicle', function() {
+                var vehicleId = $(this).data('vehicle-id');
+                selectedVehicles = selectedVehicles.filter(v => v.id != vehicleId);
+                updateVehiclesList();
+                updateSummary();
+                calculateTotal();
+                populateVehicleSelect(); // Refresh để thêm lại xe vào dropdown
+            });
+
+            // Filter handlers
+            $('#filterHang, #filterLoai, #filterGia').on('change', function() {
+                applyFilters();
+            });
+
+            $('#btnClearFilters').on('click', function() {
+                $('#filterHang, #filterLoai, #filterGia').val('');
+                $('.btn-quick-filter').removeClass('active');
+                applyFilters();
+            });
+
+            // Quick filter buttons
+            $('.btn-quick-filter').on('click', function() {
+                $('.btn-quick-filter').removeClass('active');
+                $(this).addClass('active');
+                
+                var filter = $(this).data('filter');
+                applyQuickFilter(filter);
+            });
 
             // Khi thay đổi ngày
             $('#NgayNhanXe, #NgayTraXeDuKien').on('change', function() {
@@ -348,80 +662,211 @@
 
             // Validate form submit
             $('#createContractForm').on('submit', function(e) {
-                // Validate maXe
-                var maXe = $('#MaXe').val();
-                if (!maXe) {
+                // Validate xe đã chọn
+                if (selectedVehicles.length === 0) {
                     e.preventDefault();
-                    $('#maXeError').text('Vui lòng chọn xe cho thuê');
-                    $('#MaXe').focus();
+                    $('#vehicleSelectionError').text('Vui lòng chọn ít nhất một xe!');
+                    $('html, body').animate({
+                        scrollTop: $('#vehicleSelectionError').offset().top - 100
+                    }, 500);
                     return false;
                 } else {
-                    $('#maXeError').text('');
+                    $('#vehicleSelectionError').text('');
                 }
+
+                // Thêm danh sách xe vào form
+                selectedVehicles.forEach(function(vehicle, index) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'danhSachXe[' + index + ']',
+                        value: vehicle.id
+                    }).appendTo('#createContractForm');
+                });
 
                 if (!$(this).valid()) {
                     return false;
                 }
 
-                return confirm('Bạn có chắc chắn muốn tạo hợp đồng này?');
+                return confirm('Bạn có chắc chắn muốn tạo hợp đồng này với ' + selectedVehicles.length + ' xe?');
             });
+        }
 
-            // Validate số điện thoại
-            $('#SoDienThoai').on('input', function() {
-                var sdt = $(this).val();
-                var phoneRegex = /^(0[3|5|7|8|9])+([0-9]{8})$/;
+                 function updateFilterOptions() {
+             // Cập nhật filter hãng xe
+             var hangs = [...new Set(allVehicles.map(v => v.hangXe).filter(h => h))];
+             var $filterHang = $('#filterHang');
+             $filterHang.empty().append('<option value="">Tất cả hãng</option>');
+             hangs.forEach(hang => {
+                 $filterHang.append(`<option value="${hang}">${hang}</option>`);
+             });
 
-                if (sdt.length > 0 && !phoneRegex.test(sdt)) {
-                    $(this).addClass('is-invalid');
-                } else if (sdt.length > 0) {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                }
+             // Cập nhật filter loại xe
+             var loaiXes = [...new Set(allVehicles.map(v => v.loaiXe).filter(l => l))];
+             var $filterLoai = $('#filterLoai');
+             $filterLoai.empty().append('<option value="">Tất cả loại</option>');
+             loaiXes.forEach(loai => {
+                 $filterLoai.append(`<option value="${loai}">${loai}</option>`);
+             });
+         }
+
+                 function applyFilters() {
+             filteredVehicles = allVehicles.filter(vehicle => {
+                 // Filter theo hãng
+                 var hangFilter = $('#filterHang').val();
+                 if (hangFilter && vehicle.hangXe !== hangFilter) return false;
+
+                 // Filter theo loại xe
+                 var loaiFilter = $('#filterLoai').val();
+                 if (loaiFilter && vehicle.loaiXe !== loaiFilter) return false;
+
+                 // Filter theo giá
+                 var giaFilter = $('#filterGia').val();
+                 if (giaFilter) {
+                     var [min, max] = giaFilter.split('-').map(Number);
+                     if (vehicle.giaThue < min || vehicle.giaThue > max) return false;
+                 }
+
+                 return true;
+             });
+
+             populateVehicleSelect();
+             updateSearchInfo();
+         }
+
+                 function applyQuickFilter(filter) {
+             $('#filterHang, #filterLoai, #filterGia').val('');
+             
+             switch(filter) {
+                 case 'honda':
+                     $('#filterHang').val('Honda');
+                     break;
+                 case 'yamaha':
+                     $('#filterHang').val('Yamaha');
+                     break;
+                 case 'suzuki':
+                     $('#filterHang').val('Suzuki');
+                     break;
+                 case 'cheap':
+                     $('#filterGia').val('0-150000');
+                     break;
+                 case 'premium':
+                     $('#filterGia').val('300000-999999999');
+                     break;
+                 case 'xe-may':
+                     $('#filterLoai').val('Xe máy');
+                     break;
+                 case 'xe-so':
+                     $('#filterLoai').val('Xe số');
+                     break;
+             }
+             
+             applyFilters();
+         }
+
+        function populateVehicleSelect() {
+            var $select = $('#availableVehicles');
+            
+            // Xóa tất cả options trừ placeholder
+            $select.find('option:not(:first)').remove();
+            
+            // Lọc xe chưa được chọn
+            var availableVehicles = filteredVehicles.filter(vehicle => 
+                !selectedVehicles.some(selected => selected.id == vehicle.maXe)
+            );
+            
+            // Thêm options mới
+            availableVehicles.forEach(vehicle => {
+                var option = new Option(vehicle.display, vehicle.maXe);
+                $select.append(option);
             });
+            
+            // Refresh Select2
+            $select.trigger('change');
+        }
 
-            // Validate tiền cọc >= 0
-            $('#TienCoc').on('blur', function() {
-                var value = parseFloat($(this).val()) || 0;
-                if (value < 0) {
-                    $(this).val(0);
-                    alert('Tiền cọc không được âm!');
-                }
-                calculateTotal();
-            });
+        function updateSearchInfo() {
+            var availableCount = filteredVehicles.filter(vehicle => 
+                !selectedVehicles.some(selected => selected.id == vehicle.maXe)
+            ).length;
+            
+            $('#availableCount').text(availableCount);
+            
+            if (availableCount === 0 && filteredVehicles.length === 0) {
+                $('#searchInfo').html('<i class="bi bi-exclamation-triangle"></i> Không có xe nào khớp với bộ lọc. Vui lòng thử lại.');
+            } else if (availableCount === 0) {
+                $('#searchInfo').html('<i class="bi bi-check-circle"></i> Tất cả xe đã được chọn trong danh sách lọc.');
+            } else {
+                $('#searchInfo').html(`Hiển thị <span id="availableCount">${availableCount}</span> xe khả dụng. Sử dụng tìm kiếm hoặc bộ lọc để tìm xe nhanh hơn.`);
+            }
+        }
 
-            // Format tiền
-            $('#PhuPhi').on('blur', function() {
-                var value = parseFloat($(this).val()) || 0;
-                $(this).val(value);
-            });
-        });
+        function updateVehiclesList() {
+            var container = $('#selectedVehiclesList');
+            
+            if (selectedVehicles.length === 0) {
+                container.html('<div class="no-vehicles-selected" id="noVehiclesMessage"><i class="bi bi-info-circle"></i> Chưa có xe nào được chọn</div>');
+                $('#vehiclesSummary').hide();
+                return;
+            }
+
+                         var html = '';
+             selectedVehicles.forEach(function(vehicle) {
+                 html += `
+                     <div class="vehicle-item">
+                         <div class="vehicle-info-display">
+                             <h6>${vehicle.ten} - ${vehicle.bien}</h6>
+                             <small>${vehicle.hang} ${vehicle.dong} - <span class="text-primary">${vehicle.loaiXe || 'Chưa phân loại'}</span></small>
+                         </div>
+                         <div class="vehicle-price">
+                             ${vehicle.gia.toLocaleString('vi-VN')}đ/ngày
+                         </div>
+                         <button type="button" class="btn btn-remove-vehicle" data-vehicle-id="${vehicle.id}">
+                             <i class="bi bi-trash"></i> Xóa
+                         </button>
+                     </div>
+                 `;
+             });
+
+            container.html(html);
+            $('#vehiclesSummary').show();
+            updateSearchInfo(); // Cập nhật số lượng xe available
+        }
+
+        function updateSummary() {
+            totalDailyRate = selectedVehicles.reduce((sum, vehicle) => sum + vehicle.gia, 0);
+            
+            $('#totalVehicles').text(selectedVehicles.length);
+            $('#totalDailyPrice').text(totalDailyRate.toLocaleString('vi-VN') + 'đ');
+            $('#TotalDailyRateDisplay').val(totalDailyRate.toLocaleString('vi-VN') + 'đ');
+        }
 
         function calculateTotal() {
             var ngayNhan = new Date($('#NgayNhanXe').val());
             var ngayTra = new Date($('#NgayTraXeDuKien').val());
-            var tienCoc = parseFloat($('#TienCoc').val()) || 0; // Lấy giá trị user nhập
+            var tienCoc = parseFloat($('#TienCoc').val()) || 0;
             var phuPhi = parseFloat($('#PhuPhi').val()) || 0;
 
-            if (ngayNhan && ngayTra && ngayTra > ngayNhan && giaThueNgay > 0) {
+            if (ngayNhan && ngayTra && ngayTra > ngayNhan && totalDailyRate > 0) {
                 var soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
-                var tienThue = soNgay * giaThueNgay;
-
-                // KHÔNG tự động tính tiền cọc nữa
+                var tienThue = soNgay * totalDailyRate;
                 var tongTien = tienThue + tienCoc + phuPhi;
 
-                // Cập nhật hiển thị
+                // Cập nhật hiển thị với định dạng VN
+                $('#soXeThue').text(selectedVehicles.length);
                 $('#soNgayThue').text(soNgay);
-                $('#tienThue').text(tienThue.toLocaleString('vi-VN'));
-                $('#tienCocDisplay').text(tienCoc.toLocaleString('vi-VN'));
-                $('#phuPhiDisplay').text(phuPhi.toLocaleString('vi-VN'));
-                $('#tongTien').text(tongTien.toLocaleString('vi-VN'));
+                $('#tienThue').text(tienThue.toLocaleString('vi-VN') + 'đ');
+                $('#tienCocDisplay').text(tienCoc.toLocaleString('vi-VN') + 'đ');
+                $('#phuPhiDisplay').text(phuPhi.toLocaleString('vi-VN') + 'đ');
+                $('#tongTien').text(tongTien.toLocaleString('vi-VN') + 'đ');
                 $('#TongTienInput').val(tongTien);
             } else {
-                // Reset về 0
+                // Reset về 0 với định dạng
+                $('#soXeThue').text(selectedVehicles.length);
                 $('#soNgayThue').text('0');
-                $('#tienThue').text('0');
-                $('#tienCocDisplay').text('0');
-                $('#phuPhiDisplay').text('0');
-                $('#tongTien').text('0');
+                $('#tienThue').text('0đ');
+                $('#tienCocDisplay').text('0đ');
+                $('#phuPhiDisplay').text('0đ');
+                $('#tongTien').text('0đ');
                 $('#TongTienInput').val(0);
             }
         }

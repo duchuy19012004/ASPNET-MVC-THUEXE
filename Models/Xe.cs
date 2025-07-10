@@ -32,7 +32,7 @@ namespace bike.Models
         [Required(ErrorMessage = "Trạng thái là bắt buộc")]
         [Display(Name = "Trạng thái")]
         [StringLength(20)]
-        public string? TrangThai { get; set; } // Sẵn sàng, Đang thuê, Bảo trì
+        public string? TrangThai { get; set; } // Sẵn sàng, Đang thuê, Bảo trì, Hư hỏng, Mất
 
         [Display(Name = "Giá thuê/ngày")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá thuê phải lớn hơn 0")]
@@ -41,6 +41,23 @@ namespace bike.Models
         [Display(Name = "Hình ảnh")]
         [StringLength(255)]
         public string? HinhAnhXe { get; set; }
+
+        // Thông tin thiệt hại và đền bù
+        [Display(Name = "Giá trị xe (đền bù)")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal GiaTriXe { get; set; } = 0; // Giá trị để tính đền bù khi mất
+
+        [Display(Name = "Ngày gặp sự cố")]
+        [DataType(DataType.Date)]
+        public DateTime? NgayGapSuCo { get; set; }
+
+        [Display(Name = "Mô tả thiệt hại")]
+        [StringLength(1000)]
+        public string? MoTaThietHai { get; set; }
+
+        [Display(Name = "Chi phí sửa chữa")]
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal ChiPhiSuaChua { get; set; } = 0;
 
         // Thêm thuộc tính khóa ngoại
         [Display(Name = "Mã loại xe")]

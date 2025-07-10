@@ -115,6 +115,42 @@
         .logo-section .container {
             overflow: visible !important;
         }
+
+        /* Fix navbar alignment - đảm bảo tất cả nav-link thẳng hàng */
+        .navbar-nav .nav-link {
+            display: flex !important;
+            align-items: center !important;
+            height: auto !important;
+            padding: 0.75rem 1rem !important;
+            line-height: 1.5 !important;
+            vertical-align: middle !important;
+        }
+
+        .navbar-nav .nav-link.dropdown-toggle {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+        }
+
+        .navbar-nav .nav-item {
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* Override Bootstrap dropdown arrow positioning */
+        .navbar-nav .dropdown-toggle::after {
+            margin-left: 0.5rem !important;
+            vertical-align: middle !important;
+            border: none !important;
+            content: "\f107" !important;
+            font-family: "bootstrap-icons" !important;
+            font-weight: normal !important;
+        }
+
+        /* Ensure consistent height for all nav items */
+        .navbar-nav {
+            align-items: center !important;
+        }
     </style>
 
 </head>

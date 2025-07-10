@@ -19,8 +19,9 @@ builder.Services.AddSession(options =>
 // Thêm HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
 
-// Đăng ký CartService
+// Đăng ký Services
 builder.Services.AddScoped<bike.Services.ICartService, bike.Services.CartService>();
+builder.Services.AddScoped<bike.Services.IDamageCompensationService, bike.Services.DamageCompensationService>();
 
 // Cấu hình Entity Framework với SQL Server
 builder.Services.AddDbContext<BikeDbContext>(options =>

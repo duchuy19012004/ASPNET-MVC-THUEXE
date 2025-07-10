@@ -22,6 +22,7 @@ namespace bike.Repository
         public DbSet<HoaDon> HoaDon { get; set; }
         public DbSet<Banner> Banner { get; set; }
         public DbSet<ChiTietHopDong> ChiTietHopDong { get; set; }
+        public DbSet<BaoCaoThietHai> BaoCaoThietHai { get; set; }
 
         // cấu hình thêm cho database (nếu cần)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -53,6 +54,7 @@ namespace bike.Repository
             {
                 e.Property(p => p.GiaThueNgay).HasColumnType("decimal(18, 2)");
                 e.Property(p => p.ThanhTien).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.PhiDenBu).HasColumnType("decimal(18, 2)");
                 
                 // Cấu hình quan hệ
                 e.HasOne(ct => ct.HopDong)
@@ -65,7 +67,13 @@ namespace bike.Repository
                  .HasForeignKey(ct => ct.MaXe)
                  .OnDelete(DeleteBehavior.NoAction);
             });
-            modelBuilder.Entity<Xe>(e => e.Property(p => p.GiaThue).HasColumnType("decimal(18, 2)"));
+            // Cấu hình Xe
+            modelBuilder.Entity<Xe>(e => 
+            {
+                e.Property(p => p.GiaThue).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.GiaTriXe).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.ChiPhiSuaChua).HasColumnType("decimal(18, 2)");
+            });
             // Cấu hình cho HoaDon
             modelBuilder.Entity<HoaDon>(e => {
                 e.Property(p => p.SoTien).HasColumnType("decimal(18, 2)");
@@ -82,7 +90,28 @@ namespace bike.Repository
                  .HasForeignKey(h => h.MaNguoiTao)
                  .OnDelete(DeleteBehavior.NoAction);
             });
+
+            // Cấu hình BaoCaoThietHai
+            modelBuilder.Entity<BaoCaoThietHai>(e =>
+            {
+                e.Property(p => p.ChiPhiSuaChuaUocTinh).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.ChiPhiSuaChuaThucTe).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.PhiDenBuKhachHang).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.GiaTriXeTruocKhiHong).HasColumnType("decimal(18, 2)");
+                e.Property(p => p.GiaTriXeSauKhiHong).HasColumnType("decimal(18, 2)");
+                
+                // Cấu hình quan hệ với ChiTietHopDong
+                e.HasOne(b => b.ChiTietHopDong)
+                 .WithMany()
+                 .HasForeignKey(b => b.MaChiTiet)
+                 .OnDelete(DeleteBehavior.Cascade);
+                 
+                // Cấu hình quan hệ với User (NguoiTao)
+                e.HasOne(b => b.NguoiTao)
+                 .WithMany()
+                 .HasForeignKey(b => b.MaNguoiTao)
+                 .OnDelete(DeleteBehavior.NoAction);
+            });
         }
-        
     }
 }

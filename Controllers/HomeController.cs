@@ -30,8 +30,10 @@ namespace bike.Controllers
                 .OrderBy(l => l.TenLoaiXe)
                 .ToListAsync();
 
-            // Lấy danh sách xe với filtering
-            var queryXe = _context.Xe.Include(x => x.LoaiXe).AsQueryable();
+            // Lấy danh sách xe với filtering - ẩn xe bị mất
+            var queryXe = _context.Xe.Include(x => x.LoaiXe)
+                .Where(x => x.TrangThai != "Mất") // Ẩn xe bị mất khỏi danh sách
+                .AsQueryable();
             
             // Nếu có filter theo loại xe
             if (loaiXe.HasValue)
