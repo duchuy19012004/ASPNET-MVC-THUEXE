@@ -31,7 +31,9 @@ namespace bike.Controllers
                 .ToListAsync();
 
             // Lấy danh sách xe với filtering - ẩn xe bị mất
-            var queryXe = _context.Xe.Include(x => x.LoaiXe)
+            var queryXe = _context.Xe
+                .Include(x => x.LoaiXe)
+                .Include(x => x.HinhAnhXes)
                 .Where(x => x.TrangThai != "Mất") // Ẩn xe bị mất khỏi danh sách
                 .AsQueryable();
             
@@ -62,6 +64,7 @@ namespace bike.Controllers
             {
                 var xeTheoLoai = await _context.Xe
                     .Include(x => x.LoaiXe)
+                    .Include(x => x.HinhAnhXes)
                     .Where(x => x.MaLoaiXe == loai.MaLoaiXe && x.TrangThai == "Sẵn sàng")
                     .Take(5) // Chỉ lấy 5 xe đầu để không quá dài
                     .ToListAsync();
@@ -80,9 +83,10 @@ namespace bike.Controllers
                 return NotFound();
             }
 
-            // Lấy thông tin xe kèm loại xe
+            // Lấy thông tin xe kèm loại xe và hình ảnh
             var xe = await _context.Xe
                 .Include(x => x.LoaiXe)
+                .Include(x => x.HinhAnhXes.OrderBy(h => h.ThuTu))
                 .FirstOrDefaultAsync(x => x.MaXe == id);
 
             if (xe == null)
@@ -93,6 +97,7 @@ namespace bike.Controllers
             // Lấy xe liên quan (cùng loại)
             ViewBag.XeLienQuan = await _context.Xe
                 .Include(x => x.LoaiXe)
+                .Include(x => x.HinhAnhXes)
                 .Where(x => x.MaLoaiXe == xe.MaLoaiXe && x.MaXe != xe.MaXe)
                 .Take(4)
                 .ToListAsync();
@@ -109,6 +114,7 @@ namespace bike.Controllers
             {
                 var xeTheoLoai = await _context.Xe
                     .Include(x => x.LoaiXe)
+                    .Include(x => x.HinhAnhXes)
                     .Where(x => x.MaLoaiXe == loai.MaLoaiXe && x.TrangThai == "Sẵn sàng")
                     .Take(5) // Chỉ lấy 5 xe đầu để không quá dài
                     .ToListAsync();

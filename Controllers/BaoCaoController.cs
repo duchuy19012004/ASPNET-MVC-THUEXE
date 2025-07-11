@@ -39,9 +39,6 @@ namespace bike.Controllers
             viewModel.TongDonDatXe = await _context.DatCho
                 .Where(d => d.NgayDat >= startDate && d.NgayDat <= endDate.AddDays(1))
                 .CountAsync();
-
-
-
             // Doanh thu hôm nay - CHỈ TÍNH KHI ĐÃ TRẢ XE THÀNH CÔNG, TRỪ CHI TIÊU
             var today = DateTime.Now.Date;
             var doanhThuTheoHopDong = await _context.HopDong
@@ -62,6 +59,19 @@ namespace bike.Controllers
             viewModel.XeDangChoThue = await _context.Xe
                 .Where(x => x.TrangThai == "Đang thuê")
                 .CountAsync();
+
+            // Hợp đồng hoạt động (đang thuê)
+            viewModel.HopDongHoatDong = await _context.HopDong
+                .Where(h => h.TrangThai == "Đang thuê")
+                .CountAsync();
+
+            // Khách hàng mới hôm nay - chỉ đếm user với vai trò "User"
+            viewModel.KhachHangMoi = await _context.Users
+                .Where(u => u.NgayTao.Date == today && u.VaiTro == "User")
+                .CountAsync();
+
+            // Tổng số xe trong hệ thống
+            viewModel.TongSoXe = await _context.Xe.CountAsync();
 
             // 2. Tính % tăng/giảm so với kỳ trước - DỰA TRÊN NGÀY TRẢ XE
             var previousPeriodDays = (endDate - startDate).Days;

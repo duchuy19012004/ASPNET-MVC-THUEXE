@@ -8,7 +8,7 @@ namespace bike.Models
         public string TenXe { get; set; }
         public string BienSoXe { get; set; }
         public decimal GiaThue { get; set; }
-        public string? HinhAnhXe { get; set; }
+        public string? HinhAnhHienThi { get; set; }
         public string? TenLoaiXe { get; set; }
         
         [Required(ErrorMessage = "Vui lòng chọn ngày nhận xe")]

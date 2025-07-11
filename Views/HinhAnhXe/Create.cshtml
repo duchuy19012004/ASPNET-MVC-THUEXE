@@ -1,0 +1,152 @@
+@model bike.Models.HinhAnhXe
+
+@{
+    ViewData["Title"] = "Thêm hình ảnh xe";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus"></i> Thêm hình ảnh xe
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="MaXe" class="form-label">Xe</label>
+                                    <select asp-for="MaXe" class="form-select" asp-items="ViewBag.MaXe">
+                                        <option value="">-- Chọn xe --</option>
+                                    </select>
+                                    <span asp-validation-for="MaXe" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="ThuTu" class="form-label">Thứ tự hiển thị</label>
+                                    <input asp-for="ThuTu" class="form-control" type="number" min="1" max="100" />
+                                    <span asp-validation-for="ThuTu" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label class="form-label">Hình ảnh</label>
+                            <input type="file" name="HinhAnh" class="form-control" accept="image/*" required />
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> 
+                                Chọn file hình ảnh (JPG, PNG, GIF). Kích thước tối đa 5MB.
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="MoTa" class="form-label">Mô tả</label>
+                            <textarea asp-for="MoTa" class="form-control" rows="3" placeholder="Nhập mô tả cho hình ảnh..."></textarea>
+                            <span asp-validation-for="MoTa" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <div class="form-check">
+                                <input asp-for="LaAnhChinh" class="form-check-input" type="checkbox" />
+                                <label asp-for="LaAnhChinh" class="form-check-label">
+                                    Đặt làm ảnh chính
+                                </label>
+                            </div>
+                            <div class="form-text">
+                                <i class="fas fa-info-circle"></i> 
+                                Ảnh chính sẽ hiển thị đầu tiên trong gallery.
+                            </div>
+                        </div>
+
+                        <!-- Preview Section -->
+                        <div class="form-group mb-3">
+                            <label class="form-label">Xem trước</label>
+                            <div class="preview-container">
+                                <img id="imagePreview" src="#" alt="Preview" class="img-thumbnail" style="max-width: 300px; max-height: 200px; display: none;">
+                                <div id="noPreview" class="text-muted text-center p-4 border rounded">
+                                    <i class="fas fa-image fa-3x mb-2"></i>
+                                    <p>Chọn hình ảnh để xem trước</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> Lưu hình ảnh
+                            </button>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Image preview functionality
+        document.querySelector('input[name="HinhAnh"]').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            const noPreview = document.getElementById('noPreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    noPreview.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.style.display = 'none';
+                noPreview.style.display = 'block';
+            }
+        });
+
+        // Auto-generate order number
+        document.querySelector('select[name="MaXe"]').addEventListener('change', function() {
+            const maXe = this.value;
+            if (maXe) {
+                // You can add AJAX call here to get the next order number for the selected car
+                // For now, we'll just set it to 1 as default
+                document.querySelector('input[name="ThuTu"]').value = 1;
+            }
+        });
+    </script>
+}
+
+<style>
+    .preview-container {
+        border: 2px dashed #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        text-align: center;
+        background-color: #f8f9fa;
+    }
+    
+    .preview-container img {
+        border-radius: 0.375rem;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    .card-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+</style> 

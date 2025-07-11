@@ -5,457 +5,295 @@
     Layout = "~/Views/Shared/_HomePage.cshtml";
 }
 
-<style>
-    /* Breadcrumb */
-    .breadcrumb {
-        background-color: #f8f9fa;
-        padding: 20px 0;
-        margin-bottom: 30px;
-    }
-
-    .breadcrumb-item a {
-        color: #666;
-        text-decoration: none;
-        transition: all 0.3s ease;
-        font-weight: 500;
-    }
-
-    .breadcrumb-item a:hover {
-        color: #667eea;
-        text-decoration: underline;
-    }
-
-    .breadcrumb-item.active {
-        color: #333;
-        font-weight: 600;
-    }
-
-    .breadcrumb-item + .breadcrumb-item::before {
-        color: #667eea;
-        font-weight: bold;
-    }
-
-    /* Product Detail */
-    .product-detail {
-        padding: 40px 0;
-    }
-
-    .product-images {
-        text-align: center;
-    }
-
-    .main-image {
-        width: 100%;
-        max-height: 500px;
-        object-fit: cover;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .thumbnail-container {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .thumbnail {
-        width: 80px;
-        height: 80px;
-        object-fit: cover;
-        border-radius: 5px;
-        cursor: pointer;
-        border: 2px solid transparent;
-        transition: all 0.3s;
-    }
-
-        .thumbnail:hover,
-        .thumbnail.active {
-            border-color: #667eea;
-        }
-
-    /* Product Info */
-    h1 {
-        font-size: 28px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 20px;
-    }
-
-    .share-btn {
-        background: #1877f2;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 5px;
-        margin-bottom: 20px;
-    }
-
-    .price-info {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .price {
-        font-size: 32px;
-        font-weight: bold;
-        color: #ff0080;
-    }
-
-    .bike-specs {
-        margin-bottom: 20px;
-    }
-
-        .bike-specs p {
-            margin-bottom: 10px;
-        }
-
-    .rental-requirements {
-        margin-bottom: 30px;
-    }
-
-        .rental-requirements ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .rental-requirements li {
-            margin-bottom: 10px;
-            padding-left: 25px;
-            position: relative;
-        }
-
-            .rental-requirements li:before {
-                content: "✓";
-                position: absolute;
-                left: 0;
-                color: #28a745;
-                font-weight: bold;
-            }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 30px;
-    }
-
-    .btn-primary-custom {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 5px;
-        font-weight: bold;
-        transition: all 0.3s;
-        flex: 1;
-    }
-
-    .btn-secondary-custom {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 5px;
-        font-weight: bold;
-        transition: all 0.3s;
-        flex: 1;
-    }
-
-        .btn-primary-custom:hover,
-        .btn-secondary-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-
-    /* Pricing Table */
-    .pricing-table {
-        margin-top: 50px;
-    }
-
-        .pricing-table h3 {
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .pricing-table table {
-            width: 100%;
-            background: white;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .pricing-table th {
-            background: #f8f9fa;
-            padding: 20px;
-            font-weight: bold;
-            text-align: center;
-            border: none;
-        }
-
-        .pricing-table td {
-            padding: 20px;
-            text-align: center;
-            border: 1px solid #f0f0f0;
-        }
-
-    .blue-text {
-        color: #0066ff;
-        font-size: 14px;
-        font-weight: normal;
-    }
-
-    .red-text {
-        color: #dc3545;
-        font-weight: bold;
-    }
-
-    .text-muted {
-        color: #6c757d;
-        font-size: 14px;
-    }
-
-    /* Related bikes styling */
-    .related-bikes .bike-card {
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-
-    .related-bikes .bike-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
-        border-color: #667eea !important;
-    }
-
-    .related-bikes .bike-card img {
-        transition: all 0.3s ease;
-    }
-
-    .related-bikes .bike-card:hover img {
-        transform: scale(1.05);
-    }
-    
-    /* Custom styling for view all button */
-    .btn-outline-primary {
-        border: 2px solid #667eea;
-        color: #667eea;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .btn-outline-primary:hover {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-color: #667eea;
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-    }
-</style>
-
-<!-- Breadcrumb -->
+@section Styles {
+    <link rel="stylesheet" href="~/css/xem-chi-tiet.css" />
+}
+<!-- Enhanced Breadcrumb -->
 <nav aria-label="breadcrumb" class="breadcrumb">
     <div class="container">
         <ol class="breadcrumb mb-0">
-            <li class="breadcrumb-item"><a asp-action="Index" asp-controller="Home">Trang chủ</a></li>
+            <li class="breadcrumb-item">
+                <a asp-action="Index" asp-controller="Home">
+                    <i class="bi bi-house-door"></i> Trang chủ
+                </a>
+            </li>
             <li class="breadcrumb-item">
                 <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe">
-                    @Model.LoaiXe?.TenLoaiXe
+                    <i class="bi bi-grid"></i> @Model.LoaiXe?.TenLoaiXe
                 </a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                @Model.TenXe
+                <i class="bi bi-eye"></i> @Model.TenXe
             </li>
         </ol>
     </div>
 </nav>
 
-<!-- Product Detail Section -->
+<!-- Enhanced Product Detail Section -->
 <section class="product-detail">
     <div class="container">
-        <div class="row">
-            <!-- Product Images -->
-            <div class="col-lg-6">
-                <div class="product-images">
-                    @if (!string.IsNullOrEmpty(Model.HinhAnhXe))
-                    {
-                        <img src="/images/xe/@Model.HinhAnhXe" alt="@Model.TenXe" class="main-image" id="mainImage" />
-                    }
-                    else
-                    {
-                        <img src="/images/default.jpg" alt="@Model.TenXe" class="main-image" id="mainImage" />
-                    }
+        <div class="product-container">
+            <div class="row g-0">
+                <!-- Enhanced Product Images -->
+                <div class="col-lg-6">
+                    <div class="product-images">
+                        <div class="main-image-container">
+                            @{
+                                var hinhAnhChinh = Model.HinhAnhXes?.FirstOrDefault(h => h.LaAnhChinh) ?? Model.HinhAnhXes?.FirstOrDefault();
+                                var imageSrc = hinhAnhChinh?.TenFile ?? Model.HinhAnhHienThi;
+                            }
+                            @if (!string.IsNullOrEmpty(imageSrc))
+                            {
+                                <img src="/images/xe/@imageSrc" alt="@Model.TenXe" class="main-image" id="mainImage" />
+                            }
+                            else
+                            {
+                                <img src="/images/default.jpg" alt="@Model.TenXe" class="main-image" id="mainImage" />
+                            }
+                            <div class="image-overlay" onclick="showImageModal()">
+                                <i class="bi bi-zoom-in"></i>
+                                <span class="zoom-text">Click để xem chi tiết</span>
+                            </div>
+                            
+                            @if (Model.HinhAnhXes != null && Model.HinhAnhXes.Count > 1)
+                            {
+                                <div class="image-navigation">
+                                    <button class="nav-btn nav-prev" onclick="previousImage()">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <button class="nav-btn nav-next" onclick="nextImage()">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </div>
+                                <div class="image-counter">
+                                    <span id="currentImageIndex">1</span> / <span id="totalImages">@Model.HinhAnhXes.Count</span>
+                                </div>
+                            }
+                            
+                            <div class="image-description" id="imageDescription">
+                                @(hinhAnhChinh?.MoTa ?? "")
+                            </div>
+                        </div>
 
-                    <div class="thumbnail-container">
-                        <img src="@(!string.IsNullOrEmpty(Model.HinhAnhXe) ? $"/images/xe/{Model.HinhAnhXe}" : "/images/default.jpg")"
-                             alt="View 1" class="thumbnail active" onclick="changeImage(this.src)" />
-                        <!-- Thêm các ảnh khác nếu có -->
+                        <div class="thumbnail-container">
+                            @if (Model.HinhAnhXes != null && Model.HinhAnhXes.Any())
+                            {
+                                @foreach (var hinh in Model.HinhAnhXes.OrderBy(h => h.ThuTu))
+                                {
+                                    <img src="/images/xe/@hinh.TenFile" 
+                                         alt="@(hinh.MoTa ?? $"View {hinh.ThuTu}")" 
+                                         class="thumbnail @(hinh == hinhAnhChinh ? "active" : "")" 
+                                         onclick="changeImage('/images/xe/@hinh.TenFile', '@hinh.MoTa', @hinh.ThuTu)" 
+                                         data-description="@hinh.MoTa" />
+                                }
+                            }
+                            else if (!string.IsNullOrEmpty(Model.HinhAnhHienThi))
+                            {
+                                <img src="/images/xe/@Model.HinhAnhHienThi" alt="View 1" class="thumbnail active" onclick="changeImage('/images/xe/@Model.HinhAnhHienThi', 'Hình ảnh chính', 1)" />
+                            }
+                            else
+                            {
+                                <img src="/images/default.jpg" alt="Hình mặc định" class="thumbnail active" onclick="changeImage('/images/default.jpg', 'Hình mặc định', 1)" />
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhanced Product Info -->
+                <div class="col-lg-6">
+                    <div class="product-info">
+                        <h1 class="product-title">CHO THUÊ XE @Model.TenXe?.ToUpper()</h1>
+                        
+                        <div class="share-section">
+                            <button class="share-btn">
+                                <i class="bi bi-share"></i> Chia sẻ
+                            </button>
+                        </div>
+
+                        <div class="price-info">
+                            <div class="price-label">Giá thuê từ:</div>
+                            <div class="price">@Model.GiaThue.ToString("N0") vnđ / ngày</div>
+                        </div>
+
+                        <div class="bike-specs">
+                            <div class="spec-item">
+                                <i class="bi bi-tag spec-icon"></i>
+                                <span class="spec-label">Hãng xe:</span>
+                                <span class="spec-value">@Model.HangXe</span>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-speedometer2 spec-icon"></i>
+                                <span class="spec-label">Dòng xe:</span>
+                                <span class="spec-value">@Model.DongXe</span>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-bicycle spec-icon"></i>
+                                <span class="spec-label">Loại xe:</span>
+                                <span class="spec-value">@Model.LoaiXe?.TenLoaiXe</span>
+                            </div>
+                            <div class="spec-item">
+                                <i class="bi bi-check-circle spec-icon"></i>
+                                <span class="spec-label">Trạng thái:</span>
+                                <span class="spec-value">
+                                    @if (Model.TrangThai == "Sẵn sàng")
+                                    {
+                                        <span class="status-badge status-available">
+                                            <i class="bi bi-check-circle-fill"></i> @Model.TrangThai
+                                        </span>
+                                    }
+                                    else if (Model.TrangThai == "Đang thuê")
+                                    {
+                                        <span class="status-badge status-rented">
+                                            <i class="bi bi-clock-fill"></i> @Model.TrangThai
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge status-unavailable">
+                                            <i class="bi bi-x-circle-fill"></i> @Model.TrangThai
+                                        </span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            @if (Model.TrangThai == "Sẵn sàng")
+                            {
+                                <button class="btn-secondary-custom" onclick="showQuickBookingModal(@Model.MaXe)">
+                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                </button>
+                                <button class="btn-primary-custom" onclick="datGiuXe(@Model.MaXe)">
+                                    <i class="bi bi-calendar-check"></i> Đặt ngay
+                                </button>
+                            }
+                            else
+                            {
+                                <button class="btn-secondary-custom" disabled>
+                                    <i class="bi bi-x-circle"></i> Xe đang được thuê
+                                </button>
+                            }
+                        </div>
+
+                        <div class="rental-requirements">
+                            <h4 class="requirements-title">
+                                <i class="bi bi-info-circle"></i> Yêu cầu thuê xe
+                            </h4>
+                            <div class="mb-3">
+                                <i class="bi bi-telephone-fill text-primary"></i> 
+                                <strong>Hotline:</strong> 0908.428.642 / 0908.630.065
+                            </div>
+                            <ul class="requirements-list">
+                                <li>Người dưới 18 tuổi không được phép thuê xe</li>
+                                <li>Khi thuê xe bạn được cung cấp 2 mũ bảo hiểm (mặc định là 1)</li>
+                                <li>Bắt buộc phải đặt cọc khi nhận xe. Hoàn trả đầy đủ khi trả xe</li>
+                                <li>Giao xe tận nơi (8h-20h) trong Sài Gòn có phí dịch vụ</li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Product Info -->
-            <div class="col-lg-6">
-                <h1>CHO THUÊ XE @Model.TenXe?.ToUpper()</h1>
-                <button class="share-btn">
-                    <i class="bi bi-facebook"></i> Chia sẻ
-                </button>
-
-                <div class="price-info">
-                    <p class="mb-1">
-                        Giá thuê từ: <span class="price">@Model.GiaThue.ToString("N0") vnđ / ngày</span>
-                    </p>
-                </div>
-
-                <div class="bike-specs">
-                    <p><strong>Hãng xe:</strong> @Model.HangXe</p>
-                    <p><strong>Dòng xe:</strong> @Model.DongXe</p>
-                    <p><strong>Loại xe:</strong> @Model.LoaiXe?.TenLoaiXe</p>
-                    <p>
-                        <strong>Trạng thái:</strong>
-                        @if (Model.TrangThai == "Sẵn sàng")
-                        {
-                            <span class="badge bg-success">@Model.TrangThai</span>
-                        }
-                        else if (Model.TrangThai == "Đang thuê")
-                        {
-                            <span class="badge bg-warning">@Model.TrangThai</span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger">@Model.TrangThai</span>
-                        }
-                    </p>
-                </div>
-
-                <div class="rental-requirements">
-                    <p class="mb-3">
-                        <i class="bi bi-check-square-fill"></i> Thủ Tục : CCCD đủ 18 tuổi giấy tờ tùy thân khác có ảnh (GPLX , Passport...)
-                        <i class="bi bi-telephone-fill"></i> Hotline: 0908.428.642 / 0908.630.065
-                    </p>
-                </div>
-
-                <div class="action-buttons">
-                    @if (Model.TrangThai == "Sẵn sàng")
-                    {
-                        <button class="btn-secondary-custom" onclick="showQuickBookingModal(@Model.MaXe)" style="margin-right: 10px;">
-                            <i class="bi bi-cart-plus"></i> THÊM VÀO GIỎ
-                        </button>
-                        <button class="btn-primary-custom" onclick="datGiuXe(@Model.MaXe)">
-                            <i class="bi bi-calendar-check"></i> ĐẶT NGAY
-                        </button>
-                    }
-                    else
-                    {
-                        <button class="btn-secondary-custom" disabled>XE ĐANG ĐƯỢC THUÊ</button>
-                    }
-                </div>
-
-                <div class="rental-requirements">
-                    <ul>
-                        <li>Người dưới 18 tuổi không được phép thuê xe</li>
-                        <li>Khi thuê xe bạn được sẵn 2 mũ nếu yêu cầu (mặc định là 1)</li>
-                        <li>Bắt buộc phải cọc thẻ chân khi nhận xe. Cty hoàn đủ cọc khi trả xe (Có thể thương lượng trước)</li>
-                        <li>Giao xe tận nơi (8h-20h) trong sài gòn (Có phí) để nv di grab về (Có thương lượng trước), sau khung giờ trên KH vui lòng đến thuê hoặc trả xe tại cty</li>
-                    </ul>
-                </div>
+        <!-- Enhanced Pricing Table -->
+        <div class="pricing-section">
+            <h3 class="pricing-title">BẢNG GIÁ THUÊ CHI TIẾT</h3>
+            <div class="table-responsive">
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="bi bi-clock"></i><br>
+                                Thời Gian Thuê<br /><span class="blue-text">(Rental Period)</span>
+                            </th>
+                            <th>
+                                <i class="bi bi-currency-dollar"></i><br>
+                                Giá Thuê<br /><span class="blue-text">(Rental Price)</span>
+                            </th>
+                            <th>
+                                <i class="bi bi-file-text"></i><br>
+                                Thủ Tục<br /><span class="blue-text">(Required Documents)</span>
+                            </th>
+                            <th>
+                                <i class="bi bi-shield-check"></i><br>
+                                Tiền Đặt Cọc<br /><span class="blue-text">(Deposit)</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Từ 1 đến 2 ngày</strong><br />
+                                <span class="text-muted">(1 to 2 days)</span>
+                            </td>
+                            <td>
+                                <strong>@((Model.GiaThue * 1.2m).ToString("N0"))</strong> vnđ/ngày<br />
+                                <span class="text-muted">(@((Model.GiaThue * 1.2m).ToString("N0")) VND/day)</span>
+                            </td>
+                            <td rowspan="3">
+                                <strong>CCCD/CMND + GPLX/Passport</strong><br />
+                                <span class="red-text">Bản chính một trong các giấy tờ</span><br />
+                                <span class="text-muted">(Original documents required)</span>
+                            </td>
+                            <td rowspan="3">
+                                <strong class="blue-text">Từ 1.000.000 VND</strong><br />
+                                <span class="text-muted">Hoàn trả sau khi trả xe</span><br />
+                                <span class="blue-text">(Refundable deposit)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Từ 3 đến 24 ngày</strong><br />
+                                <span class="text-muted">(3 to 24 days)</span>
+                            </td>
+                            <td>
+                                <strong>@Model.GiaThue.ToString("N0")</strong> vnđ/ngày<br />
+                                <span class="text-muted">(@Model.GiaThue.ToString("N0") VND/day)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Từ 25 ngày trở lên</strong><br />
+                                <span class="text-muted">(25+ days)</span>
+                            </td>
+                            <td>
+                                <strong>@((Model.GiaThue * 0.8m).ToString("N0"))</strong> vnđ/ngày<br />
+                                <span class="text-muted">(@((Model.GiaThue * 0.8m).ToString("N0")) VND/day)</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Pricing Table -->
-        <div class="pricing-table">
-            <h3>BẢNG GIÁ THUÊ CỤ THỂ - ( MOTORBIKE RENTAL INFORMATION )</h3>
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>
-                            Thời Gian Thuê<br /><span class="blue-text">(To rent - Time)</span>
-                        </th>
-                        <th>
-                            Giá Thuê<br /><span class="blue-text">(Price to rent)</span>
-                        </th>
-                        <th>
-                            Thủ Tục<br /><span class="blue-text">(Procedure to rent)</span>
-                        </th>
-                        <th>
-                            Tiền Thế Chân<br /><span class="blue-text">(Down payment)</span>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>
-                            Từ 1 đến 2 ngày<br /><span class="text-muted">(1 to 2 days)</span>
-                        </td>
-                        <td>
-                            @((Model.GiaThue * 1.2m).ToString("N0")) / ngày<br />
-                            <span class="text-muted">(@((Model.GiaThue * 1.2m).ToString("N0")) / day)</span>
-                        </td>
-                        <td rowspan="3">
-                            Công ty sẽ giữ (bản chính) một trong những giấy tờ tùy thân có ảnh sau :<br />
-                            <span class="red-text">CMND , GPLX , hộ chiếu</span><br />
-                            <span class="text-muted">(Personal Certificate)</span><br />
-                            <span class="blue-text">Passport</span>
-                        </td>
-                        <td rowspan="3">
-                            <span class="blue-text">Từ 1 Triệu (Bắt buộc) để nhận xe</span><br />
-                            Hoàn trả tiền thế chân sau khi kết thúc hợp đồng thuê<br />
-                            <span class="blue-text">To 1.000.000 VND</span><br />
-                            <span class="text-muted">(commitment to refund)</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Từ 3 đến dưới 25 ngày<br /><span class="text-muted">(3 to 25 days)</span>
-                        </td>
-                        <td>
-                            @Model.GiaThue.ToString("N0") / ngày<br />
-                            <span class="text-muted">(@Model.GiaThue.ToString("N0") / day)</span>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Trọn 1 tháng<br /><span class="text-muted">(Full Month)</span>
-                        </td>
-                        <td>
-                            @((Model.GiaThue * 0.8m).ToString("N0")) / ngày<br />
-                            <span class="text-muted">(@((Model.GiaThue * 0.8m).ToString("N0")) / day)</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Xe liên quan -->
+        <!-- Enhanced Related Bikes -->
         @if (ViewBag.XeLienQuan != null && ((List<bike.Models.Xe>)ViewBag.XeLienQuan).Any())
         {
-            <div class="related-bikes mt-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="mb-0">Xe cùng loại: @Model.LoaiXe?.TenLoaiXe</h3>
+            <div class="related-bikes">
+                <div class="related-bikes-header">
+                    <h3 class="related-bikes-title">
+                        <i class="bi bi-collection"></i> Xe cùng loại: @Model.LoaiXe?.TenLoaiXe
+                    </h3>
                     <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe" 
                        class="btn btn-outline-primary">
-                        <i class="bi bi-grid"></i> Xem tất cả xe @Model.LoaiXe?.TenLoaiXe
+                        <i class="bi bi-grid"></i> Xem tất cả
                     </a>
                 </div>
-                <div class="row">
+                <div class="row g-4">
                     @foreach (var xe in (List<bike.Models.Xe>)ViewBag.XeLienQuan)
                     {
-                        <div class="col-md-3 mb-3">
-                            <div class="bike-card" style="border: 1px solid #e9ecef; border-radius: 10px; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                        <div class="col-lg-3 col-md-4 col-sm-6">
+                            <div class="bike-card">
                                 <a asp-action="XemChiTiet" asp-route-id="@xe.MaXe" class="text-decoration-none">
-                                    <img src="@(!string.IsNullOrEmpty(xe.HinhAnhXe) ? $"/images/xe/{xe.HinhAnhXe}" : "/images/default.jpg")"
-                                         alt="@xe.TenXe" class="w-100" style="height: 200px; object-fit: cover;">
-                                    <div class="p-3">
-                                        <h6 class="text-dark mb-2">@xe.TenXe</h6>
-                                        <p class="text-danger fw-bold mb-2">@xe.GiaThue.ToString("N0")đ/ngày</p>
-                                        <p class="mb-0">
-                                            <small class="@(xe.TrangThai == "Sẵn sàng" ? "text-success" : xe.TrangThai == "Đang thuê" ? "text-warning" : "text-danger")">
-                                                <i class="bi bi-circle-fill" style="font-size: 8px;"></i> @xe.TrangThai
-                                            </small>
-                                        </p>
+                                <img src="@(!string.IsNullOrEmpty(xe.HinhAnhHienThi) ? $"/images/xe/{xe.HinhAnhHienThi}" : "/images/default.jpg")"
+                                 alt="@xe.TenXe">
+                                    <div class="bike-card-body">
+                                        <h6 class="bike-card-title">@xe.TenXe</h6>
+                                        <div class="bike-card-price">@xe.GiaThue.ToString("N0")đ/ngày</div>
+                                        <div class="bike-card-status @(xe.TrangThai == "Sẵn sàng" ? "text-success" : xe.TrangThai == "Đang thuê" ? "text-warning" : "text-danger")">
+                                            <div class="status-indicator"></div>
+                                            @xe.TrangThai
+                                        </div>
                                     </div>
                                 </a>
                             </div>
@@ -466,56 +304,74 @@
         }
         else
         {
-            <div class="related-bikes mt-5">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="mb-0">Xe cùng loại: @Model.LoaiXe?.TenLoaiXe</h3>
+            <div class="related-bikes">
+                <div class="related-bikes-header">
+                    <h3 class="related-bikes-title">
+                        <i class="bi bi-collection"></i> Xe cùng loại: @Model.LoaiXe?.TenLoaiXe
+                    </h3>
                     <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe" 
                        class="btn btn-outline-primary">
-                        <i class="bi bi-grid"></i> Xem tất cả xe @Model.LoaiXe?.TenLoaiXe
+                        <i class="bi bi-grid"></i> Xem tất cả
                     </a>
                 </div>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle"></i> 
                     Hiện tại không có xe cùng loại khác. 
-                    <a asp-action="Index" asp-controller="Home" class="alert-link">Xem tất cả xe khác</a>
+                    <a asp-action="Index" asp-controller="Home" class="alert-link">Khám phá tất cả xe khác</a>
                 </div>
             </div>
         }
     </div>
 </section>
 
-<!-- Quick Booking Modal -->
+<!-- Enhanced Quick Booking Modal -->
 <div class="modal fade" id="quickBookingModal" tabindex="-1" aria-labelledby="quickBookingModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="quickBookingModalLabel">
                     <i class="bi bi-cart-plus"></i> Thêm vào giỏ xe
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form id="addToCartForm">
-                    <div class="mb-3">
-                        <label class="form-label">Ngày nhận xe</label>
-                        <input type="date" class="form-control" id="ngayNhanXe" required>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-plus"></i> Ngày nhận xe
+                            </label>
+                            <input type="date" class="form-control" id="ngayNhanXe" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="bi bi-calendar-minus"></i> Ngày trả xe
+                            </label>
+                            <input type="date" class="form-control" id="ngayTraXe" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="bi bi-chat-dots"></i> Ghi chú (tùy chọn)
+                            </label>
+                            <textarea class="form-control" id="ghiChu" rows="3" placeholder="Nhập ghi chú nếu có..."></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ngày trả xe</label>
-                        <input type="date" class="form-control" id="ngayTraXe" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Ghi chú (tùy chọn)</label>
-                        <textarea class="form-control" id="ghiChu" rows="2" placeholder="Nhập ghi chú nếu có..."></textarea>
-                    </div>
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i> Số ngày thuê: <span id="soNgayThue">0</span> ngày<br>
-                        <i class="bi bi-cash"></i> Tổng tiền dự kiến: <span id="tongTien">0đ</span>
+                    <div class="alert alert-info mt-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <i class="bi bi-calendar-range"></i> <strong>Số ngày thuê:</strong> <span id="soNgayThue">0</span> ngày
+                            </div>
+                            <div class="col-6">
+                                <i class="bi bi-cash-coin"></i> <strong>Tổng tiền dự kiến:</strong> <span id="tongTien">0đ</span>
+                            </div>
+                        </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
                 <button type="button" class="btn btn-primary" onclick="addToCart()">
                     <i class="bi bi-cart-plus"></i> Thêm vào giỏ
                 </button>
@@ -524,28 +380,430 @@
     </div>
 </div>
 
+<!-- Image Detail Modal -->
+<div class="modal fade" id="imageDetailModal" tabindex="-1" aria-labelledby="imageDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-white" id="imageDetailModalLabel">
+                    <i class="bi bi-images"></i> Chi tiết hình ảnh
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 d-flex align-items-center justify-content-center">
+                <div class="image-detail-container">
+                    <img id="modalDetailImage" src="" alt="" class="modal-detail-image">
+                    
+                    <!-- Navigation arrows -->
+                    <button class="modal-nav-btn modal-prev-btn" onclick="modalPreviousImage()" id="modalPrevBtn">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <button class="modal-nav-btn modal-next-btn" onclick="modalNextImage()" id="modalNextBtn">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    
+                    <!-- Image info overlay -->
+                    <div class="modal-image-info">
+                        <div class="info-header">
+                            <h6 id="modalImageTitle">@Model.TenXe</h6>
+                            <span class="image-counter-modal">
+                                <span id="modalCurrentIndex">1</span> / <span id="modalTotalImages">1</span>
+                            </span>
+                        </div>
+                        <p id="modalImageDescription" class="info-description"></p>
+                        <div class="info-actions">
+                            <button class="btn btn-sm btn-outline-light" onclick="downloadImage()">
+                                <i class="bi bi-download"></i> Tải xuống
+                            </button>
+                            <button class="btn btn-sm btn-outline-light" onclick="shareImage()">
+                                <i class="bi bi-share"></i> Chia sẻ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
-        // Thay đổi ảnh chính
-        function changeImage(src) {
-            document.getElementById('mainImage').src = src;
+        // Global variables for image gallery
+        let currentImageIndex = 0;
+        let totalImages = 0;
+        let imageList = [];
+        let modalCurrentIndex = 0;
+
+        // Show image detail modal
+        function showImageModal() {
+            modalCurrentIndex = currentImageIndex;
+            updateModalImage();
+            
+            const modal = new bootstrap.Modal(document.getElementById('imageDetailModal'));
+            modal.show();
+        }
+
+        // Update modal image
+        function updateModalImage() {
+            if (imageList.length === 0) return;
+            
+            const currentImage = imageList[modalCurrentIndex];
+            const modalImage = document.getElementById('modalDetailImage');
+            const modalTitle = document.getElementById('modalImageTitle');
+            const modalDescription = document.getElementById('modalImageDescription');
+            const modalCurrentIndexSpan = document.getElementById('modalCurrentIndex');
+            const modalTotalImagesSpan = document.getElementById('modalTotalImages');
+            
+            // Update image
+            modalImage.src = currentImage.src;
+            modalImage.alt = currentImage.description || '@Model.TenXe';
+            
+            // Update info
+            modalTitle.textContent = '@Model.TenXe';
+            modalDescription.textContent = currentImage.description || 'Không có mô tả';
+            modalCurrentIndexSpan.textContent = modalCurrentIndex + 1;
+            modalTotalImagesSpan.textContent = totalImages;
+            
+            // Update navigation buttons
+            const prevBtn = document.getElementById('modalPrevBtn');
+            const nextBtn = document.getElementById('modalNextBtn');
+            
+            if (prevBtn) prevBtn.disabled = modalCurrentIndex === 0;
+            if (nextBtn) nextBtn.disabled = modalCurrentIndex === totalImages - 1;
+        }
+
+        // Modal navigation functions
+        function modalPreviousImage() {
+            if (modalCurrentIndex > 0) {
+                modalCurrentIndex--;
+                updateModalImage();
+            }
+        }
+
+        function modalNextImage() {
+            if (modalCurrentIndex < totalImages - 1) {
+                modalCurrentIndex++;
+                updateModalImage();
+            }
+        }
+
+        // Download image function
+        function downloadImage() {
+            const currentImage = imageList[modalCurrentIndex];
+            const link = document.createElement('a');
+            link.href = currentImage.src;
+            link.download = `${@Html.Raw(Json.Serialize(Model.TenXe))}_${modalCurrentIndex + 1}.jpg`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Share image function
+        function shareImage() {
+            const currentImage = imageList[modalCurrentIndex];
+            const shareData = {
+                title: '@Model.TenXe',
+                text: `Xem hình ảnh xe @Model.TenXe - ${currentImage.description || ''}`,
+                url: window.location.href
+            };
+            
+            if (navigator.share) {
+                navigator.share(shareData);
+            } else {
+                // Fallback - copy URL to clipboard
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    alert('Đã copy link trang vào clipboard!');
+                });
+            }
+        }
+
+        // Add modal keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            const modal = document.getElementById('imageDetailModal');
+            if (modal && modal.classList.contains('show')) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    modalPreviousImage();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    modalNextImage();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) modalInstance.hide();
+                }
+            }
+        });
+
+        // Initialize image gallery
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeImageGallery();
+        });
+
+        function initializeImageGallery() {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            totalImages = thumbnails.length;
+            
+            // Build image list
+            imageList = Array.from(thumbnails).map((thumb, index) => ({
+                src: thumb.src,
+                description: thumb.getAttribute('data-description') || '',
+                index: index
+            }));
+            
+            // Set initial active image
+            const activeThumb = document.querySelector('.thumbnail.active');
+            if (activeThumb) {
+                const activeSrc = activeThumb.src;
+                currentImageIndex = imageList.findIndex(img => img.src === activeSrc);
+                if (currentImageIndex === -1) currentImageIndex = 0;
+            }
+            
+            // Update counter and description
+            updateImageInfo();
+            updateNavigationButtons();
+            
+            // Add keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    previousImage();
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    nextImage();
+                }
+            });
+        }
+
+        // Enhanced image change function
+        function changeImage(src, description = '', index = 0) {
+            const mainImage = document.getElementById('mainImage');
+            const imageDescription = document.getElementById('imageDescription');
+            
+            mainImage.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                mainImage.src = src;
+                mainImage.style.opacity = '1';
+                
+                // Update description
+                if (imageDescription) {
+                    imageDescription.textContent = description || '';
+                    imageDescription.className = description ? 'image-description' : 'image-description empty';
+                }
+                
+                // Update current index
+                currentImageIndex = index - 1; // Convert to 0-based index
+                if (currentImageIndex < 0) currentImageIndex = 0;
+                if (currentImageIndex >= totalImages) currentImageIndex = totalImages - 1;
+                
+                updateImageInfo();
+                updateNavigationButtons();
+            }, 150);
 
             // Update active thumbnail
             document.querySelectorAll('.thumbnail').forEach(img => {
                 img.classList.remove('active');
             });
-            event.target.classList.add('active');
+            
+            // Find and activate the correct thumbnail
+            const clickedThumb = Array.from(document.querySelectorAll('.thumbnail'))
+                .find(thumb => thumb.src === src);
+            if (clickedThumb) {
+                clickedThumb.classList.add('active');
+            }
         }
 
-        // Đặt giữ xe
+        // Navigate to previous image
+        function previousImage() {
+            if (currentImageIndex > 0) {
+                currentImageIndex--;
+                const prevImage = imageList[currentImageIndex];
+                changeImageByIndex(currentImageIndex);
+            }
+        }
+
+        // Navigate to next image
+        function nextImage() {
+            if (currentImageIndex < totalImages - 1) {
+                currentImageIndex++;
+                const nextImage = imageList[currentImageIndex];
+                changeImageByIndex(currentImageIndex);
+            }
+        }
+
+        // Change image by index
+        function changeImageByIndex(index) {
+            if (index >= 0 && index < totalImages) {
+                const image = imageList[index];
+                const mainImage = document.getElementById('mainImage');
+                const imageDescription = document.getElementById('imageDescription');
+                
+                mainImage.style.opacity = '0.5';
+                
+                setTimeout(() => {
+                    mainImage.src = image.src;
+                    mainImage.style.opacity = '1';
+                    
+                    // Update description
+                    if (imageDescription) {
+                        imageDescription.textContent = image.description || '';
+                        imageDescription.className = image.description ? 'image-description' : 'image-description empty';
+                    }
+                    
+                    updateImageInfo();
+                    updateNavigationButtons();
+                    updateActiveThumbnail(index);
+                }, 150);
+            }
+        }
+
+        // Update image counter and info
+        function updateImageInfo() {
+            const currentIndexSpan = document.getElementById('currentImageIndex');
+            const totalImagesSpan = document.getElementById('totalImages');
+            
+            if (currentIndexSpan) {
+                currentIndexSpan.textContent = currentImageIndex + 1;
+            }
+            if (totalImagesSpan) {
+                totalImagesSpan.textContent = totalImages;
+            }
+        }
+
+        // Update navigation buttons state
+        function updateNavigationButtons() {
+            const prevBtn = document.querySelector('.nav-prev');
+            const nextBtn = document.querySelector('.nav-next');
+            
+            if (prevBtn) {
+                prevBtn.disabled = currentImageIndex === 0;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = currentImageIndex === totalImages - 1;
+            }
+        }
+
+        // Update active thumbnail
+        function updateActiveThumbnail(index) {
+            document.querySelectorAll('.thumbnail').forEach((thumb, i) => {
+                thumb.classList.toggle('active', i === index);
+            });
+        }
+
+        // Add touch/swipe support for mobile
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function handleTouchStart(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
+
+        function handleTouchEnd(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    // Swipe left - next image
+                    nextImage();
+                } else {
+                    // Swipe right - previous image
+                    previousImage();
+                }
+            }
+        }
+
+        // Add touch event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                mainImage.addEventListener('touchstart', handleTouchStart, false);
+                mainImage.addEventListener('touchend', handleTouchEnd, false);
+            }
+        });
+
+        // Enhanced booking function with error handling
         function datGiuXe(maXe) {
-            // Chuyển đến form đặt giữ chỗ
-            window.location.href = '@Url.Action("Create", "DatCho", new { id = Model.MaXe })';
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Check if user is authenticated first
+            @if (!User.Identity.IsAuthenticated)
+            {
+                <text>
+                // If not authenticated, redirect immediately without changing button state
+                window.location.href = '@Url.Action("Create", "DatCho", new { id = Model.MaXe })';
+                return;
+                </text>
+            }
+            
+            // Only change button state if user is authenticated
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang xử lý...';
+            button.disabled = true;
+            
+            // Store original state for recovery
+            button.setAttribute('data-original-text', originalText);
+            
+            // Auto-reset button after 10 seconds as fallback
+            const resetTimeout = setTimeout(() => {
+                resetBookingButton(button);
+            }, 10000);
+            
+            // Store timeout ID for cleanup
+            button.setAttribute('data-reset-timeout', resetTimeout);
+            
+            setTimeout(() => {
+                window.location.href = '@Url.Action("Create", "DatCho", new { id = Model.MaXe })';
+            }, 500);
+        }
+        
+        // Function to reset booking button to original state
+        function resetBookingButton(button) {
+            if (!button) return;
+            
+            // Get original text from data attribute or determine from context
+            let originalText = button.getAttribute('data-original-text');
+            
+            if (!originalText) {
+                // Determine original text based on button context
+                if (button.innerHTML.includes('cart-plus') || button.innerHTML.includes('Thêm vào giỏ')) {
+                    originalText = '<i class="bi bi-cart-plus"></i> Thêm vào giỏ';
+                } else if (button.innerHTML.includes('calendar-check') || button.innerHTML.includes('Đặt ngay')) {
+                    originalText = '<i class="bi bi-calendar-check"></i> Đặt ngay';
+                } else {
+                    // Find the button's original content by looking at similar buttons
+                    const status = '@Model.TrangThai';
+                    if (status === 'Sẵn sàng') {
+                        if (button.classList.contains('btn-primary-custom')) {
+                            originalText = '<i class="bi bi-calendar-check"></i> Đặt ngay';
+                        } else {
+                            originalText = '<i class="bi bi-cart-plus"></i> Thêm vào giỏ';
+                        }
+                    } else {
+                        originalText = '<i class="bi bi-x-circle"></i> Xe đang được thuê';
+                    }
+                }
+            }
+            
+            button.innerHTML = originalText;
+            button.disabled = false;
+            
+            // Clear the timeout if it exists
+            const timeoutId = button.getAttribute('data-reset-timeout');
+            if (timeoutId) {
+                clearTimeout(parseInt(timeoutId));
+                button.removeAttribute('data-reset-timeout');
+            }
         }
 
-        // Show quick booking modal
+        // Enhanced modal show function
         function showQuickBookingModal(maXe) {
-            // Set default dates
             const today = new Date();
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
@@ -555,22 +813,22 @@
             document.getElementById('ngayNhanXe').value = tomorrow.toISOString().split('T')[0];
             document.getElementById('ngayTraXe').value = dayAfter.toISOString().split('T')[0];
             
-            // Set min date to today
             document.getElementById('ngayNhanXe').min = today.toISOString().split('T')[0];
             document.getElementById('ngayTraXe').min = tomorrow.toISOString().split('T')[0];
 
             calculatePrice();
-            $('#quickBookingModal').modal('show');
+            
+            // Show modal with animation
+            const modal = new bootstrap.Modal(document.getElementById('quickBookingModal'));
+            modal.show();
         }
 
-        // Calculate price when dates change
+        // Enhanced date change handlers
         document.getElementById('ngayNhanXe').addEventListener('change', function() {
-            // Update min date for ngayTraXe
             const ngayNhanXe = new Date(this.value);
             ngayNhanXe.setDate(ngayNhanXe.getDate() + 1);
             document.getElementById('ngayTraXe').min = ngayNhanXe.toISOString().split('T')[0];
             
-            // If ngayTraXe is before ngayNhanXe, update it
             const ngayTraXe = document.getElementById('ngayTraXe').value;
             if (ngayTraXe && new Date(ngayTraXe) <= new Date(this.value)) {
                 document.getElementById('ngayTraXe').value = ngayNhanXe.toISOString().split('T')[0];
@@ -581,6 +839,7 @@
 
         document.getElementById('ngayTraXe').addEventListener('change', calculatePrice);
 
+        // Enhanced price calculation
         function calculatePrice() {
             const ngayNhanXe = document.getElementById('ngayNhanXe').value;
             const ngayTraXe = document.getElementById('ngayTraXe').value;
@@ -592,10 +851,28 @@
                 
                 if (dayDiff > 0) {
                     const giaThue = @Model.GiaThue;
-                    const tongTien = dayDiff * giaThue;
+                    let finalPrice = giaThue;
+                    
+                    // Apply pricing tiers
+                    if (dayDiff <= 2) {
+                        finalPrice = giaThue * 1.2;
+                    } else if (dayDiff >= 25) {
+                        finalPrice = giaThue * 0.8;
+                    }
+                    
+                    const tongTien = dayDiff * finalPrice;
                     
                     document.getElementById('soNgayThue').textContent = dayDiff;
                     document.getElementById('tongTien').textContent = tongTien.toLocaleString() + 'đ';
+                    
+                    // Add animation
+                    const elements = [document.getElementById('soNgayThue'), document.getElementById('tongTien')];
+                    elements.forEach(el => {
+                        el.style.transform = 'scale(1.1)';
+                        setTimeout(() => {
+                            el.style.transform = 'scale(1)';
+                        }, 200);
+                    });
                 } else {
                     document.getElementById('soNgayThue').textContent = '0';
                     document.getElementById('tongTien').textContent = '0đ';
@@ -603,16 +880,25 @@
             }
         }
 
-        // Add to cart function
+        // Enhanced add to cart function
         function addToCart() {
             const ngayNhanXe = document.getElementById('ngayNhanXe').value;
             const ngayTraXe = document.getElementById('ngayTraXe').value;
             const ghiChu = document.getElementById('ghiChu').value;
             
             if (!ngayNhanXe || !ngayTraXe) {
-                alert('Vui lòng chọn ngày nhận và trả xe');
+                showNotification('Vui lòng chọn ngày nhận và trả xe', 'warning');
                 return;
             }
+
+            const button = event.target;
+            const originalText = button.innerHTML;
+            
+            // Store original text for recovery
+            button.setAttribute('data-original-text', originalText);
+            
+            button.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang thêm...';
+            button.disabled = true;
 
             $.ajax({
                 url: '@Url.Action("Add", "Cart")',
@@ -626,26 +912,135 @@
                 },
                 success: function(response) {
                     if (response.success) {
-                        $('#quickBookingModal').modal('hide');
-                        alert(response.message);
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('quickBookingModal'));
+                        modal.hide();
+                        showNotification(response.message, 'success');
                         updateCartBadge(response.cartItemCount);
                     } else {
-                        alert(response.message);
+                        showNotification(response.message, 'error');
                     }
                 },
                 error: function() {
-                    alert('Có lỗi xảy ra. Vui lòng thử lại.');
+                    showNotification('Có lỗi xảy ra. Vui lòng thử lại.', 'error');
+                },
+                complete: function() {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
                 }
             });
         }
 
+        // Enhanced notification function
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'} notification`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: var(--shadow-lg);
+                border-radius: var(--border-radius);
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'x-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Enhanced cart badge update
         function updateCartBadge(count) {
-            const badge = $('.cart-badge');
-            if (count > 0) {
-                badge.text(count).show();
-            } else {
-                badge.hide();
+            const badge = document.querySelector('.cart-badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count;
+                    badge.style.display = 'inline-flex';
+                    badge.style.animation = 'bounce 0.5s ease-out';
+                } else {
+                    badge.style.display = 'none';
+                }
             }
         }
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @@keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            
+            @@keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+            
+            @@keyframes bounce {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.2); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Reset all booking buttons to their original state
+        function resetAllBookingButtons() {
+            // Reset "Đặt ngay" buttons
+            const bookingButtons = document.querySelectorAll('[onclick*="datGiuXe"]');
+            bookingButtons.forEach(button => {
+                if (button.disabled || button.innerHTML.includes('Đang xử lý')) {
+                    resetBookingButton(button);
+                }
+            });
+            
+            // Reset "Thêm vào giỏ" buttons
+            const cartButtons = document.querySelectorAll('[onclick*="showQuickBookingModal"]');
+            cartButtons.forEach(button => {
+                if (button.disabled || button.innerHTML.includes('Đang thêm') || button.innerHTML.includes('Đang xử lý')) {
+                    resetBookingButton(button);
+                }
+            });
+            
+            // Reset any buttons with loading states
+            const loadingButtons = document.querySelectorAll('button[disabled], button:contains("Đang")');
+            loadingButtons.forEach(button => {
+                if (button.innerHTML.includes('Đang ') && 
+                    (button.innerHTML.includes('xử lý') || button.innerHTML.includes('thêm'))) {
+                    resetBookingButton(button);
+                }
+            });
+        }
+        
+        // Auto-reset buttons when page becomes visible again (back button)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                resetAllBookingButtons();
+            }
+        });
+        
+        // Reset buttons when page is shown (includes back button navigation)
+        window.addEventListener('pageshow', function(event) {
+            resetAllBookingButtons();
+        });
+        
+        // Reset buttons on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            resetAllBookingButtons();
+        });
+        
+        // Also reset when focus returns to the window
+        window.addEventListener('focus', function() {
+            resetAllBookingButtons();
+        });
     </script>
 }

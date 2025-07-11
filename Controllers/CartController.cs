@@ -73,7 +73,7 @@ namespace bike.Controllers
                     TenXe = xe.TenXe,
                     BienSoXe = xe.BienSoXe,
                     GiaThue = xe.GiaThue,
-                    HinhAnhXe = xe.HinhAnhXe,
+                    HinhAnhHienThi = xe.HinhAnhHienThi,
                     TenLoaiXe = xe.LoaiXe?.TenLoaiXe,
                     NgayNhanXe = ngayNhanXe,
                     NgayTraXe = ngayTraXe,

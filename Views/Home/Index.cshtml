@@ -156,7 +156,7 @@ else
         {
             <div class="col-md-3 bike-item" data-loaixe="@item.MaLoaiXe" data-tenxe="@(item.TenXe?.ToLower() ?? "")" data-gia="@item.GiaThue">
                 <div class="bike-card">
-                    <img src="@(string.IsNullOrEmpty(item.HinhAnhXe) ? "/images/default.jpg" : $"/images/xe/{item.HinhAnhXe}")"
+                    <img src="@(string.IsNullOrEmpty(item.HinhAnhHienThi) ? "/images/default.jpg" : $"/images/xe/{item.HinhAnhHienThi}")"
                          alt="@item.TenXe" class="vehicle-image" onclick="window.location.href='@Url.Action("XemChiTiet", "Home", new { id = item.MaXe })'" style="cursor: pointer;">
                     <div class="bike-info">
                         <h3 class="bike-name">
@@ -174,7 +174,7 @@ else
                         @if (item.TrangThai == "Sẵn sàng")
                         {
                             <div class="bike-actions mt-2">
-                                <button class="btn btn-sm btn-outline-primary" onclick="showQuickBookingModal(@item.MaXe, '@item.TenXe', @item.GiaThue, '@item.HinhAnhXe')" style="margin-right: 8px;">
+                                <button class="btn btn-sm btn-outline-primary" onclick="showQuickBookingModal(@item.MaXe, '@item.TenXe', @item.GiaThue, '@item.HinhAnhHienThi')" style="margin-right: 8px;">
                                     <i class="bi bi-cart-plus"></i> Thêm vào giỏ
                                 </button>
                                 <a asp-action="XemChiTiet" asp-route-id="@item.MaXe" class="btn btn-sm btn-primary">
@@ -246,36 +246,111 @@ else
         let currentVehicleId = 0;
         let currentVehiclePrice = 0;
 
-        // Script để xử lý tab buttons và filtering xe theo loại
+        // Enhanced Script để xử lý tab buttons với client-side filtering
         $(document).ready(function() {
-            $('.tab-btn').click(function() {
+            // Real-time filtering thay vì reload trang
+            $('.tab-btn').click(function(e) {
+                e.preventDefault();
                 var maLoaiXe = $(this).data('loaixe');
                 
-                // Chuyển hướng đến URL với parameter để server-side filtering
-                if (maLoaiXe === 'all') {
-                    window.location.href = '@Url.Action("Index", "Home")';
-                } else {
-                    window.location.href = '@Url.Action("Index", "Home")' + '?loaiXe=' + maLoaiXe;
+                // Cập nhật active state cho tab
+                $('.tab-btn').removeClass('active');
+                $(this).addClass('active');
+                
+                // Thực hiện filtering client-side
+                filterBikes(maLoaiXe);
+                
+                // Cập nhật URL without reload (History API)
+                var newUrl = maLoaiXe === 'all' ? 
+                    '@Url.Action("Index", "Home")' : 
+                    '@Url.Action("Index", "Home")' + '?loaiXe=' + maLoaiXe;
+                
+                window.history.pushState({loaiXe: maLoaiXe}, '', newUrl);
+                
+                                 // Cập nhật section title
+                 updateSectionTitle(maLoaiXe);
+                 
+                 // Hiển thị notification
+                 showFilterNotification(maLoaiXe);
+             });
+
+            // Handle browser back/forward buttons
+            window.addEventListener('popstate', function(e) {
+                if (e.state && e.state.loaiXe) {
+                    var maLoaiXe = e.state.loaiXe;
+                    $('.tab-btn').removeClass('active');
+                    $(`.tab-btn[data-loaixe="${maLoaiXe}"]`).addClass('active');
+                    filterBikes(maLoaiXe);
+                    updateSectionTitle(maLoaiXe);
                 }
             });
 
-            // Nếu đã có filter từ URL, tự động filter hiển thị
+            // Khởi tạo filtering cho trang load - sử dụng instant version
             @if (ViewBag.LoaiXeSelected != null)
             {
                 <text>
                 // Auto-filter on page load based on URL parameter
-                filterBikes('@ViewBag.LoaiXeSelected');
+                filterBikesInstant('@ViewBag.LoaiXeSelected');
+                </text>
+            }
+            else
+            {
+                <text>
+                // Filter all bikes on initial load
+                filterBikesInstant('all');
                 </text>
             }
         });
 
-        // Function để lọc xe theo loại và tìm kiếm
-        function filterBikes(maLoaiXe) {
+        // Function để lọc xe ngay lập tức (không animation) - dùng cho initial load
+        function filterBikesInstant(maLoaiXe) {
             const searchTerm = document.getElementById('bike-search').value.toLowerCase();
             const bikeItems = document.querySelectorAll('.bike-item');
             let visibleCount = 0;
 
             bikeItems.forEach(function(item) {
+                const itemLoaiXe = item.getAttribute('data-loaixe');
+                const itemTenXe = item.getAttribute('data-tenxe');
+                
+                const matchesCategory = maLoaiXe === 'all' || String(itemLoaiXe) === String(maLoaiXe);
+                const matchesSearch = !searchTerm || itemTenXe.includes(searchTerm);
+                const shouldShow = matchesCategory && matchesSearch;
+                
+                if (shouldShow) {
+                    item.style.display = 'block';
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateY(0) scale(1)';
+                    item.style.transition = 'none'; // Tắt transition
+                    visibleCount++;
+                } else {
+                    item.style.display = 'none';
+                    item.style.opacity = '0';
+                    item.style.transition = 'none'; // Tắt transition
+                }
+            });
+
+            // Khôi phục transition sau khi set xong
+            setTimeout(() => {
+                bikeItems.forEach(function(item) {
+                    item.style.transition = 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+                });
+            }, 50);
+
+            // Cập nhật counter ngay lập tức
+            updateBikeCounter(visibleCount, maLoaiXe, searchTerm);
+        }
+
+        // Enhanced function để lọc xe theo loại và tìm kiếm với animations
+        function filterBikes(maLoaiXe) {
+            const searchTerm = document.getElementById('bike-search').value.toLowerCase();
+            const bikeItems = document.querySelectorAll('.bike-item');
+            const bikeContainer = document.getElementById('bike-container');
+
+            // Tạo array để track visible items
+            const visibleItems = [];
+            const hiddenItems = [];
+
+            bikeItems.forEach(function(item, index) {
                 const itemLoaiXe = item.getAttribute('data-loaixe');
                 const itemTenXe = item.getAttribute('data-tenxe');
                 
@@ -285,25 +360,69 @@ else
                 const shouldShow = matchesCategory && matchesSearch;
                 
                 if (shouldShow) {
-                    // Hiển thị xe với animation
-                    item.style.display = 'block';
-                    setTimeout(() => {
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, visibleCount * 50); // Stagger animation
-                    visibleCount++;
+                    visibleItems.push(item);
                 } else {
-                    // Ẩn xe với animation
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateY(20px)';
-                    setTimeout(() => {
-                        item.style.display = 'none';
-                    }, 300);
+                    hiddenItems.push(item);
                 }
             });
 
-            // Cập nhật counter
-            updateBikeCounter(visibleCount, maLoaiXe, searchTerm);
+            // Ẩn items không match trước với animation nhanh hơn
+            hiddenItems.forEach(function(item) {
+                item.style.opacity = '0';
+                item.style.transform = 'translateY(10px) scale(0.95)';
+                item.style.transition = 'all 0.2s ease';
+                
+                setTimeout(() => {
+                    item.style.display = 'none';
+                }, 150);
+            });
+
+            // Hiển thị items match với stagger animation nhanh hơn
+            setTimeout(() => {
+                visibleItems.forEach(function(item, index) {
+                    item.style.display = 'block';
+                    item.style.transition = 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)';
+                    
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0) scale(1)';
+                    }, index * 25); // Giảm delay từ 80ms xuống 25ms
+                });
+
+                // Cập nhật counter sớm hơn và không block container
+                setTimeout(() => {
+                    updateBikeCounter(visibleItems.length, maLoaiXe, searchTerm);
+                }, Math.min(visibleItems.length * 25, 300)); // Tối đa 300ms
+            }, 100);
+        }
+
+        // Function để cập nhật tiêu đề section khi thay đổi loại xe
+        function updateSectionTitle(maLoaiXe) {
+            const sectionTitle = document.querySelector('.section-title');
+            const loaiXeData = {
+                @foreach (var item in Model.DanhSachLoaiXe)
+                {
+                    <text>'@item.MaLoaiXe': '@item.TenLoaiXe',</text>
+                }
+            };
+            
+            if (sectionTitle) {
+                if (maLoaiXe === 'all') {
+                    sectionTitle.innerHTML = '<i class="bi bi-grid-fill"></i> XE THUÊ NHIỀU NHẤT';
+                } else {
+                    const tenLoaiXe = loaiXeData[maLoaiXe];
+                    sectionTitle.innerHTML = `<i class="bi bi-collection-fill"></i> XE ${tenLoaiXe ? tenLoaiXe.toUpperCase() : 'ĐƯỢC CHỌN'}`;
+                }
+                
+                // Thêm animation cho title
+                sectionTitle.style.transform = 'translateY(-10px)';
+                sectionTitle.style.opacity = '0.7';
+                
+                setTimeout(() => {
+                    sectionTitle.style.transform = 'translateY(0)';
+                    sectionTitle.style.opacity = '1';
+                }, 200);
+            }
         }
 
         // Function để search xe theo tên
@@ -345,7 +464,7 @@ else
             }
         }
 
-        // Function để cập nhật counter hiển thị
+        // Enhanced function để cập nhật counter hiển thị với animations
         function updateBikeCounter(count, categoryName, searchTerm = '') {
             let counterElement = document.getElementById('bike-counter');
             if (!counterElement) {
@@ -358,21 +477,88 @@ else
                 container.parentNode.insertBefore(counterElement, container);
             }
 
+            // Tạo loại xe lookup
+            const loaiXeData = {
+                @foreach (var item in Model.DanhSachLoaiXe)
+                {
+                    <text>'@item.MaLoaiXe': '@item.TenLoaiXe',</text>
+                }
+            };
+
             let displayText = '';
+            let iconClass = '';
+            let badgeClass = '';
+            
             if (searchTerm) {
+                iconClass = 'bi-search';
+                badgeClass = count > 0 ? 'success' : 'warning';
                 displayText = `
-                    <i class="bi bi-search"></i> 
-                    Tìm thấy <strong>${count}</strong> xe với từ khóa "<strong>${searchTerm}</strong>"
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="bi ${iconClass} me-2"></i>
+                            <span>Tìm thấy <strong class="text-primary">${count}</strong> xe với từ khóa "<strong class="text-info">${searchTerm}</strong>"</span>
+                        </div>
+                        <span class="badge bg-${badgeClass}">${count}</span>
+                    </div>
                 `;
             } else {
-                const categoryText = categoryName === 'all' ? 'tất cả loại' : `loại đã chọn`;
+                const categoryText = categoryName === 'all' ? 'tất cả loại' : (loaiXeData[categoryName] || 'loại đã chọn');
+                iconClass = categoryName === 'all' ? 'bi-grid-fill' : 'bi-collection-fill';
+                badgeClass = count > 0 ? 'primary' : 'secondary';
                 displayText = `
-                    <i class="bi bi-funnel"></i> 
-                    Hiển thị <strong>${count}</strong> xe thuộc <strong>${categoryText}</strong>
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center">
+                            <i class="bi ${iconClass} me-2"></i>
+                            <span>Hiển thị <strong class="text-primary">${count}</strong> xe thuộc <strong class="text-info">${categoryText}</strong></span>
+                        </div>
+                        <span class="badge bg-${badgeClass}">${count}</span>
+                    </div>
                 `;
             }
             
-            counterElement.innerHTML = displayText;
+            // Animation cho counter
+            counterElement.style.transform = 'translateY(-10px)';
+            counterElement.style.opacity = '0.5';
+            
+            setTimeout(() => {
+                counterElement.innerHTML = displayText;
+                counterElement.style.transform = 'translateY(0)';
+                counterElement.style.opacity = '1';
+                         }, 150);
+         }
+
+        // Function để hiển thị notification khi thay đổi filter
+        function showFilterNotification(maLoaiXe) {
+            const loaiXeData = {
+                @foreach (var item in Model.DanhSachLoaiXe)
+                {
+                    <text>'@item.MaLoaiXe': '@item.TenLoaiXe',</text>
+                }
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            
+            let message = '';
+            if (maLoaiXe === 'all') {
+                message = '<i class="bi bi-grid-fill me-2"></i>Hiển thị tất cả xe';
+            } else {
+                const tenLoaiXe = loaiXeData[maLoaiXe] || 'Loại xe';
+                message = `<i class="bi bi-collection-fill me-2"></i>Lọc theo: ${tenLoaiXe}`;
+            }
+            
+            notification.innerHTML = message;
+            document.body.appendChild(notification);
+            
+            // Tự động xóa notification sau 2 giây
+            setTimeout(() => {
+                notification.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, 2000);
         }
 
         // Khởi tạo filter khi trang load
@@ -383,16 +569,75 @@ else
                 .bike-item {
                     opacity: 1;
                     transform: translateY(0);
-                    transition: all 0.3s ease;
+                    transition: all 0.25s ease;
+                    pointer-events: auto !important; /* Đảm bảo luôn có thể click */
+                }
+                
+                .vehicle-image {
+                    pointer-events: auto !important; /* Đảm bảo hình xe luôn có thể click */
+                    cursor: pointer !important;
+                    transition: all 0.2s ease;
                 }
                 
                 .bike-counter {
-                    background: #f8f9fa;
-                    padding: 10px 15px;
-                    border-radius: 8px;
+                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                    padding: 15px 20px;
+                    border-radius: 12px;
                     border-left: 4px solid #007bff;
                     font-size: 14px;
                     color: #495057;
+                    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                .bike-counter::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(45deg, transparent 0%, rgba(0, 123, 255, 0.05) 100%);
+                    transition: all 0.3s ease;
+                }
+                
+                .bike-counter:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 20px rgba(0, 123, 255, 0.2);
+                }
+                
+                .bike-counter:hover::before {
+                    background: linear-gradient(45deg, transparent 0%, rgba(0, 123, 255, 0.1) 100%);
+                }
+                
+                .bike-counter .badge {
+                    font-size: 12px;
+                    padding: 6px 12px;
+                    border-radius: 20px;
+                    font-weight: 600;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    animation: pulse 2s infinite;
+                }
+                
+                @@keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+                
+                .section-title {
+                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    position: relative;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                }
+                
+                .section-title i {
+                    font-size: 1.2em;
+                    color: #007bff;
                 }
 
                 .tab-btn {
@@ -457,6 +702,78 @@ else
                     border-color: #007bff;
                     box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
                     background: #f8f9fa;
+                }
+                
+                .search-container.searching {
+                    position: relative;
+                }
+                
+                .search-container.searching::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    right: 60px;
+                    width: 16px;
+                    height: 16px;
+                    border: 2px solid #007bff;
+                    border-top: 2px solid transparent;
+                    border-radius: 50%;
+                    animation: spin 1s linear infinite;
+                }
+                
+                @@keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                }
+                
+                .bike-item {
+                    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+                    pointer-events: auto !important; /* Đảm bảo luôn có thể click */
+                }
+                
+                .bike-card {
+                    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                    transform-origin: center;
+                    pointer-events: auto !important; /* Đảm bảo luôn có thể click */
+                }
+                
+                .bike-card:hover {
+                    transform: translateY(-5px) scale(1.01);
+                    box-shadow: 0 6px 20px rgba(0, 123, 255, 0.2);
+                }
+                
+                .filter-section {
+                    position: relative;
+                    z-index: 10;
+                }
+                
+                .tab-btn {
+                    position: relative;
+                    z-index: 1;
+                }
+                
+                .tab-btn.active {
+                    z-index: 2;
+                }
+                
+                .notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 12px 20px;
+                    background: #007bff;
+                    color: white;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+                    z-index: 9999;
+                    animation: slideInRight 0.3s ease-out;
+                    font-size: 14px;
+                    font-weight: 500;
+                }
+                
+                @@keyframes slideInRight {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
                 }
 
                 .search-input {
@@ -549,23 +866,31 @@ else
              `;
              document.head.appendChild(style);
 
-             // Khởi tạo hiển thị tất cả xe
-             filterBikes('all');
+             // Khởi tạo hiển thị tất cả xe - không animation để tránh delay
+             console.log('🚀 Initializing bikes instantly...');
+             filterBikesInstant('all');
+             console.log('✅ Bikes ready for interaction immediately!');
 
              // Setup search functionality
              const searchInput = document.getElementById('bike-search');
              if (searchInput) {
-                 // Real-time search khi gõ
+                 // Real-time search khi gõ với debouncing
                  searchInput.addEventListener('input', function() {
                      // Show/hide clear button
                      toggleClearButton();
                      
                      // Debounce để tránh gọi quá nhiều lần
                      clearTimeout(this.searchTimeout);
+                     
+                     // Thêm loading indicator cho search
+                     const searchContainer = this.parentElement;
+                     searchContainer.classList.add('searching');
+                     
                      this.searchTimeout = setTimeout(() => {
                          const activeCategory = document.querySelector('.tab-btn.active').getAttribute('data-loaixe');
                          filterBikes(activeCategory);
-                     }, 300);
+                         searchContainer.classList.remove('searching');
+                     }, 150); // Giảm debounce từ 300ms xuống 150ms
                  });
 
                  // Search khi nhấn Enter

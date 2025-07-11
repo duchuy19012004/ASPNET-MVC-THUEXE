@@ -23,6 +23,7 @@ namespace bike.Repository
         public DbSet<Banner> Banner { get; set; }
         public DbSet<ChiTietHopDong> ChiTietHopDong { get; set; }
         public DbSet<BaoCaoThietHai> BaoCaoThietHai { get; set; }
+        public DbSet<HinhAnhXe> HinhAnhXe { get; set; }
 
         // cấu hình thêm cho database (nếu cần)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -111,6 +112,22 @@ namespace bike.Repository
                  .WithMany()
                  .HasForeignKey(b => b.MaNguoiTao)
                  .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            // Cấu hình HinhAnhXe
+            modelBuilder.Entity<HinhAnhXe>(e =>
+            {
+                // Cấu hình quan hệ với Xe
+                e.HasOne(h => h.Xe)
+                 .WithMany(x => x.HinhAnhXes)
+                 .HasForeignKey(h => h.MaXe)
+                 .OnDelete(DeleteBehavior.Cascade);
+                 
+                // Cấu hình index cho trường MaXe và ThuTu
+                e.HasIndex(h => new { h.MaXe, h.ThuTu }).IsUnique(false);
+                
+                // Cấu hình index cho trường LaAnhChinh
+                e.HasIndex(h => new { h.MaXe, h.LaAnhChinh }).IsUnique(false);
             });
         }
     }

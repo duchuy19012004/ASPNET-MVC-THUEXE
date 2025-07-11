@@ -1,0 +1,347 @@
+@model bike.Models.User
+
+@{
+    bool isPartial = ViewData["IsPartial"] != null && (bool)ViewData["IsPartial"];
+}
+
+@if (!isPartial)
+{
+    ViewData["Title"] = "Chỉnh sửa người dùng";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="editUserModalLabel">
+                    <i class="bi bi-person-gear"></i> Chỉnh sửa người dùng
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <form id="editUserForm" asp-action="Edit" method="post">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="Id" />
+                    
+                    <!-- User Info Badge -->
+                    <div class="user-info-header mb-4">
+                        <div class="d-flex align-items-center justify-content-between p-3 bg-light rounded">
+                            <div>
+                                <h6 class="mb-1">
+                                    <i class="bi bi-person-badge text-primary"></i>
+                                    ID: #<span id="userIdDisplay">@Model.Id</span>
+                                </h6>
+                                <small class="text-muted">Ngày tạo: <span id="userCreateDate">@Model.NgayTao.ToString("dd/MM/yyyy")</span></small>
+                            </div>
+                            <div>
+                                <span class="badge bg-@(Model.IsActive ? "success" : "danger") role-badge" id="userStatusBadge">
+                                    @(Model.IsActive ? "Hoạt động" : "Khóa")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Thông tin cá nhân -->
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-circle text-primary"></i> Thông tin cá nhân
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label asp-for="Ten" class="form-label required">
+                                    <i class="bi bi-person"></i> Họ và tên
+                                </label>
+                                <input asp-for="Ten" class="form-control" placeholder="Nhập họ và tên" />
+                                <span asp-validation-for="Ten" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label required">
+                                    <i class="bi bi-envelope"></i> Email
+                                </label>
+                                <input asp-for="Email" class="form-control" type="email" placeholder="Nhập email" />
+                                <span asp-validation-for="Email" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="SoDienThoai" class="form-label">
+                                    <i class="bi bi-telephone"></i> Số điện thoại
+                                </label>
+                                <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" />
+                                <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="DiaChi" class="form-label">
+                                    <i class="bi bi-geo-alt"></i> Địa chỉ
+                                </label>
+                                <textarea asp-for="DiaChi" class="form-control" rows="2" placeholder="Nhập địa chỉ"></textarea>
+                                <span asp-validation-for="DiaChi" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin hệ thống -->
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2 mb-3">
+                                <i class="bi bi-shield-check text-primary"></i> Thông tin hệ thống
+                            </h6>
+                            
+                            <div class="mb-3">
+                                <label asp-for="VaiTro" class="form-label required">
+                                    <i class="bi bi-person-badge"></i> Vai trò
+                                </label>
+                                <select asp-for="VaiTro" asp-items="ViewBag.Roles" class="form-select">
+                                    <option value="">-- Chọn vai trò --</option>
+                                </select>
+                                <span asp-validation-for="VaiTro" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label">
+                                    <i class="bi bi-key"></i> Mật khẩu mới
+                                </label>
+                                <div class="input-group">
+                                    <input type="password" name="newPassword" id="newPassword" class="form-control" placeholder="Để trống nếu không đổi" />
+                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('newPassword')">
+                                        <i class="bi bi-eye" id="toggleIcon"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle"></i> Để trống nếu không muốn thay đổi mật khẩu
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="bi bi-toggle-on"></i> Trạng thái tài khoản
+                                </label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="IsActive" class="form-check-input" type="checkbox" id="isActiveSwitch" />
+                                    <label class="form-check-label" for="isActiveSwitch">
+                                        <span id="statusText">@(Model.IsActive ? "Hoạt động" : "Khóa")</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- User Statistics -->
+                            <div class="user-stats mt-4">
+                                <div class="card border-0 bg-light">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title mb-2">
+                                            <i class="bi bi-graph-up text-info"></i> Thống kê
+                                        </h6>
+                                        <div class="row text-center">
+                                            <div class="col-4">
+                                                <div class="stat-item">
+                                                    <div class="stat-number text-primary">0</div>
+                                                    <div class="stat-label">Đơn thuê</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="stat-item">
+                                                    <div class="stat-number text-success">0</div>
+                                                    <div class="stat-label">Hoàn thành</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
+                                                <div class="stat-item">
+                                                    <div class="stat-number text-warning">0</div>
+                                                    <div class="stat-label">Đang thuê</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle"></i> Hủy
+                    </button>
+                    <button type="button" class="btn btn-warning" onclick="resetForm()">
+                        <i class="bi bi-arrow-clockwise"></i> Đặt lại
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="saveUserBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                        <i class="bi bi-check-circle"></i> Cập nhật
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .required::after {
+        content: " *";
+        color: red;
+    }
+    
+    .role-badge {
+        font-size: 0.8em;
+        padding: 0.25em 0.6em;
+    }
+    
+    .user-stats .stat-number {
+        font-size: 1.2em;
+        font-weight: bold;
+    }
+    
+    .user-stats .stat-label {
+        font-size: 0.8em;
+        color: #6c757d;
+    }
+    
+    .user-info-header {
+        border-left: 4px solid #0d6efd;
+    }
+    
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+</style>
+
+<script>
+    // Toggle password visibility
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const icon = document.getElementById('toggleIcon');
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.className = 'bi bi-eye-slash';
+        } else {
+            field.type = 'password';
+            icon.className = 'bi bi-eye';
+        }
+    }
+
+    // Reset form
+    function resetForm() {
+        if (confirm('Bạn có chắc chắn muốn đặt lại form về trạng thái ban đầu?')) {
+            document.getElementById('editUserForm').reset();
+            // Clear validation errors
+            document.querySelectorAll('.text-danger').forEach(el => el.textContent = '');
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        }
+    }
+
+    // Update status text when switch changes
+    document.addEventListener('DOMContentLoaded', function() {
+        const statusSwitch = document.getElementById('isActiveSwitch');
+        const statusText = document.getElementById('statusText');
+        const statusBadge = document.getElementById('userStatusBadge');
+        
+        if (statusSwitch && statusText && statusBadge) {
+            statusSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    statusText.textContent = 'Hoạt động';
+                    statusBadge.textContent = 'Hoạt động';
+                    statusBadge.className = 'badge bg-success role-badge';
+                } else {
+                    statusText.textContent = 'Khóa';
+                    statusBadge.textContent = 'Khóa';
+                    statusBadge.className = 'badge bg-danger role-badge';
+                }
+            });
+        }
+
+        // Form submission with AJAX
+        const editForm = document.getElementById('editUserForm');
+        if (editForm) {
+            editForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('saveUserBtn');
+                const spinner = submitBtn.querySelector('.spinner-border');
+                const btnText = submitBtn.querySelector('i');
+                
+                // Show loading state
+                spinner.classList.remove('d-none');
+                btnText.style.display = 'none';
+                submitBtn.disabled = true;
+                
+                // Clear previous validation errors
+                document.querySelectorAll('.text-danger').forEach(el => el.textContent = '');
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                
+                // Submit form via AJAX
+                const formData = new FormData(this);
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success - close modal and refresh page
+                        bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+                        showNotification('Cập nhật người dùng thành công!', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        // Handle validation errors
+                        if (data.errors) {
+                            for (const [field, messages] of Object.entries(data.errors)) {
+                                const input = document.querySelector(`[name="${field}"]`);
+                                if (input) {
+                                    input.classList.add('is-invalid');
+                                    const errorSpan = input.parentElement.querySelector('.text-danger') || 
+                                                   input.nextElementSibling;
+                                    if (errorSpan && errorSpan.classList.contains('text-danger')) {
+                                        errorSpan.textContent = messages[0];
+                                    }
+                                }
+                            }
+                        }
+                        showNotification(data.message || 'Có lỗi xảy ra khi cập nhật!', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Có lỗi xảy ra khi cập nhật!', 'error');
+                })
+                .finally(() => {
+                    // Hide loading state
+                    spinner.classList.add('d-none');
+                    btnText.style.display = 'inline';
+                    submitBtn.disabled = false;
+                });
+            });
+        }
+    });
+
+    // Show notification
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    }
+</script>

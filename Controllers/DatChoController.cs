@@ -46,7 +46,7 @@ namespace bike.Controllers
                 TenXe = xe.TenXe,
                 BienSoXe = xe.BienSoXe,
                 GiaThue = xe.GiaThue,
-                HinhAnhXe = xe.HinhAnhXe
+                HinhAnhHienThi = xe.HinhAnhHienThi
             };
 
             // Nếu đã đăng nhập, điền sẵn thông tin
@@ -114,7 +114,7 @@ namespace bike.Controllers
                 model.TenXe = xeInfo.TenXe;
                 model.BienSoXe = xeInfo.BienSoXe;
                 model.GiaThue = xeInfo.GiaThue;
-                model.HinhAnhXe = xeInfo.HinhAnhXe;
+                model.HinhAnhHienThi = xeInfo.HinhAnhHienThi;
             }
 
             return View(model);

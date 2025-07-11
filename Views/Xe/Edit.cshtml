@@ -4,103 +4,9 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<style>
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .form-header {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 10px 10px 0 0;
-        margin-bottom: 0;
-    }
-
-    .form-body {
-        background: white;
-        padding: 30px;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-
-    .image-preview-container {
-        border: 3px dashed #ddd;
-        border-radius: 10px;
-        padding: 20px;
-        text-align: center;
-        background: #f8f9fa;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s;
-        min-height: 200px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-        .image-preview-container:hover {
-            border-color: #f093fb;
-            background: #fff0f5;
-            cursor: pointer;
-        }
-
-        .image-preview-container img {
-            max-width: 100%;
-            max-height: 180px;
-            object-fit: contain;
-        }
-
-    .current-image-badge {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0,0,0,0.7);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 5px;
-        font-size: 12px;
-    }
-
-    .btn-update {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        border: none;
-        padding: 12px 40px;
-        font-weight: 500;
-        transition: transform 0.2s;
-    }
-
-        .btn-update:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(240, 147, 251, 0.4);
-        }
-
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #f093fb;
-        box-shadow: 0 0 0 0.2rem rgba(240, 147, 251, 0.25);
-    }
-
-    .required {
-        color: #e74c3c;
-    }
-
-    .info-badge {
-        background: #e3f2fd;
-        color: #1976d2;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-size: 14px;
-        display: inline-block;
-        margin-bottom: 20px;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/xe-edit.css" />
+}
 
 <div class="container py-4">
     <div class="form-container">
@@ -119,7 +25,7 @@
             <form asp-action="Edit" method="post" enctype="multipart/form-data">
                 <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
                 <input type="hidden" asp-for="MaXe" />
-                <input type="hidden" asp-for="HinhAnhXe" />
+                <!-- Removed hidden field for HinhAnhXe as it's no longer needed -->
 
                 <div class="row">
                     <!-- Cột trái -->
@@ -204,17 +110,17 @@
                             <span asp-validation-for="TrangThai" class="text-danger small"></span>
                         </div>
 
-                        <!-- Hình ảnh -->
+                        <!-- Hình ảnh chính -->
                         <div class="mb-4">
                             <label class="form-label">
-                                <i class="bi bi-image"></i> Hình ảnh xe
+                                <i class="bi bi-image"></i> Hình ảnh chính
                             </label>
                             <div class="image-preview-container" onclick="document.getElementById('hinhAnh').click()">
-                                <input type="file" name="hinhAnh" id="hinhAnh" accept="image/*" style="display:none" onchange="previewImage(event)" />
+                                <input type="file" name="hinhAnh" id="hinhAnh" accept="image/*" style="display:none" onchange="previewMainImage(event)" />
                                 <div id="preview-content">
-                                    @if (!string.IsNullOrEmpty(Model.HinhAnhXe))
-                                    {
-                                        <img src="~/images/xe/@Model.HinhAnhXe" alt="@Model.TenXe" />
+                                                            @if (!string.IsNullOrEmpty(Model.HinhAnhHienThi))
+                        {
+                            <img src="~/images/xe/@Model.HinhAnhHienThi" alt="@Model.TenXe" />
                                         <span class="current-image-badge">Ảnh hiện tại</span>
                                     }
                                     else
@@ -228,6 +134,93 @@
                             </div>
                             <small class="text-muted">Click vào ảnh để thay đổi</small>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Section divider -->
+                <div class="section-divider"></div>
+
+                <!-- Image Management Section -->
+                <div class="image-management-section">
+                    <h5 class="mb-3">
+                        <i class="bi bi-images"></i> Quản lý hình ảnh xe
+                        <span class="badge bg-info">@(Model.HinhAnhXes?.Count ?? 0) ảnh</span>
+                    </h5>
+
+                    <!-- Existing Images -->
+                    @if (Model.HinhAnhXes != null && Model.HinhAnhXes.Any())
+                    {
+                        <div class="existing-images-grid">
+                            @foreach (var hinh in Model.HinhAnhXes)
+                            {
+                                <div class="image-item @(hinh.LaAnhChinh ? "main-image" : "")">
+                                    @if (hinh.LaAnhChinh)
+                                    {
+                                        <div class="main-badge">
+                                            <i class="bi bi-star-fill"></i> Chính
+                                        </div>
+                                    }
+                                    <div class="image-order">#@hinh.ThuTu</div>
+                                    
+                                    <img src="~/images/xe/@hinh.TenFile" alt="@hinh.MoTa" />
+                                    
+                                    <div class="image-info">
+                                        <input type="text" class="description-input" 
+                                               value="@hinh.MoTa" 
+                                               placeholder="Mô tả hình ảnh..." 
+                                               onblur="updateImageDescription(@hinh.MaHinhAnh, this.value)" />
+                                        
+                                        <div class="image-actions">
+                                            @if (!hinh.LaAnhChinh)
+                                            {
+                                                <button type="button" class="btn btn-success btn-sm" 
+                                                        onclick="setMainImage(@hinh.MaHinhAnh)" 
+                                                        title="Đặt làm ảnh chính">
+                                                    <i class="bi bi-star"></i>
+                                                </button>
+                                            }
+                                            
+                                            @if (!hinh.LaAnhChinh)
+                                            {
+                                                <button type="button" class="btn btn-danger btn-sm" 
+                                                        onclick="deleteImage(@hinh.MaHinhAnh)" 
+                                                        title="Xóa ảnh">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                        
+                                        <div class="mt-1">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar3"></i> @hinh.NgayThem.ToString("dd/MM/yyyy")
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-images-message">
+                            <i class="bi bi-images" style="font-size: 48px; color: #ddd;"></i>
+                            <p>Chưa có hình ảnh nào được thêm vào xe này</p>
+                        </div>
+                    }
+
+                    <!-- Add New Images -->
+                    <div class="multi-image-upload" id="multiImageUpload">
+                        <input type="file" name="hinhAnhKhac" id="hinhAnhKhac" accept="image/*" multiple style="display:none" onchange="previewMultipleImages(event)" />
+                        <i class="bi bi-plus-circle" style="font-size: 48px; color: #007bff;"></i>
+                        <p class="mb-2 mt-2"><strong>Thêm hình ảnh mới</strong></p>
+                        <p class="text-muted mb-0">Kéo thả hoặc click để chọn nhiều hình ảnh</p>
+                    </div>
+
+                    <div class="new-image-preview-grid" id="newImagePreviewGrid"></div>
+                    
+                    <div class="upload-stats" id="uploadStats" style="display: none;">
+                        <i class="bi bi-info-circle"></i>
+                        <span id="statsText">Chưa có hình ảnh nào được chọn</span>
                     </div>
                 </div>
 
@@ -255,7 +248,10 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        function previewImage(event) {
+        let selectedNewFiles = [];
+
+        // Preview main image
+        function previewMainImage(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -267,6 +263,190 @@
                 reader.readAsDataURL(file);
             }
         }
+
+        // Preview multiple new images
+        function previewMultipleImages(event) {
+            const files = Array.from(event.target.files);
+            addNewFilesToPreview(files);
+        }
+
+        function addNewFilesToPreview(files) {
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    selectedNewFiles.push(file);
+                }
+            });
+            
+            updateNewImagePreview();
+            updateUploadStats();
+        }
+
+        function updateNewImagePreview() {
+            const grid = document.getElementById('newImagePreviewGrid');
+            grid.innerHTML = '';
+            
+            selectedNewFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'new-image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}" />
+                        <button type="button" class="remove-btn" onclick="removeNewImage(${index})">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <div class="file-name">${file.name}</div>
+                    `;
+                    grid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeNewImage(index) {
+            selectedNewFiles.splice(index, 1);
+            updateNewImagePreview();
+            updateUploadStats();
+            updateNewFileInput();
+        }
+
+        function updateNewFileInput() {
+            const dt = new DataTransfer();
+            selectedNewFiles.forEach(file => dt.items.add(file));
+            document.getElementById('hinhAnhKhac').files = dt.files;
+        }
+
+        function updateUploadStats() {
+            const statsDiv = document.getElementById('uploadStats');
+            const statsText = document.getElementById('statsText');
+            
+            if (selectedNewFiles.length === 0) {
+                statsDiv.style.display = 'none';
+            } else {
+                statsDiv.style.display = 'block';
+                const totalSize = selectedNewFiles.reduce((sum, file) => sum + file.size, 0);
+                const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+                statsText.textContent = `Đã chọn ${selectedNewFiles.length} hình ảnh mới (${totalSizeMB} MB)`;
+            }
+        }
+
+        // Delete existing image
+        function deleteImage(imageId) {
+            if (confirm('Bạn có chắc chắn muốn xóa hình ảnh này?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteImage", "Xe")',
+                    type: 'POST',
+                    data: { id: imageId },
+                    success: function(response) {
+                        if (response.success) {
+                            showNotification(response.message, 'success');
+                            location.reload();
+                        } else {
+                            showNotification(response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        showNotification('Có lỗi xảy ra khi xóa hình ảnh', 'error');
+                    }
+                });
+            }
+        }
+
+        // Set main image
+        function setMainImage(imageId) {
+            $.ajax({
+                url: '@Url.Action("SetMainImage", "Xe")',
+                type: 'POST',
+                data: { id: imageId },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification(response.message, 'success');
+                        location.reload();
+                    } else {
+                        showNotification(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Có lỗi xảy ra khi đặt hình ảnh chính', 'error');
+                }
+            });
+        }
+
+        // Update image description
+        function updateImageDescription(imageId, description) {
+            $.ajax({
+                url: '@Url.Action("UpdateImageDescription", "Xe")',
+                type: 'POST',
+                data: { id: imageId, description: description },
+                success: function(response) {
+                    if (response.success) {
+                        showNotification(response.message, 'success');
+                    } else {
+                        showNotification(response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showNotification('Có lỗi xảy ra khi cập nhật mô tả', 'error');
+                }
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} notification`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border-radius: 8px;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'x-circle'}"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('multiImageUpload');
+            
+            uploadArea.addEventListener('click', function() {
+                document.getElementById('hinhAnhKhac').click();
+            });
+
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = Array.from(e.dataTransfer.files);
+                addNewFilesToPreview(files);
+                updateNewFileInput();
+            });
+        });
 
         // Kiểm tra biển số real-time
         $(document).ready(function() {
@@ -298,9 +478,30 @@
                                 }
                             }
                         });
-                    }, 500); // Đợi 500ms sau khi ngừng gõ
+                    }, 500);
                 }
             });
+
+            // Add live preview for price formatting (display only)
+            const priceInput = document.getElementById('GiaThue');
+            const pricePreview = document.createElement('small');
+            pricePreview.className = 'form-text text-info';
+            priceInput.parentNode.parentNode.appendChild(pricePreview);
+
+            priceInput.addEventListener('input', function(e) {
+                const value = parseInt(e.target.value);
+                if (value && !isNaN(value)) {
+                    pricePreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ/ngày';
+                } else {
+                    pricePreview.innerHTML = '';
+                }
+            });
+
+            // Initialize price preview on page load
+            const currentPrice = parseInt(priceInput.value);
+            if (currentPrice && !isNaN(currentPrice)) {
+                pricePreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + currentPrice.toLocaleString('vi-VN') + 'đ/ngày';
+            }
         });
     </script>
 }

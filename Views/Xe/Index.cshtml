@@ -5,108 +5,10 @@
     ViewData["Title"] = "Quản Lý Xe";
 }
 
-<!-- CSS Bootstrap 5 đã có sẵn -->
-<style>
-    .stat-card {
-        text-align: center;
-        padding: 20px;
-        border-radius: 8px;
-        background: white;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .stat-number {
-        font-size: 48px;
-        font-weight: bold;
-        color: #ff0080;
-    }
-
-    .btn-add {
-        background: #0066ff;
-        color: white;
-        border: none;
-    }
-
-        .btn-add:hover {
-            background: #0052cc;
-            color: white;
-        }
-
-    /* Styles cho disabled buttons */
-    .btn-disabled {
-        opacity: 0.5;
-        cursor: not-allowed !important;
-        pointer-events: none;
-    }
-
-    /* Tooltip styles */
-    .btn-wrapper {
-        position: relative;
-        display: inline-block;
-    }
-
-    .custom-tooltip {
-        position: absolute;
-        bottom: 125%;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #333;
-        color: white;
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 12px;
-        white-space: nowrap;
-        visibility: hidden;
-        opacity: 0;
-        transition: opacity 0.3s;
-        z-index: 1000;
-    }
-
-        .custom-tooltip::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-        }
-
-    .btn-wrapper:hover .custom-tooltip {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    /* Badge cho xe đang thuê */
-    .rental-indicator {
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        width: 10px;
-        height: 10px;
-        background-color: #ff6b6b;
-        border-radius: 50%;
-        animation: pulse 1.5s infinite;
-    }
-
-    @@keyframes pulse {
-        0%
-
-    {
-        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
-    }
-
-    70% {
-        box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
-    }
-
-    100% {
-        box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
-    }
-
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/xe-index.css" />
+    <link rel="stylesheet" href="~/css/responsive.css" />
+}
 
 <div class="container-fluid">
     <!-- Header -->
@@ -218,9 +120,9 @@
                         <tr>
                             <td>#XE@(xe.MaXe.ToString("D3"))</td>
                             <td>
-                                @if (!string.IsNullOrEmpty(xe.HinhAnhXe))
+                                @if (!string.IsNullOrEmpty(xe.HinhAnhHienThi))
                                 {
-                                    <img src="~/images/xe/@xe.HinhAnhXe" style="width:50px;height:50px;object-fit:cover;" />
+                                    <img src="~/images/xe/@xe.HinhAnhHienThi" style="width:50px;height:50px;object-fit:cover;" />
                                 }
                                 else
                                 {

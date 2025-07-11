@@ -6,6 +6,7 @@ using bike.Attributes;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Linq;
 
 namespace bike.Controllers
 {
@@ -92,6 +93,14 @@ namespace bike.Controllers
                 new { Value = "User", Text = "Khách hàng" }
             }, "Value", "Text", user.VaiTro);
 
+            // If AJAX request, return partial view
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                Request.Headers.Accept.ToString().Contains("application/json"))
+            {
+                ViewData["IsPartial"] = true;
+                return PartialView("Edit", user);
+            }
+
             return View(user);
         }
 
@@ -102,6 +111,10 @@ namespace bike.Controllers
         {
             if (id != user.Id)
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng!" });
+                }
                 return NotFound();
             }
 
@@ -116,6 +129,14 @@ namespace bike.Controllers
                 try
                 {
                     var existingUser = await _context.Users.FindAsync(id);
+                    if (existingUser == null)
+                    {
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new { success = false, message = "Không tìm thấy người dùng!" });
+                        }
+                        return NotFound();
+                    }
 
                     // Update fields
                     existingUser.Ten = user.Ten;
@@ -123,6 +144,7 @@ namespace bike.Controllers
                     existingUser.SoDienThoai = user.SoDienThoai;
                     existingUser.DiaChi = user.DiaChi;
                     existingUser.VaiTro = user.VaiTro;
+                    existingUser.IsActive = user.IsActive;
 
                     // Update password if provided
                     if (!string.IsNullOrEmpty(newPassword))
@@ -131,20 +153,46 @@ namespace bike.Controllers
                     }
 
                     await _context.SaveChangesAsync();
+                    
+                    // If AJAX request, return JSON
+                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                    {
+                        return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
+                    }
+                    
                     TempData["Success"] = "Cập nhật thông tin thành công!";
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!UserExists(user.Id))
                     {
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new { success = false, message = "Người dùng không tồn tại!" });
+                        }
                         return NotFound();
                     }
                     else
                     {
+                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                        {
+                            return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật!" });
+                        }
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+            }
+
+            // If AJAX request with validation errors, return JSON
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                return Json(new { success = false, message = "Dữ liệu không hợp lệ!", errors = errors });
             }
 
             ViewBag.Roles = new SelectList(new[]
@@ -187,19 +235,47 @@ namespace bike.Controllers
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var user = await _context.Users.FindAsync(id);
+            
+            if (user == null)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Không tìm thấy người dùng!" });
+                }
+                TempData["Error"] = "Không tìm thấy người dùng!";
+                return RedirectToAction(nameof(Index));
+            }
 
             // Không cho xóa chính mình
             if (user.Id == int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value))
             {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Không thể xóa tài khoản của chính mình!" });
+                }
                 TempData["Error"] = "Không thể xóa tài khoản của chính mình!";
                 return RedirectToAction(nameof(Index));
             }
 
-            if (user != null)
+            try
             {
                 _context.Users.Remove(user);
                 await _context.SaveChangesAsync();
+                
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true, message = "Xóa người dùng thành công!" });
+                }
+                
                 TempData["Success"] = "Xóa người dùng thành công!";
+            }
+            catch (Exception ex)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Có lỗi xảy ra khi xóa người dùng!" });
+                }
+                TempData["Error"] = "Có lỗi xảy ra khi xóa người dùng!";
             }
 
             return RedirectToAction(nameof(Index));

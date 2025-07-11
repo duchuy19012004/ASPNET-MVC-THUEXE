@@ -9,7 +9,7 @@ namespace bike.ViewModels
         public string? TenXe { get; set; }
         public string? BienSoXe { get; set; }
         public decimal GiaThue { get; set; }
-        public string? HinhAnhXe { get; set; }
+        public string? HinhAnhHienThi { get; set; }
 
         // Thông tin người đặt
         [Display(Name = "Họ và tên")]

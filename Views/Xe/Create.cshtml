@@ -4,83 +4,9 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<style>
-    .form-container {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .form-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 10px 10px 0 0;
-        margin-bottom: 0;
-    }
-
-    .form-body {
-        background: white;
-        padding: 30px;
-        border-radius: 0 0 10px 10px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    }
-
-    .image-preview-container {
-        border: 3px dashed #ddd;
-        border-radius: 10px;
-        padding: 40px;
-        text-align: center;
-        background: #f8f9fa;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.3s;
-    }
-
-        .image-preview-container:hover {
-            border-color: #667eea;
-            background: #f0f3ff;
-        }
-
-        .image-preview-container img {
-            max-width: 100%;
-            max-height: 200px;
-            object-fit: contain;
-        }
-
-    .upload-icon {
-        font-size: 60px;
-        color: #ddd;
-        margin-bottom: 10px;
-    }
-
-    .btn-save {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        padding: 12px 40px;
-        font-weight: 500;
-        transition: transform 0.2s;
-    }
-
-        .btn-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-    .form-label {
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 8px;
-    }
-
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-
-    .required {
-        color: #e74c3c;
-    }
-</style>
+@section Styles {
+    <link rel="stylesheet" href="~/css/xe-create.css" />
+}
 
 <div class="container py-4">
     <div class="form-container">
@@ -178,20 +104,47 @@
                             <span asp-validation-for="TrangThai" class="text-danger small"></span>
                         </div>
 
-                        <!-- Hình ảnh -->
+                        <!-- Hình ảnh chính -->
                         <div class="mb-4">
                             <label class="form-label">
-                                <i class="bi bi-image"></i> Hình ảnh xe
+                                <i class="bi bi-image"></i> Hình ảnh chính
+                                <span class="required">*</span>
                             </label>
                             <div class="image-preview-container" onclick="document.getElementById('hinhAnh').click()">
-                                <input type="file" name="hinhAnh" id="hinhAnh" accept="image/*" style="display:none" onchange="previewImage(event)" />
+                                <input type="file" name="hinhAnh" id="hinhAnh" accept="image/*" style="display:none" onchange="previewMainImage(event)" />
                                 <div id="preview-content">
                                     <i class="bi bi-cloud-upload upload-icon"></i>
-                                    <p class="mb-0">Click để chọn ảnh</p>
+                                    <p class="mb-0">Click để chọn ảnh chính</p>
                                     <small class="text-muted">JPG, PNG (Max: 5MB)</small>
                                 </div>
                             </div>
+                            <small class="text-muted">Đây sẽ là hình ảnh hiển thị chính của xe</small>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Section divider -->
+                <div class="section-divider"></div>
+
+                <!-- Multi-image upload section -->
+                <div class="multi-image-section">
+                    <h5 class="mb-3">
+                        <i class="bi bi-images"></i> Thêm nhiều hình ảnh khác
+                        <small class="text-muted">(Tùy chọn)</small>
+                    </h5>
+                    
+                    <div class="multi-image-upload" id="multiImageUpload">
+                        <input type="file" name="hinhAnhKhac" id="hinhAnhKhac" accept="image/*" multiple style="display:none" onchange="previewMultipleImages(event)" />
+                        <i class="bi bi-cloud-upload" style="font-size: 48px; color: #007bff;"></i>
+                        <p class="mb-2 mt-2"><strong>Kéo thả hoặc click để chọn nhiều hình ảnh</strong></p>
+                        <p class="text-muted mb-0">Hỗ trợ JPG, PNG - Tối đa 5MB mỗi ảnh</p>
+                    </div>
+
+                    <div class="image-preview-grid" id="imagePreviewGrid"></div>
+                    
+                    <div class="upload-stats" id="uploadStats" style="display: none;">
+                        <i class="bi bi-info-circle"></i>
+                        <span id="statsText">Chưa có hình ảnh nào được chọn</span>
                     </div>
                 </div>
 
@@ -214,7 +167,10 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script>
-        function previewImage(event) {
+        let selectedFiles = [];
+
+        // Preview main image
+        function previewMainImage(event) {
             const file = event.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -225,6 +181,100 @@
                 reader.readAsDataURL(file);
             }
         }
+
+        // Preview multiple images
+        function previewMultipleImages(event) {
+            const files = Array.from(event.target.files);
+            addFilesToPreview(files);
+        }
+
+        function addFilesToPreview(files) {
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    selectedFiles.push(file);
+                }
+            });
+            
+            updateImagePreview();
+            updateUploadStats();
+        }
+
+        function updateImagePreview() {
+            const grid = document.getElementById('imagePreviewGrid');
+            grid.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview-item';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="${file.name}" />
+                        <button type="button" class="remove-btn" onclick="removeImage(${index})">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <div class="file-name">${file.name}</div>
+                    `;
+                    grid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+            updateImagePreview();
+            updateUploadStats();
+            updateFileInput();
+        }
+
+        function updateFileInput() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            document.getElementById('hinhAnhKhac').files = dt.files;
+        }
+
+        function updateUploadStats() {
+            const statsDiv = document.getElementById('uploadStats');
+            const statsText = document.getElementById('statsText');
+            
+            if (selectedFiles.length === 0) {
+                statsDiv.style.display = 'none';
+            } else {
+                statsDiv.style.display = 'block';
+                const totalSize = selectedFiles.reduce((sum, file) => sum + file.size, 0);
+                const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+                statsText.textContent = `Đã chọn ${selectedFiles.length} hình ảnh (${totalSizeMB} MB)`;
+            }
+        }
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('multiImageUpload');
+            
+            uploadArea.addEventListener('click', function() {
+                document.getElementById('hinhAnhKhac').click();
+            });
+
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = Array.from(e.dataTransfer.files);
+                addFilesToPreview(files);
+                updateFileInput();
+            });
+        });
 
         // Kiểm tra biển số real-time
         $(document).ready(function() {
@@ -251,7 +301,22 @@
                                 }
                             }
                         });
-                    }, 500); // Đợi 500ms sau khi ngừng gõ
+                    }, 500);
+                }
+            });
+
+            // Add live preview for price formatting (display only)
+            const priceInput = document.getElementById('GiaThue');
+            const pricePreview = document.createElement('small');
+            pricePreview.className = 'form-text text-info';
+            priceInput.parentNode.parentNode.appendChild(pricePreview);
+
+            priceInput.addEventListener('input', function(e) {
+                const value = parseInt(e.target.value);
+                if (value && !isNaN(value)) {
+                    pricePreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ/ngày';
+                } else {
+                    pricePreview.innerHTML = '';
                 }
             });
         });

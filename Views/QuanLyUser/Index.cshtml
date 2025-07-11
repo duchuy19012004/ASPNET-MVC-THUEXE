@@ -138,16 +138,16 @@
                         </td>
                         <td>@user.NgayTao.ToString("dd/MM/yyyy")</td>
                         <td>
-                            <a asp-action="Edit" asp-route-id="@user.Id"
-                               class="btn btn-sm btn-warning" title="Sửa">
+                            <button class="btn btn-sm btn-warning" title="Sửa" 
+                                    onclick="openEditModal(@user.Id, '@user.Ten', '@user.Email', '@user.SoDienThoai', '@user.DiaChi', '@user.VaiTro', @user.IsActive.ToString().ToLower(), '@user.NgayTao.ToString("dd/MM/yyyy")')">
                                 <i class="bi bi-pencil"></i>
-                            </a>
+                            </button>
                             @if (user.Id != int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value))
                             {
-                                <a asp-action="Delete" asp-route-id="@user.Id"
-                                   class="btn btn-sm btn-danger" title="Xóa">
+                                <button class="btn btn-sm btn-danger" title="Xóa" 
+                                        onclick="confirmDelete(@user.Id, '@user.Ten')">
                                     <i class="bi bi-trash"></i>
-                                </a>
+                                </button>
                             }
                         </td>
                     </tr>
@@ -156,3 +156,219 @@
         </table>
     </div>
 </div>
+
+<!-- Include Edit Modal -->
+<div id="editModalContainer"></div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Xác nhận xóa
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-person-x text-danger" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Bạn có chắc chắn muốn xóa người dùng?</h5>
+                    <p class="text-muted">Tên: <strong id="deleteUserName"></strong></p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Hành động này không thể hoàn tác!
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Hủy
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">
+                    <span class="spinner-border spinner-border-sm d-none" role="status"></span>
+                    <i class="bi bi-trash"></i> Xóa người dùng
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentUserId = 0;
+
+    // Open edit modal
+    function openEditModal(id, ten, email, soDienThoai, diaChi, vaiTro, isActive, ngayTao) {
+        currentUserId = id;
+        
+        // Load modal content via AJAX
+        fetch(`/QuanLyUser/Edit/${id}`)
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('editModalContainer').innerHTML = html;
+                
+                // Initialize modal
+                const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                
+                // Populate form with data
+                populateEditForm({
+                    id: id,
+                    ten: ten,
+                    email: email,
+                    soDienThoai: soDienThoai || '',
+                    diaChi: diaChi || '',
+                    vaiTro: vaiTro,
+                    isActive: isActive,
+                    ngayTao: ngayTao
+                });
+                
+                // Show modal
+                editModal.show();
+            })
+            .catch(error => {
+                console.error('Error loading edit modal:', error);
+                showNotification('Có lỗi xảy ra khi tải form chỉnh sửa!', 'error');
+            });
+    }
+
+    // Populate edit form with user data
+    function populateEditForm(userData) {
+        setTimeout(() => {
+            // Set form values
+            const form = document.getElementById('editUserForm');
+            if (form) {
+                // Update form action URL
+                form.action = `/QuanLyUser/Edit/${userData.id}`;
+                
+                // Set input values
+                const inputs = {
+                    'Id': userData.id,
+                    'Ten': userData.ten,
+                    'Email': userData.email,
+                    'SoDienThoai': userData.soDienThoai,
+                    'DiaChi': userData.diaChi,
+                    'VaiTro': userData.vaiTro,
+                    'IsActive': userData.isActive
+                };
+                
+                for (const [name, value] of Object.entries(inputs)) {
+                    const input = form.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        if (input.type === 'checkbox') {
+                            input.checked = value;
+                        } else {
+                            input.value = value || '';
+                        }
+                    }
+                }
+                
+                // Update display elements
+                const userIdDisplay = document.getElementById('userIdDisplay');
+                const userCreateDate = document.getElementById('userCreateDate');
+                const userStatusBadge = document.getElementById('userStatusBadge');
+                const statusText = document.getElementById('statusText');
+                
+                if (userIdDisplay) userIdDisplay.textContent = userData.id;
+                if (userCreateDate) userCreateDate.textContent = userData.ngayTao;
+                
+                if (userStatusBadge) {
+                    userStatusBadge.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
+                    userStatusBadge.className = `badge bg-${userData.isActive ? 'success' : 'danger'} role-badge`;
+                }
+                
+                if (statusText) {
+                    statusText.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
+                }
+            }
+        }, 100);
+    }
+
+    // Show delete confirmation
+    function confirmDelete(id, name) {
+        currentUserId = id;
+        document.getElementById('deleteUserName').textContent = name;
+        
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        deleteModal.show();
+    }
+
+    // Handle delete confirmation
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
+                const spinner = this.querySelector('.spinner-border');
+                const btnIcon = this.querySelector('i.bi-trash');
+                
+                // Show loading state
+                spinner.classList.remove('d-none');
+                btnIcon.style.display = 'none';
+                this.disabled = true;
+                
+                // Send delete request
+                fetch(`/QuanLyUser/Delete/${currentUserId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('[name="__RequestVerificationToken"]')?.value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Success - close modal and refresh page
+                        bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+                        showNotification('Xóa người dùng thành công!', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showNotification(data.message || 'Có lỗi xảy ra khi xóa!', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Có lỗi xảy ra khi xóa!', 'error');
+                })
+                .finally(() => {
+                    // Hide loading state
+                    spinner.classList.add('d-none');
+                    btnIcon.style.display = 'inline';
+                    this.disabled = false;
+                });
+            });
+        }
+    });
+
+    // Show notification function
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 3000);
+    }
+
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            if (!alert.classList.contains('position-fixed')) {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            }
+        });
+    });
+</script>

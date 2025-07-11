@@ -37,11 +37,6 @@ namespace bike.Models
         [Display(Name = "Giá thuê/ngày")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá thuê phải lớn hơn 0")]
         public decimal GiaThue { get; set; }
-
-        [Display(Name = "Hình ảnh")]
-        [StringLength(255)]
-        public string? HinhAnhXe { get; set; }
-
         // Thông tin thiệt hại và đền bù
         [Display(Name = "Giá trị xe (đền bù)")]
         [Column(TypeName = "decimal(18,2)")]
@@ -71,5 +66,16 @@ namespace bike.Models
         
         // Navigation property cho quan hệ n-n với HopDong thông qua ChiTietHopDong
         public virtual ICollection<ChiTietHopDong> ChiTietHopDong { get; set; } = new List<ChiTietHopDong>();
+        
+        // Navigation property cho nhiều hình ảnh
+        public virtual ICollection<HinhAnhXe> HinhAnhXes { get; set; } = new List<HinhAnhXe>();
+
+        // Helper property để lấy hình ảnh chính
+        [NotMapped]
+        public string? HinhAnhChinh => HinhAnhXes?.FirstOrDefault(h => h.LaAnhChinh)?.TenFile;
+        
+        // Helper property để lấy hình ảnh cho hiển thị (ưu tiên ảnh chính, fallback về ảnh đầu tiên)
+        [NotMapped]
+        public string? HinhAnhHienThi => HinhAnhChinh ?? HinhAnhXes?.OrderBy(h => h.ThuTu).FirstOrDefault()?.TenFile;
     }
 }

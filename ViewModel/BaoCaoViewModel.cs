@@ -13,6 +13,9 @@ namespace bike.ViewModels
         public int TongDonDatXe { get; set; }
         public decimal DoanhThuHomNay { get; set; }
         public int XeDangChoThue { get; set; }
+        public int HopDongHoatDong { get; set; }
+        public int KhachHangMoi { get; set; } // Khách hàng đăng ký mới hôm nay
+        public int TongSoXe { get; set; }
 
         // Thống kê so với kỳ trước
         public double PhanTramDonDat { get; set; } // % tăng/giảm so với kỳ trước

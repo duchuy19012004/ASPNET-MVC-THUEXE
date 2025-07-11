@@ -1,0 +1,1200 @@
+/* XemChiTiet.cshtml Styles */
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #0056b3;
+  --accent-color: #ff6b6b;
+  --success-color: #51cf66;
+  --warning-color: #ffd43b;
+  --danger-color: #ff6b6b;
+  --dark-color: #2c3e50;
+  --light-color: #f8f9fa;
+  --border-color: #e9ecef;
+  --text-color: #2c3e50;
+  --text-muted: #6c757d;
+  --shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --border-radius: 15px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+}
+
+/* Enhanced Breadcrumb */
+.breadcrumb {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  padding: 25px 0;
+  margin-bottom: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.breadcrumb::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><polygon fill="rgba(255,255,255,0.05)" points="0,0 100,0 95,20 0,20"/></svg>');
+  background-size: 50px 20px;
+  animation: slide 20s linear infinite;
+}
+
+@keyframes slide {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(50px);
+  }
+}
+
+.breadcrumb .container {
+  position: relative;
+  z-index: 1;
+}
+
+.breadcrumb-item a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  transition: var(--transition);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.breadcrumb-item a:hover {
+  color: white;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+}
+
+.breadcrumb-item.active {
+  color: white;
+  font-weight: 600;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: "›";
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: bold;
+  margin: 0 10px;
+}
+
+/* Enhanced Product Detail */
+.product-detail {
+  padding: 50px 0;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  position: relative;
+}
+
+.product-detail::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(102,126,234,0.1)"/></svg>');
+  background-size: 50px 50px;
+  opacity: 0.3;
+  animation: float 20s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.product-container {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 30px;
+}
+
+/* Enhanced Product Images */
+.product-images {
+  position: relative;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.main-image-container {
+  position: relative;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  group: hover;
+}
+
+.main-image {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  transition: var(--transition);
+  cursor: zoom-in;
+}
+
+.main-image:hover {
+  transform: scale(1.05);
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
+  opacity: 0;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  backdrop-filter: blur(5px);
+}
+
+.main-image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.zoom-text {
+  font-size: 14px;
+  margin-top: 10px;
+  font-weight: 500;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.thumbnail-container {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 3px solid transparent;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.thumbnail:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow);
+}
+
+.thumbnail.active {
+  border-color: var(--primary-color);
+  transform: scale(1.1);
+  box-shadow: var(--shadow);
+}
+
+/* Image Navigation */
+.image-navigation {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-between;
+  padding: 0 20px;
+  pointer-events: none;
+}
+
+.nav-btn {
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+  pointer-events: auto;
+  font-size: 1.5rem;
+  opacity: 0;
+  backdrop-filter: blur(10px);
+}
+
+.main-image-container:hover .nav-btn {
+  opacity: 1;
+}
+
+.nav-btn:hover {
+  background: rgba(0, 123, 255, 0.8);
+  transform: scale(1.1);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.nav-btn:disabled:hover {
+  background: rgba(0, 0, 0, 0.5);
+  transform: scale(1);
+}
+
+/* Image Counter */
+.image-counter {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.main-image-container:hover .image-counter {
+  opacity: 1;
+}
+
+/* Image Description */
+.image-description {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  right: 80px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  transition: var(--transition);
+  max-height: 60px;
+  overflow: hidden;
+}
+
+.main-image-container:hover .image-description {
+  opacity: 1;
+}
+
+.image-description.empty {
+  display: none;
+}
+
+/* Enhanced Product Info */
+.product-info {
+  padding: 40px;
+  position: relative;
+}
+
+.product-info::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 40px;
+  right: 40px;
+  height: 4px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  border-radius: 2px;
+}
+
+.product-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 20px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.product-title::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  border-radius: 2px;
+}
+
+.share-section {
+  margin-bottom: 30px;
+}
+
+.share-btn {
+  background: linear-gradient(135deg, #1877f2 0%, #42a5f5 100%);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.share-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 100%);
+}
+
+/* Enhanced Price Info */
+.price-info {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  padding: 25px;
+  border-radius: var(--border-radius);
+  margin-bottom: 30px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.price-info::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.1) 0%,
+    transparent 70%
+  );
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.price-label {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.price {
+  font-size: 2.5rem;
+  font-weight: 800;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
+}
+
+/* Enhanced Bike Specs */
+.bike-specs {
+  background: var(--light-color);
+  padding: 25px;
+  border-radius: var(--border-radius);
+  margin-bottom: 30px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: var(--transition);
+}
+
+.spec-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.spec-item:hover {
+  background: white;
+  padding-left: 10px;
+  border-radius: 8px;
+}
+
+.spec-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 15px;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+.spec-label {
+  font-weight: 600;
+  color: var(--text-color);
+  margin-right: 10px;
+  min-width: 120px;
+}
+
+.spec-value {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-available {
+  background: linear-gradient(135deg, var(--success-color) 0%, #40c057 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(81, 207, 102, 0.3);
+}
+
+.status-rented {
+  background: linear-gradient(135deg, var(--warning-color) 0%, #fab005 100%);
+  color: var(--dark-color);
+  box-shadow: 0 4px 15px rgba(255, 212, 59, 0.3);
+}
+
+.status-unavailable {
+  background: linear-gradient(135deg, var(--danger-color) 0%, #e03131 100%);
+  color: white;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+/* Enhanced Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.btn-primary-custom {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  color: white;
+  border: none;
+  padding: 18px 35px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: var(--transition);
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow);
+}
+
+.btn-primary-custom::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: var(--transition);
+}
+
+.btn-primary-custom:hover::before {
+  left: 100%;
+}
+
+.btn-primary-custom:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-secondary-custom {
+  background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+  color: white;
+  border: none;
+  padding: 18px 35px;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: var(--transition);
+  flex: 1;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: var(--shadow);
+}
+
+.btn-secondary-custom::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: var(--transition);
+}
+
+.btn-secondary-custom:hover::before {
+  left: 100%;
+}
+
+.btn-secondary-custom:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Enhanced Requirements */
+.rental-requirements {
+  background: white;
+  padding: 25px;
+  border-radius: var(--border-radius);
+  margin-bottom: 30px;
+  border: 2px solid var(--border-color);
+  position: relative;
+}
+
+.requirements-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.requirements-list {
+  list-style: none;
+  padding: 0;
+}
+
+.requirements-list li {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: var(--light-color);
+  border-radius: 10px;
+  position: relative;
+  transition: var(--transition);
+  border-left: 4px solid var(--success-color);
+}
+
+.requirements-list li:hover {
+  background: white;
+  box-shadow: var(--shadow);
+  transform: translateX(5px);
+}
+
+.requirements-list li::before {
+  content: "✓";
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  background: var(--success-color);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* Enhanced Pricing Table */
+.pricing-section {
+  margin-top: 50px;
+  padding: 40px;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.pricing-title {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 40px;
+  color: var(--dark-color);
+  position: relative;
+}
+
+.pricing-title::after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  border-radius: 2px;
+}
+
+.pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.pricing-table th {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  color: white;
+  padding: 20px;
+  font-weight: 700;
+  text-align: center;
+  border: none;
+  position: relative;
+}
+
+.pricing-table td {
+  padding: 25px 20px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+  transition: var(--transition);
+  position: relative;
+}
+
+.pricing-table tr:hover td {
+  background: var(--light-color);
+  transform: scale(1.02);
+}
+
+.blue-text {
+  color: var(--primary-color);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.red-text {
+  color: var(--danger-color);
+  font-weight: 700;
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Enhanced Related Bikes */
+.related-bikes {
+  margin-top: 50px;
+  padding: 40px;
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+}
+
+.related-bikes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.related-bikes-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  margin: 0;
+}
+
+.bike-card {
+  background: white;
+  border: 2px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  transition: var(--transition);
+  box-shadow: var(--shadow);
+  position: relative;
+  height: 100%;
+}
+
+.bike-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(102, 126, 234, 0.1) 0%,
+    rgba(118, 75, 162, 0.1) 100%
+  );
+  opacity: 0;
+  transition: var(--transition);
+}
+
+.bike-card:hover::before {
+  opacity: 1;
+}
+
+.bike-card:hover {
+  transform: translateY(-10px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--primary-color);
+}
+
+.bike-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  transition: var(--transition);
+}
+
+.bike-card:hover img {
+  transform: scale(1.1);
+}
+
+.bike-card-body {
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.bike-card-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 10px;
+}
+
+.bike-card-price {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--danger-color);
+  margin-bottom: 10px;
+}
+
+.bike-card-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.status-available .status-indicator {
+  background: var(--success-color);
+}
+
+.status-rented .status-indicator {
+  background: var(--warning-color);
+}
+
+.status-unavailable .status-indicator {
+  background: var(--danger-color);
+}
+
+/* Enhanced Button Styles */
+.btn-outline-primary {
+  border: 2px solid var(--primary-color);
+  color: var(--primary-color);
+  background: transparent;
+  padding: 12px 25px;
+  border-radius: 25px;
+  font-weight: 600;
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline-primary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  transition: var(--transition);
+  z-index: -1;
+}
+
+.btn-outline-primary:hover::before {
+  left: 0;
+}
+
+.btn-outline-primary:hover {
+  color: white;
+  border-color: var(--primary-color);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+/* Enhanced Modal */
+.modal-content {
+  border-radius: var(--border-radius);
+  border: none;
+  box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color) 0%,
+    var(--secondary-color) 100%
+  );
+  color: white;
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  padding: 20px 25px;
+}
+
+.modal-title {
+  font-weight: 700;
+  font-size: 1.3rem;
+}
+
+.modal-body {
+  padding: 25px;
+}
+
+.modal-footer {
+  padding: 20px 25px;
+  border-top: 1px solid var(--border-color);
+}
+
+.form-control {
+  border-radius: 10px;
+  border: 2px solid var(--border-color);
+  padding: 12px 15px;
+  transition: var(--transition);
+}
+
+.form-control:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--dark-color);
+  margin-bottom: 8px;
+}
+
+.alert-info {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  border: 1px solid #2196f3;
+  color: #1976d2;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+/* Image Detail Modal Styles */
+.image-detail-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-detail-image {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  transition: all 0.3s ease;
+}
+
+.modal-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: #333;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+.modal-nav-btn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateY(-50%) scale(1.1);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.modal-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: translateY(-50%) scale(0.9);
+}
+
+.modal-prev-btn {
+  left: 30px;
+}
+
+.modal-next-btn {
+  right: 30px;
+}
+
+.modal-image-info {
+  position: absolute;
+  bottom: 30px;
+  left: 30px;
+  right: 30px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  border-radius: 12px;
+  color: white;
+  backdrop-filter: blur(10px);
+  transform: translateY(100%);
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.image-detail-container:hover .modal-image-info {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.info-header h6 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.image-counter-modal {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.info-description {
+  margin: 0 0 15px 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.info-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.info-actions .btn {
+  border-radius: 20px;
+  font-size: 0.85rem;
+  padding: 6px 15px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .product-title {
+    font-size: 2rem;
+  }
+
+  .price {
+    font-size: 2rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+  }
+
+  .btn-primary-custom,
+  .btn-secondary-custom {
+    min-width: 100%;
+  }
+
+  .related-bikes-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pricing-table {
+    font-size: 0.9rem;
+  }
+
+  .pricing-table th,
+  .pricing-table td {
+    padding: 15px 10px;
+  }
+
+  /* Mobile responsive for modal */
+  .modal-nav-btn {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .modal-prev-btn {
+    left: 15px;
+  }
+
+  .modal-next-btn {
+    right: 15px;
+  }
+
+  .modal-image-info {
+    bottom: 15px;
+    left: 15px;
+    right: 15px;
+    padding: 15px;
+  }
+
+  .info-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+
+  .info-actions {
+    justify-content: center;
+  }
+
+  .modal-detail-image {
+    max-width: 95%;
+    max-height: 85%;
+  }
+}
+
+@media (max-width: 576px) {
+  .product-info {
+    padding: 20px;
+  }
+
+  .bike-specs,
+  .rental-requirements {
+    padding: 20px;
+  }
+
+  .pricing-section,
+  .related-bikes {
+    padding: 20px;
+  }
+}
