@@ -172,6 +172,18 @@
         padding: 60px 20px;
         color: #6c757d;
     }
+
+    .alert-sm {
+        padding: 8px 12px;
+        font-size: 12px;
+        border-radius: 5px;
+    }
+
+    .alert-warning {
+        background-color: #fff3cd;
+        border: 1px solid #ffeaa7;
+        color: #856404;
+    }
 </style>
 
 <div class="history-container">
@@ -237,10 +249,27 @@
                             </span>
                         </div>
 
+                        @if (hopDong.ChiTietHopDong?.Any() != true)
+                        {
+                            <div class="alert alert-warning alert-sm mb-3">
+                                <small><i class="bi bi-exclamation-triangle"></i> Hợp đồng này thiếu thông tin chi tiết xe thuê</small>
+                            </div>
+                        }
+
                         <div class="contract-details">
                             <div class="detail-item">
                                 <span class="detail-label">Xe:</span>
-                                <span class="detail-value">@hopDong.ChiTietHopDong.First().Xe?.TenXe (@hopDong.ChiTietHopDong.First().Xe?.BienSoXe)</span>
+                                <span class="detail-value">
+                                    @if (hopDong.ChiTietHopDong?.Any() == true)
+                                    {
+                                        var chiTietDau = hopDong.ChiTietHopDong.First();
+                                        @((chiTietDau.Xe?.TenXe ?? "Không xác định") + " (" + (chiTietDau.Xe?.BienSoXe ?? "N/A") + ")")
+                                    }
+                                    else
+                                    {
+                                        <text>Chưa có thông tin xe</text>
+                                    }
+                                </span>
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Ngày tạo HĐ:</span>
@@ -255,7 +284,17 @@
                             </div>
                             <div class="detail-item">
                                 <span class="detail-label">Số ngày:</span>
-                                <span class="detail-value">@hopDong.SoNgayThue ngày</span>
+                                <span class="detail-value">
+                                    @if (hopDong.ChiTietHopDong?.Any() == true)
+                                    {
+                                        var soNgay = hopDong.ChiTietHopDong.First().SoNgayThue;
+                                        @(soNgay + " ngày")
+                                    }
+                                    else
+                                    {
+                                        <text>Chưa xác định</text>
+                                    }
+                                </span>
                             </div>
                         </div>
 

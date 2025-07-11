@@ -42,13 +42,21 @@ namespace bike.Controllers
 
 
 
-            // Doanh thu hôm nay - CHỈ TÍNH KHI ĐÃ TRẢ XE THÀNH CÔNG
+            // Doanh thu hôm nay - CHỈ TÍNH KHI ĐÃ TRẢ XE THÀNH CÔNG, TRỪ CHI TIÊU
             var today = DateTime.Now.Date;
-            viewModel.DoanhThuHomNay = await _context.HopDong
+            var doanhThuTheoHopDong = await _context.HopDong
                 .Where(h => h.TrangThai == "Hoàn thành" && 
                            h.NgayTraXeThucTe.HasValue && 
                            h.NgayTraXeThucTe.Value.Date == today)
                 .SumAsync(h => h.TongTien);
+
+            // Tính tổng chi tiêu trong ngày
+            var tongChiTieuHomNay = await _context.ChiTieu
+                .Where(ct => ct.NgayChi.Date == today)
+                .SumAsync(ct => ct.SoTien);
+
+            // Doanh thu thực = Doanh thu hợp đồng - Chi tiêu (tối thiểu là 0)
+            viewModel.DoanhThuHomNay = Math.Max(0, doanhThuTheoHopDong - tongChiTieuHomNay);
 
             // Xe đang cho thuê
             viewModel.XeDangChoThue = await _context.Xe
@@ -69,38 +77,58 @@ namespace bike.Controllers
                 viewModel.PhanTramDonDat = ((double)(viewModel.TongDonDatXe - previousDonDat) / previousDonDat) * 100;
             }
 
-            // Tính doanh thu kỳ trước để so sánh
-            var previousRevenue = await _context.HopDong
+            // Tính doanh thu kỳ trước để so sánh (trừ chi tiêu)
+            var previousRevenueGross = await _context.HopDong
                 .Where(h => h.TrangThai == "Hoàn thành" && 
                            h.NgayTraXeThucTe.HasValue &&
                            h.NgayTraXeThucTe.Value.Date >= previousStartDate && 
                            h.NgayTraXeThucTe.Value.Date <= previousEndDate)
                 .SumAsync(h => h.TongTien);
 
-            var currentRevenue = await _context.HopDong
+            var previousExpenses = await _context.ChiTieu
+                .Where(ct => ct.NgayChi.Date >= previousStartDate && 
+                            ct.NgayChi.Date <= previousEndDate)
+                .SumAsync(ct => ct.SoTien);
+
+            var previousRevenue = Math.Max(0, previousRevenueGross - previousExpenses);
+
+            var currentRevenueGross = await _context.HopDong
                 .Where(h => h.TrangThai == "Hoàn thành" && 
                            h.NgayTraXeThucTe.HasValue &&
                            h.NgayTraXeThucTe.Value.Date >= startDate && 
                            h.NgayTraXeThucTe.Value.Date <= endDate)
                 .SumAsync(h => h.TongTien);
 
+            var currentExpenses = await _context.ChiTieu
+                .Where(ct => ct.NgayChi.Date >= startDate && 
+                            ct.NgayChi.Date <= endDate)
+                .SumAsync(ct => ct.SoTien);
+
+            var currentRevenue = Math.Max(0, currentRevenueGross - currentExpenses);
+
             if (previousRevenue > 0)
             {
                 viewModel.PhanTramDoanhThu = ((double)(currentRevenue - previousRevenue) / (double)previousRevenue) * 100;
             }
 
-            // 3. Dữ liệu biểu đồ doanh thu (7 ngày gần nhất) - CHỈ TÍNH KHI ĐÃ TRẢ XE
+            // 3. Dữ liệu biểu đồ doanh thu (7 ngày gần nhất) - CHỈ TÍNH KHI ĐÃ TRẢ XE, TRỪ CHI TIÊU
             var last7Days = Enumerable.Range(0, 7)
                 .Select(i => DateTime.Now.Date.AddDays(-6 + i))
                 .ToList();
 
             foreach (var date in last7Days)
             {
-                var doanhThuNgay = await _context.HopDong
+                var doanhThuNgayGross = await _context.HopDong
                     .Where(h => h.TrangThai == "Hoàn thành" && 
                                h.NgayTraXeThucTe.HasValue && 
                                h.NgayTraXeThucTe.Value.Date == date)
                     .SumAsync(h => h.TongTien);
+
+                var chiTieuNgay = await _context.ChiTieu
+                    .Where(ct => ct.NgayChi.Date == date)
+                    .SumAsync(ct => ct.SoTien);
+
+                var doanhThuNgay = Math.Max(0, doanhThuNgayGross - chiTieuNgay);
 
                 viewModel.BieuDoDoanhThu.Add(new BieuDoItem
                 {
@@ -177,13 +205,20 @@ namespace bike.Controllers
                 var startDate = new DateTime(currentYear, month, 1);
                 var endDate = startDate.AddMonths(1).AddDays(-1);
 
-                // CHỈ TÍNH DOANH THU KHI ĐÃ TRẢ XE THÀNH CÔNG
-                var revenue = await _context.HopDong
+                // CHỈ TÍNH DOANH THU KHI ĐÃ TRẢ XE THÀNH CÔNG, TRỪ CHI TIÊU
+                var revenueGross = await _context.HopDong
                     .Where(h => h.TrangThai == "Hoàn thành" && 
                                h.NgayTraXeThucTe.HasValue &&
                                h.NgayTraXeThucTe.Value.Date >= startDate && 
                                h.NgayTraXeThucTe.Value.Date <= endDate)
                     .SumAsync(h => h.TongTien);
+
+                var expenses = await _context.ChiTieu
+                    .Where(ct => ct.NgayChi.Date >= startDate && 
+                                ct.NgayChi.Date <= endDate)
+                    .SumAsync(ct => ct.SoTien);
+
+                var revenue = Math.Max(0, revenueGross - expenses);
 
                 monthlyRevenue.Add(new BieuDoItem
                 {

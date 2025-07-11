@@ -427,6 +427,21 @@ namespace bike.Controllers
                             };
 
                             _context.BaoCaoThietHai.Add(baoCaoThietHai);
+
+                            // Tự động tạo chi tiêu cho việc sửa chữa xe (nếu có chi phí ước tính)
+                            if (chiPhi > 0)
+                            {
+                                var chiTieuSuaChua = new ChiTieu
+                                {
+                                    NoiDung = $"Sửa chữa xe {ct.Xe.TenXe} ({ct.Xe.BienSoXe}) - {tinhTrang}",
+                                    SoTien = chiPhi,
+                                    NgayChi = ngayTraThucTe,
+                                    GhiChu = string.IsNullOrEmpty(moTa) ? $"Sửa chữa do {tinhTrang.ToLower()}" : moTa,
+                                    MaXe = ct.MaXe
+                                };
+
+                                _context.ChiTieu.Add(chiTieuSuaChua);
+                            }
                         }
                         else
                         {
@@ -444,16 +459,54 @@ namespace bike.Controllers
                     hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + hopDong.PhuPhi;
 
                     await _context.SaveChangesAsync();
+
+                    // Tự động tạo hóa đơn sau khi hoàn tất trả xe
+                    var existingHoaDon = await _context.HoaDon
+                        .FirstOrDefaultAsync(h => h.MaHopDong == hopDong.MaHopDong);
+                    
+                    string hoaDonInfo = "";
+                    if (existingHoaDon == null)
+                    {
+                        var hoaDon = new HoaDon
+                        {
+                            MaHopDong = hopDong.MaHopDong,
+                            NgayThanhToan = ngayTraThucTe,
+                            SoTien = hopDong.TongTien,
+                            TrangThai = "Đã thanh toán",
+                            GhiChu = $"Hóa đơn được tạo tự động sau khi hoàn tất trả xe. {ghiChu}",
+                            NgayTao = DateTime.Now,
+                            MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
+                        };
+
+                        _context.HoaDon.Add(hoaDon);
+                        await _context.SaveChangesAsync();
+                        
+                        hoaDonInfo = $" Mã hóa đơn: HD{hoaDon.MaHoaDon:D6}";
+                    }
+
                     await transaction.CommitAsync();
 
                     if (tongPhiDenBu > 0)
                     {
-                        TempData["Success"] = $"Xử lý trả xe thành công! Phí đền bù: {tongPhiDenBu:N0}đ";
-                        TempData["Warning"] = "Có thiệt hại xe được ghi nhận. Vui lòng kiểm tra báo cáo thiệt hại.";
+                        // Tính tổng chi phí sửa chữa đã tạo chi tiêu
+                        var tongChiPhiSuaChua = hopDong.ChiTietHopDong
+                            .Where(ct => ct.TinhTrangTraXe != "Bình thường")
+                            .Sum(ct => ct.Xe.ChiPhiSuaChua);
+
+                        TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công! Phí đền bù: {tongPhiDenBu:N0}đ.{hoaDonInfo}";
+                        
+                        if (tongChiPhiSuaChua > 0)
+                        {
+                            TempData["Warning"] = $"Có thiệt hại xe được ghi nhận. Chi phí sửa chữa {tongChiPhiSuaChua:N0}đ đã được thêm vào danh sách chi tiêu.";
+                        }
+                        else
+                        {
+                            TempData["Warning"] = "Có thiệt hại xe được ghi nhận. Vui lòng kiểm tra báo cáo thiệt hại.";
+                        }
                     }
                     else
                     {
-                        TempData["Success"] = "Xử lý trả xe thành công!";
+                        TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công!{hoaDonInfo}";
                     }
 
                     return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });

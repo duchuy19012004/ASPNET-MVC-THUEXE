@@ -106,6 +106,16 @@
         pointer-events: none;
         opacity: 0.5;
     }
+
+    .cost-preview {
+        margin-top: 5px;
+        color: #17a2b8;
+        font-size: 13px;
+    }
+
+    .cost-preview i {
+        margin-right: 5px;
+    }
 </style>
 
 <div class="return-container">
@@ -182,6 +192,7 @@
             <div class="alert alert-danger">
                 <i class="bi bi-exclamation-triangle-fill"></i>
                 <strong>Lỗi:</strong> Hợp đồng này không có thông tin xe thuê! Vui lòng kiểm tra lại dữ liệu.
+                <br><small>Form trả xe đã bị vô hiệu hóa cho đến khi có đầy đủ thông tin xe.</small>
             </div>
         }
     
@@ -239,7 +250,7 @@
                             </h5>
                             
                             <div class="row">
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Tình trạng xe <span class="text-danger">*</span></label>
                                         <select name="tinhTrangTraXe" class="form-select" onchange="handleDamageChange(@chiTiet.index)" data-index="@chiTiet.index">
@@ -251,7 +262,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-8">
+                                <div class="col-md-6">
                                     <div class="mb-3">
                                         <label class="form-label">Mô tả thiệt hại (nếu có)</label>
                                         <textarea name="moTaThietHai" class="form-control" rows="2" 
@@ -266,11 +277,12 @@
                                     <div class="col-md-6">
                                         <div class="mb-3">
                                             <label class="form-label">Chi phí sửa chữa ước tính</label>
-                                            <input type="number" name="chiPhiSuaChua" class="form-control" value="0"
+                                            <input type="number" name="chiPhiSuaChua" class="form-control cost-input" value="0"
                                                    placeholder="Nhập chi phí ước tính..." 
                                                    onchange="calculateCompensation(@chiTiet.index)"
-                                                   data-index="@chiTiet.index" />
-                                            <small class="text-muted">Ước tính chi phí sửa chữa (VNĐ)</small>
+                                                   oninput="formatCostDisplay(@chiTiet.index)"
+                                                   data-index="@chiTiet.index" id="costInput_@chiTiet.index" />
+                                            
                                         </div>
                                     </div>
                                     <div class="col-md-6">
@@ -291,9 +303,11 @@
             <!-- Phụ phí -->
             <div class="mb-3">
                 <label class="form-label">Phụ phí khác (nếu có)</label>
-                <input type="number" name="phuPhi" class="form-control" value="0"
-                       placeholder="Phụ phí khác: xăng, vệ sinh, phạt trả trễ..." onchange="calculateFinal()" />
-                <small class="text-muted">Phụ phí khác ngoài đền bù thiệt hại</small>
+                <input type="number" name="phuPhi" class="form-control cost-input" value="0"
+                       placeholder="Phụ phí khác: xăng, vệ sinh, phạt trả trễ..." 
+                       onchange="calculateFinal()" 
+                       oninput="formatOtherFeeDisplay()" id="otherFeeInput" />
+                <small class="text-muted">Ví dụ: nhập 50000 cho phí xăng</small>
             </div>
 
             <!-- Ghi chú -->
@@ -312,7 +326,7 @@
 
             <!-- Buttons -->
             <div class="d-flex gap-3 mt-4">
-                <button type="submit" class="btn btn-complete flex-fill" onclick="return confirm('Xác nhận hoàn tất trả xe?')">
+                <button type="submit" class="btn btn-complete flex-fill" @(!hasChiTiet ? "disabled" : "")>
                     <i class="bi bi-check-circle"></i> Hoàn Tất Trả Xe
                 </button>
                 <a asp-action="Index" class="btn btn-secondary">
@@ -327,16 +341,59 @@
     <script>
         // Dữ liệu xe để tính toán
         const vehicleData = [
-            @foreach (var chiTiet in Model.ChiTietHopDong.Select((ct, index) => new { ct, index }))
+            @if (hasChiTiet && Model.ChiTietHopDong.Any())
             {
-                @:{
-                    @:giaTriXe: @chiTiet.ct.Xe?.GiaTriXe,
-                    @:giaThueNgay: @chiTiet.ct.GiaThueNgay
-                @:}@(chiTiet.index < Model.ChiTietHopDong.Count - 1 ? "," : "")
+                @foreach (var chiTiet in Model.ChiTietHopDong.Select((ct, index) => new { ct, index }))
+                {
+                    @:{
+                        @:giaTriXe: @(chiTiet.ct.Xe?.GiaTriXe ?? 0),
+                        @:giaThueNgay: @chiTiet.ct.GiaThueNgay
+                    @:}@(chiTiet.index < Model.ChiTietHopDong.Count - 1 ? "," : "")
+                }
             }
         ];
 
         let totalCompensation = 0;
+
+        // Format hiển thị chi phí
+        function formatCostDisplay(index) {
+            const costInput = document.getElementById(`costInput_${index}`);
+            if (!costInput) return;
+            
+            let costPreview = costInput.parentNode.querySelector('.cost-preview');
+            if (!costPreview) {
+                costPreview = document.createElement('small');
+                costPreview.className = 'form-text cost-preview';
+                costInput.parentNode.appendChild(costPreview);
+            }
+            
+            const value = parseInt(costInput.value) || 0;
+            if (value > 0) {
+                costPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ';
+            } else {
+                costPreview.innerHTML = '';
+            }
+        }
+
+        // Format hiển thị phụ phí
+        function formatOtherFeeDisplay() {
+            const otherFeeInput = document.getElementById('otherFeeInput');
+            if (!otherFeeInput) return;
+            
+            let otherFeePreview = otherFeeInput.parentNode.querySelector('.cost-preview');
+            if (!otherFeePreview) {
+                otherFeePreview = document.createElement('small');
+                otherFeePreview.className = 'form-text cost-preview';
+                otherFeeInput.parentNode.appendChild(otherFeePreview);
+            }
+            
+            const value = parseInt(otherFeeInput.value) || 0;
+            if (value > 0) {
+                otherFeePreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ';
+            } else {
+                otherFeePreview.innerHTML = '';
+            }
+        }
 
         // Xử lý thay đổi tình trạng xe
         function handleDamageChange(index) {
@@ -391,6 +448,7 @@
             }
 
             updateCompensationDisplay(index, compensation, note);
+            formatCostDisplay(index);
             calculateFinal();
         }
 
@@ -448,12 +506,15 @@
         }
 
         function calculateFinal() {
-            const ngayNhan = new Date('@Model.NgayNhanXe.ToString("yyyy-MM-dd")');
-            const ngayTraInput = document.querySelector('input[name="ngayTraThucTe"]').value;
-            const ngayTra = new Date(ngayTraInput);
-            const giaThue = @(hasChiTiet ? Model.ChiTietHopDong.First().GiaThueNgay : 0);
-            const phuPhi = parseFloat(document.querySelector('input[name="phuPhi"]').value) || 0;
-            const phiDenBu = getTotalCompensation();
+            try {
+                const ngayNhan = new Date('@Model.NgayNhanXe.ToString("yyyy-MM-dd")');
+                const ngayTraInput = document.querySelector('input[name="ngayTraThucTe"]').value;
+                const ngayTra = new Date(ngayTraInput);
+                const giaThue = @(hasChiTiet && Model.ChiTietHopDong.Any() ? Model.ChiTietHopDong.First().GiaThueNgay : 0);
+                const phuPhi = parseFloat(document.querySelector('input[name="phuPhi"]').value) || 0;
+                const phiDenBu = getTotalCompensation();
+                
+                console.log('Calculate Final - ngayNhan:', ngayNhan, 'ngayTra:', ngayTra, 'giaThue:', giaThue, 'phiDenBu:', phiDenBu);
 
             if (ngayTra && ngayTra >= ngayNhan) {
                 // Tính số ngày thuê
@@ -494,14 +555,41 @@
                     tongTienElement.style.color = 'white';
                 }
             }
+            } catch (error) {
+                console.error('Error in calculateFinal:', error);
+            }
         }
 
         // Khởi tạo khi load trang
         $(document).ready(function() {
+            console.log('Page loaded, vehicleData:', vehicleData);
+            console.log('hasChiTiet:', @hasChiTiet.ToString().ToLower());
+            
+            // Khởi tạo format display cho tất cả input chi phí
+            @if (hasChiTiet && Model.ChiTietHopDong.Any())
+            {
+                @for (int i = 0; i < Model.ChiTietHopDong.Count; i++)
+                {
+                    @:formatCostDisplay(@i);
+                }
+            }
+            
+            // Khởi tạo format display cho phụ phí
+            formatOtherFeeDisplay();
+            
             calculateFinal();
             
             // Validate form trước khi submit
             $('form').on('submit', function(e) {
+                console.log('Form submit triggered');
+                
+                // Kiểm tra có dữ liệu xe không
+                if (!@hasChiTiet.ToString().ToLower()) {
+                    e.preventDefault();
+                    alert('Không thể trả xe vì hợp đồng thiếu thông tin xe!');
+                    return false;
+                }
+                
                 let hasUnreportedDamage = false;
                 $('select[name="tinhTrangTraXe"]').each(function() {
                     const index = $(this).data('index');
@@ -525,12 +613,26 @@
                 }
                 
                 const totalCompensation = getTotalCompensation();
+                console.log('Total compensation:', totalCompensation);
+                
                 if (totalCompensation > 0) {
                     const confirmMessage = `Tổng phí đền bù: ${totalCompensation.toLocaleString('vi-VN')}đ\n\nXác nhận hoàn tất trả xe với phí đền bù này?`;
                     return confirm(confirmMessage);
                 }
                 
-                return confirm('Xác nhận hoàn tất trả xe?');
+                const confirmed = confirm('Xác nhận hoàn tất trả xe?');
+                if (confirmed) {
+                    // Hiển thị loading state
+                    const submitBtn = $(this).find('button[type="submit"]');
+                    const originalText = submitBtn.html();
+                    submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý...');
+                    
+                    // Nếu có lỗi, sẽ restore button trong 10 giây
+                    setTimeout(function() {
+                        submitBtn.prop('disabled', false).html(originalText);
+                    }, 10000);
+                }
+                return confirmed;
             });
         });
     </script>

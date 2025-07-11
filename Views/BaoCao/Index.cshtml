@@ -198,9 +198,6 @@
                 </div>
                 <div class="stat-value">@Model.DoanhThuHomNay.ToString("N0")đ</div>
                 <div class="stat-label">Doanh thu hôm nay</div>
-                <div class="text-muted small mt-2">
-                    <i class="bi bi-info-circle"></i> Chỉ tính xe đã trả thành công
-                </div>
                 @if (Model.PhanTramDoanhThu != 0)
                 {
                     <div class="stat-change @(Model.PhanTramDoanhThu > 0 ? "positive" : "negative")">
@@ -229,7 +226,7 @@
             <div class="chart-card">
                 <div class="chart-header">
                     <h5 class="mb-0">Doanh thu 7 ngày gần nhất</h5>
-                    <small class="text-muted">Đơn vị: VNĐ (chỉ tính xe đã trả thành công)</small>
+                    <small class="text-muted">Đơn vị: VNĐ (xe đã trả thành công trừ chi tiêu)</small>
                 </div>
                 <canvas id="revenueChart" height="100"></canvas>
             </div>
