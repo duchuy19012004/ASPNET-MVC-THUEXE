@@ -31,6 +31,7 @@ namespace bike.Controllers
             // Lấy thông tin xe
             var xe = await _context.Xe
                 .Include(x => x.LoaiXe)
+                .Include(x => x.HinhAnhXes)
                 .FirstOrDefaultAsync(x => x.MaXe == id);
 
             if (xe == null || xe.TrangThai != "Sẵn sàng")
@@ -108,7 +109,9 @@ namespace bike.Controllers
             }
 
             // Nếu có lỗi, load lại thông tin xe
-            var xeInfo = await _context.Xe.FindAsync(model.MaXe);
+            var xeInfo = await _context.Xe
+                .Include(x => x.HinhAnhXes)
+                .FirstOrDefaultAsync(x => x.MaXe == model.MaXe);
             if (xeInfo != null)
             {
                 model.TenXe = xeInfo.TenXe;

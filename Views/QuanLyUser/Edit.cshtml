@@ -2,12 +2,16 @@
 
 @{
     bool isPartial = ViewData["IsPartial"] != null && (bool)ViewData["IsPartial"];
-}
-
-@if (!isPartial)
-{
-    ViewData["Title"] = "Chỉnh sửa người dùng";
-    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    // Force no layout for AJAX requests
+    if (isPartial)
+    {
+        Layout = null;
+    }
+    else
+    {
+        ViewData["Title"] = "Chỉnh sửa người dùng";
+        Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    }
 }
 
 <!-- Edit User Modal -->
@@ -120,6 +124,22 @@
                             </div>
 
                             <div class="mb-3">
+                                <label asp-for="XacNhanMatKhau" class="form-label">
+                                    <i class="bi bi-key"></i> Xác nhận mật khẩu
+                                </label>
+                                <div class="input-group">
+                                    <input asp-for="XacNhanMatKhau" type="password" class="form-control" placeholder="Để trống nếu không đổi" />
+                                    <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('XacNhanMatKhau')">
+                                        <i class="bi bi-eye" id="toggleIconConfirm"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="XacNhanMatKhau" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    <i class="bi bi-info-circle"></i> Nhập lại mật khẩu mới để xác nhận
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
                                 <label class="form-label">
                                     <i class="bi bi-toggle-on"></i> Trạng thái tài khoản
                                 </label>
@@ -167,15 +187,50 @@
         border-color: #0d6efd;
         box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
     }
+    
+    /* Ensure modal appears above everything */
+    #editUserModal {
+        z-index: 1055 !important;
+    }
+    
+    #editUserModal .modal-dialog {
+        z-index: 1056 !important;
+    }
+    
+    /* Fix modal backdrop */
+    .modal-backdrop.show {
+        z-index: 1050 !important;
+    }
+    
+    /* Additional modal positioning fixes */
+    .modal.show {
+        display: block !important;
+    }
+    
+    .modal-dialog {
+        margin: 1.75rem auto;
+    }
+    
+    /* Ensure modal content is properly positioned */
+    .modal-content {
+        position: relative;
+        z-index: 1056;
+    }
 </style>
 
 <script>
-    console.log('✅ Edit User Modal Script Loaded');
+
 
     // Toggle password visibility
     function togglePassword(fieldId) {
         const field = document.querySelector(`[name="${fieldId}"]`);
-        const icon = document.getElementById('toggleIcon');
+        let icon;
+        
+        if (fieldId === 'MatKhau') {
+            icon = document.getElementById('toggleIcon');
+        } else if (fieldId === 'XacNhanMatKhau') {
+            icon = document.getElementById('toggleIconConfirm');
+        }
         
         if (field && icon) {
             if (field.type === 'password') {
@@ -213,7 +268,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('🔄 Modal Edit Form - DOMContentLoaded');
         
         // Status switch functionality
         const statusSwitch = document.getElementById('isActiveSwitch');
@@ -237,11 +291,8 @@
         // Form submission
         const editForm = document.getElementById('editUserForm');
         if (editForm) {
-            console.log('✅ Form found, setting up submission handler');
-            
             editForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                console.log('📤 Form submission started');
                 
                 const submitBtn = document.getElementById('saveUserBtn');
                 const spinner = submitBtn.querySelector('.spinner-border');
@@ -258,8 +309,6 @@
                 // Prepare form data
                 const formData = new FormData(this);
                 
-                console.log('📋 Submitting form data:', Object.fromEntries(formData));
-                
                 // Submit via AJAX
                 fetch(this.action, {
                     method: 'POST',
@@ -269,8 +318,6 @@
                     }
                 })
                 .then(response => {
-                    console.log('📨 Response received:', response.status);
-                    
                     if (response.headers.get('content-type')?.includes('application/json')) {
                         return response.json();
                     } else {
@@ -278,10 +325,7 @@
                     }
                 })
                 .then(data => {
-                    console.log('✅ Response data:', data);
-                    
                     if (data.success) {
-                        console.log('🎉 Update successful!');
                         showAlert('Cập nhật người dùng thành công!', 'success');
                         
                         // Close modal and refresh page after 1 second
@@ -293,7 +337,6 @@
                             location.reload();
                         }, 1000);
                     } else {
-                        console.log('❌ Update failed:', data.message);
                         showAlert(data.message || 'Có lỗi xảy ra khi cập nhật!', 'danger');
                         
                         // Show validation errors
@@ -312,7 +355,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('💥 Error:', error);
                     showAlert('Có lỗi xảy ra khi cập nhật: ' + error.message, 'danger');
                 })
                 .finally(() => {
@@ -320,7 +362,6 @@
                     spinner.classList.add('d-none');
                     btnText.style.display = 'inline';
                     submitBtn.disabled = false;
-                    console.log('✅ Button state restored');
                 });
             });
         }

@@ -50,6 +50,37 @@
     .status-inactive {
         color: #dc3545;
     }
+    
+    /* Ensure modals appear above everything */
+    .modal {
+        z-index: 1055 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+    
+    #deleteConfirmModal {
+        z-index: 1055 !important;
+    }
+    
+    #deleteConfirmModal .modal-dialog {
+        z-index: 1056 !important;
+    }
+    
+    /* Additional modal positioning fixes */
+    .modal.show {
+        display: block !important;
+    }
+    
+    .modal-dialog {
+        margin: 1.75rem auto;
+    }
+    
+    .modal-content {
+        position: relative;
+        z-index: 1056;
+    }
 </style>
 
 <div class="container-fluid">
@@ -200,16 +231,18 @@
     // Open edit modal
     function openEditModal(id, ten, email, soDienThoai, diaChi, vaiTro, isActive, ngayTao) {
         currentUserId = id;
-        console.log('🔄 Opening edit modal for user:', id);
         
         // Load modal content via AJAX
-        fetch(`/QuanLyUser/Edit/${id}`)
+        fetch(`/QuanLyUser/Edit/${id}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json, text/html, */*'
+            }
+        })
             .then(response => {
-                console.log('📨 Modal content response:', response.status);
                 return response.text();
             })
             .then(html => {
-                console.log('📝 Modal HTML loaded, length:', html.length);
                 document.getElementById('editModalContainer').innerHTML = html;
                 
                 // Wait a moment for DOM to update
@@ -229,28 +262,32 @@
                         ngayTao: ngayTao
                     });
                     
+                    // Ensure modal is positioned correctly
+                    const modalElement = document.getElementById('editUserModal');
+                    if (modalElement) {
+                        modalElement.style.zIndex = '1055';
+                        const modalDialog = modalElement.querySelector('.modal-dialog');
+                        if (modalDialog) {
+                            modalDialog.style.zIndex = '1056';
+                        }
+                    }
+                    
                     // Show modal
-                    console.log('📱 Showing modal');
                     editModal.show();
                 }, 100);
             })
             .catch(error => {
-                console.error('❌ Error loading edit modal:', error);
                 showNotification('Có lỗi xảy ra khi tải form chỉnh sửa!', 'error');
             });
     }
 
     // Populate edit form with user data
     function populateEditForm(userData) {
-        console.log('📝 Populating form with data:', userData);
-        
         const form = document.getElementById('editUserForm');
         if (!form) {
-            console.error('❌ Form not found');
             return;
         }
         
-        console.log('✅ Form found, updating action URL');
         // Update form action URL
         form.action = `/QuanLyUser/Edit/${userData.id}`;
         
@@ -262,7 +299,6 @@
             hiddenField.name = 'isModal';
             hiddenField.value = 'true';
             form.appendChild(hiddenField);
-            console.log('✅ Added isModal hidden field');
         }
         
         // Set input values
@@ -274,22 +310,18 @@
             'DiaChi': userData.diaChi,
             'VaiTro': userData.vaiTro,
             'IsActive': userData.isActive,
-            'MatKhau': '' // Clear password field
+            'MatKhau': '', // Clear password field
+            'XacNhanMatKhau': '' // Clear confirm password field
         };
         
-        console.log('📋 Setting input values');
         for (const [name, value] of Object.entries(inputs)) {
             const input = form.querySelector(`[name="${name}"]`);
             if (input) {
                 if (input.type === 'checkbox') {
                     input.checked = value;
-                    console.log(`✅ Set ${name} checkbox:`, value);
                 } else {
                     input.value = value || '';
-                    console.log(`✅ Set ${name}:`, value);
                 }
-            } else {
-                console.warn(`⚠️ Input not found: ${name}`);
             }
         }
         
@@ -301,25 +333,19 @@
         
         if (userIdDisplay) {
             userIdDisplay.textContent = userData.id;
-            console.log('✅ Updated user ID display');
         }
         if (userCreateDate) {
             userCreateDate.textContent = userData.ngayTao;
-            console.log('✅ Updated create date');
         }
         
         if (userStatusBadge) {
             userStatusBadge.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
             userStatusBadge.className = `badge bg-${userData.isActive ? 'success' : 'danger'} role-badge`;
-            console.log('✅ Updated status badge');
         }
         
         if (statusText) {
             statusText.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
-            console.log('✅ Updated status text');
         }
-        
-        console.log('🎉 Form population completed');
     }
 
     // Show delete confirmation
@@ -364,7 +390,6 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
                     showNotification('Có lỗi xảy ra khi xóa!', 'error');
                 })
                 .finally(() => {

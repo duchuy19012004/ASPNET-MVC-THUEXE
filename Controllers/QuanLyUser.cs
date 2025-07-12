@@ -53,6 +53,12 @@ namespace bike.Controllers
                 ModelState.AddModelError("Email", "Email đã tồn tại!");
             }
 
+            // Validate password confirmation
+            if (!string.IsNullOrEmpty(user.MatKhau) && user.MatKhau != user.XacNhanMatKhau)
+            {
+                ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu và xác nhận mật khẩu không khớp!");
+            }
+
             if (ModelState.IsValid)
             {
                 // Hash password
@@ -78,24 +84,16 @@ namespace bike.Controllers
         // GET: User/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            _logger.LogInformation("📖 Edit user GET request - ID: {UserId}", id);
-            
             if (id == null)
             {
-                _logger.LogWarning("❌ Edit request with null ID");
                 return NotFound();
             }
 
-            _logger.LogInformation("🔍 Looking for user with ID: {UserId}", id);
             var user = await _context.Users.FindAsync(id);
             if (user == null)
             {
-                _logger.LogWarning("❌ User not found - ID: {UserId}", id);
                 return NotFound();
             }
-
-            _logger.LogInformation("✅ User found - ID: {UserId}, Name: {Name}, Email: {Email}", 
-                id, user.Ten, user.Email);
 
             // Map User to EditUserViewModel
             var editViewModel = new EditUserViewModel
@@ -118,15 +116,15 @@ namespace bike.Controllers
             }, "Value", "Text", editViewModel.VaiTro);
 
             // If AJAX request, return partial view
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
-                Request.Headers.Accept.ToString().Contains("application/json"))
+            bool isAjaxRequest = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
+                                Request.Headers.Accept.ToString().Contains("application/json");
+            
+            if (isAjaxRequest)
             {
-                _logger.LogInformation("🌐 Returning partial view for AJAX request - UserId: {UserId}", id);
                 ViewData["IsPartial"] = true;
                 return PartialView("Edit", editViewModel);
             }
 
-            _logger.LogInformation("📝 Returning full view - UserId: {UserId}", id);
             return View(editViewModel);
         }
 
@@ -135,12 +133,8 @@ namespace bike.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, EditUserViewModel model, bool isModal = false)
         {
-            _logger.LogInformation("📝 Edit user request - ID: {UserId}, IsModal: {IsModal}, IsAjax: {IsAjax}", 
-                id, isModal, Request.Headers["X-Requested-With"] == "XMLHttpRequest");
-            
             if (id != model.Id)
             {
-                _logger.LogWarning("❌ User ID mismatch - URL ID: {UrlId}, User ID: {UserId}", id, model.Id);
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
                     return Json(new { success = false, message = "Không tìm thấy người dùng!" });
@@ -151,8 +145,13 @@ namespace bike.Controllers
             // Check email unique
             if (await _context.Users.AnyAsync(u => u.Email == model.Email && u.Id != id))
             {
-                _logger.LogWarning("⚠️ Email already exists - Email: {Email}, UserId: {UserId}", model.Email, id);
                 ModelState.AddModelError("Email", "Email đã được sử dụng!");
+            }
+
+            // Validate password confirmation if password is provided
+            if (!string.IsNullOrEmpty(model.MatKhau) && model.MatKhau != model.XacNhanMatKhau)
+            {
+                ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu và xác nhận mật khẩu không khớp!");
             }
 
             // If AJAX request with validation errors, return JSON immediately
@@ -163,8 +162,6 @@ namespace bike.Controllers
                         kvp => kvp.Key,
                         kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
                     );
-                _logger.LogWarning("❌ Validation errors for AJAX request - Errors: {Errors}", 
-                    string.Join(", ", errors.Keys));
                 return Json(new { success = false, message = "Dữ liệu không hợp lệ!", errors = errors });
             }
 
@@ -172,20 +169,15 @@ namespace bike.Controllers
             {
                 try
                 {
-                    _logger.LogInformation("🔍 Looking for user with ID: {UserId}", id);
                     var existingUser = await _context.Users.FindAsync(id);
                     if (existingUser == null)
                     {
-                        _logger.LogWarning("❌ User not found - ID: {UserId}", id);
                         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         {
                             return Json(new { success = false, message = "Không tìm thấy người dùng!" });
                         }
                         return NotFound();
                     }
-
-                    _logger.LogInformation("📋 Updating user fields - ID: {UserId}, Name: {Name}, Email: {Email}", 
-                        id, model.Ten, model.Email);
 
                     // Update fields
                     existingUser.Ten = model.Ten;
@@ -198,32 +190,25 @@ namespace bike.Controllers
                     // Update password if provided
                     if (!string.IsNullOrEmpty(model.MatKhau))
                     {
-                        _logger.LogInformation("🔐 Updating password for user: {UserId}", id);
                         existingUser.MatKhau = HashPassword(model.MatKhau);
                     }
 
-                    _logger.LogInformation("💾 Saving changes to database for user: {UserId}", id);
                     await _context.SaveChangesAsync();
-                    _logger.LogInformation("✅ User update successful - ID: {UserId}", id);
                     
                     // Always return JSON for AJAX requests (modal submissions)
                     if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                     {
-                        _logger.LogInformation("✅ Returning JSON success response for AJAX request");
                         return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
                     }
                     
                     // Direct access to Edit page - redirect to Index with success message
-                    _logger.LogInformation("📝 Redirecting to Index with success message for direct access");
                     TempData["Success"] = "Cập nhật thông tin thành công!";
                     return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    _logger.LogError(ex, "⚠️ Database concurrency error for user: {UserId}", id);
                     if (!UserExists(model.Id))
                     {
-                        _logger.LogWarning("❌ User no longer exists during concurrency check - ID: {UserId}", model.Id);
                         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         {
                             return Json(new { success = false, message = "Người dùng không tồn tại!" });
@@ -232,7 +217,6 @@ namespace bike.Controllers
                     }
                     else
                     {
-                        _logger.LogError("💥 Unhandled concurrency exception for user: {UserId}", id);
                         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                         {
                             return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật!" });
@@ -246,11 +230,9 @@ namespace bike.Controllers
             // But keep for safety
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                _logger.LogWarning("⚠️ Unexpected AJAX request with validation errors - UserId: {UserId}", id);
                 return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
             }
 
-            _logger.LogInformation("📝 Returning view with validation errors - UserId: {UserId}", id);
             ViewBag.Roles = new SelectList(new[]
             {
                 new { Value = "Admin", Text = "Quản trị viên" },

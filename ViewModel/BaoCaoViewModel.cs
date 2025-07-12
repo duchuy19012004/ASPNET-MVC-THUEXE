@@ -8,6 +8,9 @@ namespace bike.ViewModels
         // Thời gian lọc
         public DateTime TuNgay { get; set; }
         public DateTime DenNgay { get; set; }
+        
+        // Filter cho charts
+        public string ChartFilter { get; set; } = "7days"; // 7days, week, month, year
 
         // Thống kê tổng quan
         public int TongDonDatXe { get; set; }
@@ -24,6 +27,7 @@ namespace bike.ViewModels
         // Dữ liệu cho biểu đồ
         public List<BieuDoItem> BieuDoDoanhThu { get; set; }
         public List<BieuDoItem> BieuDoDonDat { get; set; }
+        public List<BieuDoItem> BieuDoKhachHangMoi { get; set; }
 
         // Top xe được thuê nhiều
         public List<XeThueNhieuItem> TopXeThueNhieu { get; set; }
@@ -35,6 +39,7 @@ namespace bike.ViewModels
         {
             BieuDoDoanhThu = new List<BieuDoItem>();
             BieuDoDonDat = new List<BieuDoItem>();
+            BieuDoKhachHangMoi = new List<BieuDoItem>();
             TopXeThueNhieu = new List<XeThueNhieuItem>();
             DonDatGanDay = new List<DonDatGanDayItem>();
         }
@@ -66,5 +71,13 @@ namespace bike.ViewModels
         public DateTime NgayTra { get; set; }
         public string ?TrangThai { get; set; }
         public decimal TongTien { get; set; }
+    }
+
+    // Class cho chart period
+    public class ChartPeriod
+    {
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string ?Label { get; set; }
     }
 }

@@ -86,6 +86,11 @@ namespace bike.ViewModel
         [DataType(DataType.Password)]
         public string? MatKhau { get; set; }
 
+        [DataType(DataType.Password)]
+        [Display(Name = "Xác nhận mật khẩu")]
+        [Compare("MatKhau", ErrorMessage = "Mật khẩu và xác nhận mật khẩu không khớp.")]
+        public string? XacNhanMatKhau { get; set; }
+
         [Display(Name = "Vai trò")]
         [Required(ErrorMessage = "Vui lòng chọn vai trò")]
         [StringLength(20)]

@@ -30,12 +30,12 @@ namespace bike.ViewModels
         [Display(Name = "Ngày nhận xe")]
         [Required(ErrorMessage = "Vui lòng chọn ngày nhận xe")]
         [DataType(DataType.Date)]
-        public DateTime NgayNhanXe { get; set; } = DateTime.Now.AddDays(1);
+        public DateTime NgayNhanXe { get; set; } = DateTime.Now.Date;
 
         [Display(Name = "Ngày trả xe")]
         [Required(ErrorMessage = "Vui lòng chọn ngày trả xe")]
         [DataType(DataType.Date)]
-        public DateTime NgayTraXe { get; set; } = DateTime.Now.AddDays(3);
+        public DateTime NgayTraXe { get; set; } = DateTime.Now.Date.AddDays(2);
 
         [Display(Name = "Ghi chú")]
         [StringLength(500)]

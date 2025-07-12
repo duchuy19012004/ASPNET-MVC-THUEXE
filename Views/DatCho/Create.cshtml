@@ -69,6 +69,51 @@
         flex: 1;
     }
     
+    .rental-period-input {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .rental-period-input .form-label {
+        color: #495057;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .rental-period-input .input-group {
+        max-width: 200px;
+    }
+    
+    .rental-period-input .form-control {
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+    }
+    
+    .rental-period-input .input-group-text {
+        background: #667eea;
+        color: white;
+        border: none;
+        font-weight: bold;
+    }
+    
+    .rental-period-input .btn-outline-primary {
+        border-color: #667eea;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+    
+    .rental-period-input .btn-outline-primary:hover,
+    .rental-period-input .btn-outline-primary.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+        transform: translateY(-1px);
+    }
+    
     /* Summary */
     .booking-summary {
         background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
@@ -109,6 +154,53 @@
         transform: translateY(-2px);
         box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
     }
+    
+    /* Modal xác nhận đặt chỗ */
+    #confirmBookingModal .modal-content {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    
+    #confirmBookingModal .modal-header {
+        border-radius: 15px 15px 0 0;
+        border-bottom: none;
+    }
+    
+    #confirmBookingModal .modal-footer {
+        border-top: none;
+        padding-top: 0;
+    }
+    
+    #confirmBookingModal .btn {
+        border-radius: 10px;
+        padding: 10px 30px;
+        font-weight: bold;
+        min-width: 120px;
+    }
+    
+    #confirmBookingModal .btn-success:hover {
+        background-color: #198754;
+        transform: translateY(-1px);
+    }
+    
+    #confirmBookingModal .btn-secondary:hover {
+        background-color: #5c636a;
+        transform: translateY(-1px);
+    }
+    
+    /* Đảm bảo modal hiển thị trên cùng */
+    #confirmBookingModal {
+        z-index: 99999 !important;
+    }
+    
+    #confirmBookingModal .modal-backdrop {
+        z-index: 99998 !important;
+    }
+    
+    .modal-backdrop.show {
+        z-index: 99998 !important;
+    }
 </style>
 
 <div class="reservation-container">
@@ -122,7 +214,7 @@
         <div class="vehicle-info">
             <div class="row align-items-center">
                 <div class="col-md-3">
-                                            @if (!string.IsNullOrEmpty(Model.HinhAnhHienThi))
+               @if (!string.IsNullOrEmpty(Model.HinhAnhHienThi))
                         {
                             <img src="/images/xe/@Model.HinhAnhHienThi" alt="@Model.TenXe" class="vehicle-image" />
                     }
@@ -144,7 +236,7 @@
             </div>
         </div>
 
-        <form asp-action="Create" method="post">
+        <form asp-action="Create" method="post" id="datChoForm">
             <input type="hidden" asp-for="MaXe" />
 
             <!-- Thông tin người đặt -->
@@ -155,14 +247,14 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="HoTen" class="form-label"></label>
-                            <input asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" />
+                            <input asp-for="HoTen" class="form-control" placeholder="Nhập họ và tên" required />
                             <span asp-validation-for="HoTen" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="SoDienThoai" class="form-label"></label>
-                            <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" />
+                            <input asp-for="SoDienThoai" class="form-control" placeholder="Nhập số điện thoại" required />
                             <span asp-validation-for="SoDienThoai" class="text-danger"></span>
                         </div>
                     </div>
@@ -170,7 +262,7 @@
 
                 <div class="mb-3">
                     <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" placeholder="Nhập email" />
+                    <input asp-for="Email" class="form-control" placeholder="Nhập email" required />
                     <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
             </div>
@@ -179,15 +271,43 @@
             <div class="form-section">
                 <h4><i class="bi bi-calendar"></i> Thời gian thuê</h4>
 
+                <!-- Tùy chọn nhanh: Nhập số ngày thuê -->
+                <div class="rental-period-input">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="bi bi-lightning"></i> Tùy chọn nhanh</label>
+                            <div class="input-group">
+                                <input type="number" id="soNgayThueInput" class="form-control" placeholder="2" min="1" max="30" value="2" oninput="calculateFromDays()" />
+                                <span class="input-group-text">ngày</span>
+                            </div>
+                            <small class="text-muted">Nhập số ngày thuê (1-30 ngày)</small>
+                            
+                            <!-- Các tùy chọn nhanh -->
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1" onclick="setRentalDays(1)">1 ngày</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1" onclick="setRentalDays(3)">3 ngày</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm me-1" onclick="setRentalDays(7)">1 tuần</button>
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setRentalDays(14)">2 tuần</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="text-center">
+                                <small class="text-muted">hoặc chọn ngày cụ thể bên dưới</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chọn ngày cụ thể -->
                 <div class="date-inputs">
                     <div>
                         <label asp-for="NgayNhanXe" class="form-label"></label>
-                        <input asp-for="NgayNhanXe" class="form-control" type="date" onchange="calculatePrice()" />
+                        <input asp-for="NgayNhanXe" class="form-control" type="date" onchange="calculatePrice()" required />
                         <span asp-validation-for="NgayNhanXe" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="NgayTraXe" class="form-label"></label>
-                        <input asp-for="NgayTraXe" class="form-control" type="date" onchange="calculatePrice()" />
+                        <input asp-for="NgayTraXe" class="form-control" type="date" onchange="calculatePrice()" required />
                         <span asp-validation-for="NgayTraXe" class="text-danger"></span>
                     </div>
                 </div>
@@ -218,8 +338,8 @@
 
             <!-- Buttons -->
             <div class="mt-4">
-                <button type="submit" class="btn btn-reserve">
-                    <i class="bi bi-check-circle"></i> Xác Nhận Đặt Giữ Chỗ
+                <button type="submit" class="btn btn-reserve" id="submitBtn">
+                    <i class="bi bi-check-circle"></i> Đặt Chỗ Đi
                 </button>
                 <a asp-controller="Home" asp-action="XemChiTiet" asp-route-id="@Model.MaXe" class="btn btn-link text-center d-block mt-3">
                     <i class="bi bi-arrow-left"></i> Quay lại
@@ -229,59 +349,272 @@
     </div>
 </div>
 
+<!-- Modal xác nhận đặt chỗ -->
+<div class="modal fade" id="confirmBookingModal" tabindex="-1" aria-labelledby="confirmBookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="confirmBookingModalLabel">
+                    <i class="bi bi-exclamation-triangle"></i> Xác nhận đặt chỗ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="mb-3">
+                    <i class="bi bi-question-circle-fill text-warning" style="font-size: 3rem;"></i>
+                </div>
+                <h6 class="mb-3">Bạn có chắc chắn muốn đặt giữ chỗ cho xe này không?</h6>
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i> Sau khi xác nhận, thông tin đặt chỗ sẽ được gửi và bạn cần liên hệ để hoàn tất thủ tục.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Hủy bỏ
+                </button>
+                <button type="button" class="btn btn-success" id="confirmBookingBtn">
+                    <i class="bi bi-check-circle"></i> Đồng ý, đặt chỗ!
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-        <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        console.log('SweetAlert2 script loaded');
-        $(function () {
-            var form = $('form[asp-action="Create"]');
-            if (form.length) {
-                form.on('submit', function (e) {
-                    // Nếu form đã được validate bởi jQuery
-                    if (typeof form.valid === "function" && !form.valid()) {
-                        return;
-                    }
-                    e.preventDefault(); // Ngăn submit mặc định
+        // Biến để kiểm tra xem đã xác nhận chưa
+        var isConfirmed = false;
+        var currentForm = null;
 
-                    Swal.fire({
-                        title: 'Xác nhận đặt giữ chỗ?',
-                        text: "Bạn có chắc chắn muốn đặt giữ chỗ cho xe này không?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonText: 'Đồng ý',
-                        cancelButtonText: 'Hủy'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            form.off('submit'); // Gỡ bỏ sự kiện để tránh lặp vô hạn
-                            form.submit();      // Submit lại form
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tìm form
+            const form = document.getElementById('datChoForm');
+            const confirmModal = document.getElementById('confirmBookingModal');
+            const confirmBtn = document.getElementById('confirmBookingBtn');
+            
+
+            
+            if (form) {
+                // Xử lý sự kiện submit form
+                form.addEventListener('submit', function(e) {
+                    // Nếu chưa xác nhận, ngăn submit và hiển thị modal
+                    if (!isConfirmed) {
+                        e.preventDefault();
+                        
+                        // Kiểm tra validation trước khi hiển thị modal
+                        let isValid = true;
+                        
+                        // Kiểm tra các trường bắt buộc
+                        const requiredFields = form.querySelectorAll('input[required], select[required]');
+                        
+                        requiredFields.forEach(function(field) {
+                            if (!field.value.trim()) {
+                                isValid = false;
+                                field.classList.add('is-invalid');
+                            } else {
+                                field.classList.remove('is-invalid');
+                            }
+                        });
+                        
+                        // Nếu form hợp lệ, hiển thị modal xác nhận
+                        if (isValid) {
+                            currentForm = this;
+                            try {
+                                const modal = new bootstrap.Modal(confirmModal);
+                                modal.show();
+                            } catch (error) {
+                                // Fallback: sử dụng confirm dialog
+                                if (confirm('Bạn có chắc chắn muốn đặt giữ chỗ cho xe này không?')) {
+                                    isConfirmed = true;
+                                    this.submit();
+                                }
+                            }
+                        } else {
+                            // Scroll đến trường đầu tiên có lỗi
+                            const firstInvalid = form.querySelector('.is-invalid');
+                            if (firstInvalid) {
+                                firstInvalid.scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'center' 
+                                });
+                            }
                         }
-                    });
+                    }
+                });
+            }
+            
+            // Thêm event listener cho nút submit button
+            const submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    if (!isConfirmed) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        // Hiển thị modal trực tiếp
+                        if (confirmModal) {
+                            try {
+                                const modal = new bootstrap.Modal(confirmModal);
+                                modal.show();
+                                currentForm = form;
+                            } catch (error) {
+                                // Fallback: sử dụng confirm dialog
+                                if (confirm('Bạn có chắc chắn muốn đặt giữ chỗ cho xe này không?')) {
+                                    isConfirmed = true;
+                                    form.submit();
+                                }
+                            }
+                        } else {
+                            // Fallback: sử dụng confirm dialog
+                            if (confirm('Bạn có chắc chắn muốn đặt giữ chỗ cho xe này không?')) {
+                                isConfirmed = true;
+                                form.submit();
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Xử lý khi click nút xác nhận trong modal
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', function() {
+                    if (currentForm) {
+                        // Đánh dấu đã xác nhận
+                        isConfirmed = true;
+                        
+                        // Đóng modal
+                        const modal = bootstrap.Modal.getInstance(confirmModal);
+                        if (modal) {
+                            modal.hide();
+                        }
+                        
+                        // Submit form sau một chút delay
+                        setTimeout(function() {
+                            currentForm.submit();
+                        }, 300);
+                    }
+                });
+            }
+
+            // Reset trạng thái khi đóng modal
+            if (confirmModal) {
+                confirmModal.addEventListener('hidden.bs.modal', function () {
+                    if (!isConfirmed) {
+                        currentForm = null;
+                    }
                 });
             }
         });
         // Lấy giá thuê từ Model
         var giaThue = @Html.Raw(Model.GiaThue)
 
+        // Tính toán từ số ngày thuê được nhập
+        function calculateFromDays() {
+            const soNgayInput = document.getElementById('soNgayThueInput');
+            const ngayNhanInput = document.getElementById('NgayNhanXe');
+            const ngayTraInput = document.getElementById('NgayTraXe');
+            
+            let soNgay = parseInt(soNgayInput.value) || 2;
+            
+            // Giới hạn từ 1-30 ngày
+            if (soNgay < 1) soNgay = 1;
+            if (soNgay > 30) soNgay = 30;
+            soNgayInput.value = soNgay;
+            
+            // Tính toán ngày trả dựa trên ngày nhận và số ngày thuê
+            const ngayNhan = new Date(ngayNhanInput.value);
+            if (ngayNhan) {
+                const ngayTra = new Date(ngayNhan);
+                ngayTra.setDate(ngayNhan.getDate() + soNgay - 1);
+                
+                // Cập nhật ngày trả
+                ngayTraInput.value = ngayTra.toISOString().split('T')[0];
+                
+                // Tính toán lại giá
+                calculatePrice();
+            }
+        }
+
+        // Hàm set số ngày thuê từ các nút preset
+        function setRentalDays(days) {
+            const soNgayInput = document.getElementById('soNgayThueInput');
+            soNgayInput.value = days;
+            
+            // Highlight button được chọn
+            const buttons = document.querySelectorAll('.rental-period-input .btn-outline-primary');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Tìm button tương ứng và highlight
+            const activeButton = [...buttons].find(btn => btn.textContent.includes(days.toString()));
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
+            
+            // Tự động tính toán
+            calculateFromDays();
+        }
+
         // Tính toán giá và số ngày
         function calculatePrice() {
             const ngayNhan = new Date(document.getElementById('NgayNhanXe').value);
             const ngayTra = new Date(document.getElementById('NgayTraXe').value);
 
-            if (ngayNhan && ngayTra && ngayTra > ngayNhan) {
+            if (ngayNhan && ngayTra && ngayTra >= ngayNhan) {
                 const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
                 const tongTien = soNgay * giaThue;
 
                 document.getElementById('soNgayThue').textContent = soNgay + ' ngày';
                 document.getElementById('tongTien').textContent = tongTien.toLocaleString('vi-VN') + 'đ';
+                
+                // Cập nhật input số ngày thuê để đồng bộ
+                document.getElementById('soNgayThueInput').value = soNgay;
+                
+                // Highlight button preset tương ứng
+                updatePresetButtons(soNgay);
             }
         }
 
-        // Tính toán khi load trang
-        calculatePrice();
+        // Cập nhật trạng thái của các nút preset
+        function updatePresetButtons(currentDays) {
+            const buttons = document.querySelectorAll('.rental-period-input .btn-outline-primary');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                
+                // Kiểm tra nếu button này tương ứng với số ngày hiện tại
+                if ((currentDays === 1 && btn.textContent.includes('1 ngày')) ||
+                    (currentDays === 3 && btn.textContent.includes('3 ngày')) ||
+                    (currentDays === 7 && btn.textContent.includes('1 tuần')) ||
+                    (currentDays === 14 && btn.textContent.includes('2 tuần'))) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // Khởi tạo khi load trang
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set giá trị mặc định cho các input date
+            const today = new Date();
+            const ngayNhanInput = document.getElementById('NgayNhanXe');
+            const ngayTraInput = document.getElementById('NgayTraXe');
+            
+            if (!ngayNhanInput.value) {
+                ngayNhanInput.value = today.toISOString().split('T')[0];
+            }
+            
+            if (!ngayTraInput.value) {
+                const ngayTra = new Date(today);
+                ngayTra.setDate(today.getDate() + 1);
+                ngayTraInput.value = ngayTra.toISOString().split('T')[0];
+            }
+            
+            // Tính toán ban đầu
+            calculatePrice();
+        });
 
         // Real-time validation
         $(document).ready(function() {
@@ -377,6 +710,12 @@
 
                     // Validate lại ngày trả nếu có
                     validateNgayTra();
+                    
+                    // Cập nhật ngày trả dựa trên số ngày thuê hiện tại
+                    const soNgayThue = parseInt($('#soNgayThueInput').val()) || 2;
+                    const ngayTra = new Date(ngayNhan);
+                    ngayTra.setDate(ngayNhan.getDate() + soNgayThue - 1);
+                    $('#NgayTraXe').val(ngayTra.toISOString().split('T')[0]);
                 }
 
                 calculatePrice();
@@ -406,6 +745,44 @@
                     $error.text('');
                 }
             }
+            // Validate số ngày thuê
+            $('#soNgayThueInput').on('input', function() {
+                const $input = $(this);
+                let value = parseInt($input.val());
+                
+                // Xử lý giá trị không hợp lệ
+                if (isNaN(value) || value < 1) {
+                    value = 1;
+                    $input.val(value);
+                } else if (value > 30) {
+                    value = 30;
+                    $input.val(value);
+                }
+                
+                // Highlight input nếu đang ở giá trị cận
+                if (value <= 1) {
+                    $input.removeClass('is-valid').addClass('border-warning');
+                } else if (value >= 30) {
+                    $input.removeClass('is-valid').addClass('border-warning');
+                } else {
+                    $input.removeClass('border-warning').addClass('is-valid');
+                }
+                
+                // Tự động tính toán ngày trả
+                calculateFromDays();
+            });
+
+            // Xử lý khi focus ra khỏi input số ngày
+            $('#soNgayThueInput').on('blur', function() {
+                const $input = $(this);
+                let value = parseInt($input.val());
+                
+                if (isNaN(value) || value < 1) {
+                    $input.val(1);
+                    calculateFromDays();
+                }
+            });
+
             // Character counter cho ghi chú
             $('#GhiChu').on('input', function() {
                 const maxLength = 500;
@@ -429,7 +806,7 @@
             });
 
             // Log để debug
-            console.log('Real-time validation đã được load');
+            console.log('Real-time validation và tùy chọn nhanh đã được load');
         });
     </script>
     
