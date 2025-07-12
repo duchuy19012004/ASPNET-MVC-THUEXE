@@ -23,6 +23,12 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<bike.Services.ICartService, bike.Services.CartService>();
 builder.Services.AddScoped<bike.Services.IDamageCompensationService, bike.Services.DamageCompensationService>();
 
+// Đăng ký User Management Services (SRP refactor)
+builder.Services.AddScoped<bike.Repository.IUserRepository, bike.Repository.UserRepository>();
+builder.Services.AddScoped<bike.Services.QuanLyUsers.IPasswordService, bike.Services.QuanLyUsers.PasswordService>();
+builder.Services.AddScoped<bike.Services.QuanLyUsers.IUserValidator, bike.Services.QuanLyUsers.UserValidator>();
+builder.Services.AddScoped<bike.Services.QuanLyUsers.IUserService, bike.Services.QuanLyUsers.UserService>();
+
 // Cấu hình Entity Framework với SQL Server
 builder.Services.AddDbContext<BikeDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("BikeConnection")));

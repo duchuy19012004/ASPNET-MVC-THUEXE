@@ -1,45 +1,36 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using bike.Models;
-using bike.Repository;
 using bike.Attributes;
 using bike.ViewModel;
-using System.Security.Cryptography;
-using System.Text;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Linq;
+using bike.Services.QuanLyUsers;
+using System.Security.Claims;
 
 namespace bike.Controllers
 {
     [CustomAuthorize("Admin")] // Chỉ Admin mới được quản lý user
     public class QuanLyUser : Controller
     {
-        private readonly BikeDbContext _context;
+        private readonly IUserService _userService;
         private readonly ILogger<QuanLyUser> _logger;
 
-        public QuanLyUser(BikeDbContext context, ILogger<QuanLyUser> logger)
+        public QuanLyUser(IUserService userService, ILogger<QuanLyUser> logger)
         {
-            _context = context;
+            _userService = userService;
             _logger = logger;
         }
 
         // GET: User
         public async Task<IActionResult> Index()
         {
-            var users = await _context.Users.OrderBy(u => u.Ten).ToListAsync();
+            var users = await _userService.GetAllUsersAsync();
             return View(users);
         }
 
         // GET: User/Create
         public IActionResult Create()
         {
-            ViewBag.Roles = new SelectList(new[]
-            {
-                new { Value = "Admin", Text = "Quản trị viên" },
-                new { Value = "Staff", Text = "Nhân viên" },
-                new { Value = "User", Text = "Khách hàng" }
-            }, "Value", "Text");
-
+            ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text");
             return View();
         }
 
@@ -48,36 +39,24 @@ namespace bike.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(User user)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+            var result = await _userService.CreateUserAsync(user);
+            
+            if (result.IsSuccess)
             {
-                ModelState.AddModelError("Email", "Email đã tồn tại!");
-            }
-
-            // Validate password confirmation
-            if (!string.IsNullOrEmpty(user.MatKhau) && user.MatKhau != user.XacNhanMatKhau)
-            {
-                ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu và xác nhận mật khẩu không khớp!");
-            }
-
-            if (ModelState.IsValid)
-            {
-                // Hash password
-                user.MatKhau = HashPassword(user.MatKhau);
-
-                _context.Add(user);
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = "Thêm người dùng thành công!";
+                TempData["Success"] = result.Message;
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewBag.Roles = new SelectList(new[]
+            // Add validation errors to ModelState
+            foreach (var error in result.Errors)
             {
-                new { Value = "Admin", Text = "Quản trị viên" },
-                new { Value = "Staff", Text = "Nhân viên" },
-                new { Value = "User", Text = "Khách hàng" }
-            }, "Value", "Text", user.VaiTro);
+                foreach (var message in error.Value)
+                {
+                    ModelState.AddModelError(error.Key, message);
+                }
+            }
 
+            ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text", user.VaiTro);
             return View(user);
         }
 
@@ -89,31 +68,13 @@ namespace bike.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
+            var editViewModel = await _userService.GetUserForEditAsync(id.Value);
+            if (editViewModel == null)
             {
                 return NotFound();
             }
 
-            // Map User to EditUserViewModel
-            var editViewModel = new EditUserViewModel
-            {
-                Id = user.Id,
-                Ten = user.Ten,
-                Email = user.Email,
-                VaiTro = user.VaiTro,
-                SoDienThoai = user.SoDienThoai,
-                DiaChi = user.DiaChi,
-                IsActive = user.IsActive,
-                NgayTao = user.NgayTao
-            };
-
-            ViewBag.Roles = new SelectList(new[]
-            {
-                new { Value = "Admin", Text = "Quản trị viên" },
-                new { Value = "Staff", Text = "Nhân viên" },
-                new { Value = "User", Text = "Khách hàng" }
-            }, "Value", "Text", editViewModel.VaiTro);
+            ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text", editViewModel.VaiTro);
 
             // If AJAX request, return partial view
             bool isAjaxRequest = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || 
@@ -135,111 +96,39 @@ namespace bike.Controllers
         {
             if (id != model.Id)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return HandleNotFoundResponse("Không tìm thấy người dùng!");
+            }
+
+            var result = await _userService.UpdateUserAsync(model);
+            
+            if (result.IsSuccess)
+            {
+                return HandleSuccessResponse(result.Message);
+            }
+
+            // Handle validation errors
+            foreach (var error in result.Errors)
+            {
+                foreach (var message in error.Value)
                 {
-                    return Json(new { success = false, message = "Không tìm thấy người dùng!" });
-                }
-                return NotFound();
-            }
-
-            // Check email unique
-            if (await _context.Users.AnyAsync(u => u.Email == model.Email && u.Id != id))
-            {
-                ModelState.AddModelError("Email", "Email đã được sử dụng!");
-            }
-
-            // Validate password confirmation if password is provided
-            if (!string.IsNullOrEmpty(model.MatKhau) && model.MatKhau != model.XacNhanMatKhau)
-            {
-                ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu và xác nhận mật khẩu không khớp!");
-            }
-
-            // If AJAX request with validation errors, return JSON immediately
-            if (!ModelState.IsValid && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                var errors = ModelState.Where(x => x.Value.Errors.Count > 0)
-                    .ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                    );
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ!", errors = errors });
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    var existingUser = await _context.Users.FindAsync(id);
-                    if (existingUser == null)
-                    {
-                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                        {
-                            return Json(new { success = false, message = "Không tìm thấy người dùng!" });
-                        }
-                        return NotFound();
-                    }
-
-                    // Update fields
-                    existingUser.Ten = model.Ten;
-                    existingUser.Email = model.Email;
-                    existingUser.SoDienThoai = model.SoDienThoai;
-                    existingUser.DiaChi = model.DiaChi;
-                    existingUser.VaiTro = model.VaiTro;
-                    existingUser.IsActive = model.IsActive;
-
-                    // Update password if provided
-                    if (!string.IsNullOrEmpty(model.MatKhau))
-                    {
-                        existingUser.MatKhau = HashPassword(model.MatKhau);
-                    }
-
-                    await _context.SaveChangesAsync();
-                    
-                    // Always return JSON for AJAX requests (modal submissions)
-                    if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                    {
-                        return Json(new { success = true, message = "Cập nhật thông tin thành công!" });
-                    }
-                    
-                    // Direct access to Edit page - redirect to Index with success message
-                    TempData["Success"] = "Cập nhật thông tin thành công!";
-                    return RedirectToAction(nameof(Index));
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    if (!UserExists(model.Id))
-                    {
-                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                        {
-                            return Json(new { success = false, message = "Người dùng không tồn tại!" });
-                        }
-                        return NotFound();
-                    }
-                    else
-                    {
-                        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                        {
-                            return Json(new { success = false, message = "Có lỗi xảy ra khi cập nhật!" });
-                        }
-                        throw;
-                    }
+                    ModelState.AddModelError(error.Key, message);
                 }
             }
 
-            // This should not happen as we handle AJAX validation errors earlier
-            // But keep for safety
+            // If AJAX request with validation errors, return JSON
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return Json(new { success = false, message = "Dữ liệu không hợp lệ!" });
+                return Json(new { 
+                    success = false, 
+                    message = result.Message, 
+                    errors = result.Errors.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.ToArray()
+                    )
+                });
             }
 
-            ViewBag.Roles = new SelectList(new[]
-            {
-                new { Value = "Admin", Text = "Quản trị viên" },
-                new { Value = "Staff", Text = "Nhân viên" },
-                new { Value = "User", Text = "Khách hàng" }
-            }, "Value", "Text", model.VaiTro);
-
+            ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text", model.VaiTro);
             return View(model);
         }
 
@@ -251,14 +140,16 @@ namespace bike.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FirstOrDefaultAsync(m => m.Id == id);
+            var user = await _userService.GetUserByIdAsync(id.Value);
             if (user == null)
             {
                 return NotFound();
             }
 
-            // Không cho xóa chính mình
-            if (user.Id == int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value))
+            var currentUserId = GetCurrentUserId();
+            
+            // Check if user can be deleted
+            if (user.Id == currentUserId)
             {
                 TempData["Error"] = "Không thể xóa tài khoản của chính mình!";
                 return RedirectToAction(nameof(Index));
@@ -272,66 +163,54 @@ namespace bike.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var currentUserId = GetCurrentUserId();
+            var result = await _userService.DeleteUserAsync(id, currentUserId);
+
+            if (result.IsSuccess)
+            {
+                return HandleSuccessResponse(result.Message);
+            }
+
+            return HandleErrorResponse(result.Message);
+        }
+
+        // Helper methods for handling responses
+        private IActionResult HandleSuccessResponse(string message)
+        {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = true, message });
+            }
             
-            if (user == null)
-            {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return Json(new { success = false, message = "Không tìm thấy người dùng!" });
-                }
-                TempData["Error"] = "Không tìm thấy người dùng!";
-                return RedirectToAction(nameof(Index));
-            }
-
-            // Không cho xóa chính mình
-            if (user.Id == int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier).Value))
-            {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return Json(new { success = false, message = "Không thể xóa tài khoản của chính mình!" });
-                }
-                TempData["Error"] = "Không thể xóa tài khoản của chính mình!";
-                return RedirectToAction(nameof(Index));
-            }
-
-            try
-            {
-                _context.Users.Remove(user);
-                await _context.SaveChangesAsync();
-                
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return Json(new { success = true, message = "Xóa người dùng thành công!" });
-                }
-                
-                TempData["Success"] = "Xóa người dùng thành công!";
-            }
-            catch (Exception ex)
-            {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return Json(new { success = false, message = "Có lỗi xảy ra khi xóa người dùng!" });
-                }
-                TempData["Error"] = "Có lỗi xảy ra khi xóa người dùng!";
-            }
-
+            TempData["Success"] = message;
             return RedirectToAction(nameof(Index));
         }
 
-        // Helper methods
-        private bool UserExists(int id)
+        private IActionResult HandleErrorResponse(string message)
         {
-            return _context.Users.Any(e => e.Id == id);
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = false, message });
+            }
+            
+            TempData["Error"] = message;
+            return RedirectToAction(nameof(Index));
         }
 
-        private string HashPassword(string password)
+        private IActionResult HandleNotFoundResponse(string message)
         {
-            using (SHA256 sha256 = SHA256.Create())
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return Convert.ToBase64String(hashedBytes);
+                return Json(new { success = false, message });
             }
+            
+            return NotFound();
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.Parse(userIdClaim ?? "0");
         }
     }
 }
