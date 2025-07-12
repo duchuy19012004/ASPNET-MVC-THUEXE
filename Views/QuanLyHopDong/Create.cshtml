@@ -244,6 +244,51 @@
     .currency-preview i {
         margin-right: 5px;
     }
+
+    /* Rental period section styling */
+    .rental-period-section {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .preset-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-preset {
+        padding: 8px 16px;
+        font-size: 14px;
+        border: 1px solid #dee2e6;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        color: #495057;
+    }
+
+    .btn-preset:hover {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+        transform: translateY(-1px);
+    }
+
+    .btn-preset.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+
+    #rentalDays {
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+    }
 </style>
 
 <div class="create-container">
@@ -391,6 +436,29 @@
                 <i class="bi bi-calendar"></i> Thời gian thuê
             </div>
             <div class="form-section">
+                <!-- Nhập nhanh số ngày thuê -->
+                <div class="rental-period-section mb-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label">Số ngày thuê</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="rentalDays" min="1" max="30" placeholder="Nhập số ngày" />
+                                <span class="input-group-text">ngày</span>
+                            </div>
+                            <small class="form-text text-muted">Nhập số ngày để tự động tính ngày trả xe</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Chọn nhanh</label>
+                            <div class="preset-buttons">
+                                <button type="button" class="btn btn-preset" onclick="setRentalDays(1)">1 ngày</button>
+                                <button type="button" class="btn btn-preset" onclick="setRentalDays(3)">3 ngày</button>
+                                <button type="button" class="btn btn-preset" onclick="setRentalDays(7)">1 tuần</button>
+                                <button type="button" class="btn btn-preset" onclick="setRentalDays(14)">2 tuần</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
@@ -580,6 +648,30 @@
         }
 
         function setupEventHandlers() {
+            // Rental period handlers
+            $('#rentalDays').on('input', function() {
+                var days = parseInt($(this).val());
+                if (days && days > 0) {
+                    calculateFromDays(days);
+                    updatePresetButtons();
+                }
+            });
+
+            // Khi thay đổi ngày nhận xe, cập nhật lại ngày trả xe dựa trên số ngày
+            $('#NgayNhanXe').on('change', function() {
+                var days = parseInt($('#rentalDays').val());
+                if (days && days > 0) {
+                    calculateFromDays(days);
+                }
+                calculateTotal();
+            });
+
+            // Khi thay đổi ngày trả xe, cập nhật lại số ngày thuê
+            $('#NgayTraXeDuKien').on('change', function() {
+                updateRentalDaysFromDates();
+                calculateTotal();
+            });
+
             // Thêm xe vào danh sách
             $('#btnAddVehicle').on('click', function() {
                 var vehicleId = $('#availableVehicles').val();
@@ -650,10 +742,7 @@
                 applyQuickFilter(filter);
             });
 
-            // Khi thay đổi ngày
-            $('#NgayNhanXe, #NgayTraXeDuKien').on('change', function() {
-                calculateTotal();
-            });
+
 
             // Khi thay đổi tiền cọc, phụ phí
             $('#TienCoc, #PhuPhi').on('input', function() {
@@ -868,6 +957,54 @@
                 $('#phuPhiDisplay').text('0đ');
                 $('#tongTien').text('0đ');
                 $('#TongTienInput').val(0);
+            }
+        }
+
+        // Rental period functions
+        function calculateFromDays(days) {
+            var ngayNhan = $('#NgayNhanXe').val();
+            if (!ngayNhan) {
+                var today = new Date();
+                ngayNhan = today.toISOString().split('T')[0];
+                $('#NgayNhanXe').val(ngayNhan);
+            }
+
+            var startDate = new Date(ngayNhan);
+            var endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + days - 1);
+
+            var endDateStr = endDate.toISOString().split('T')[0];
+            $('#NgayTraXeDuKien').val(endDateStr);
+        }
+
+        function setRentalDays(days) {
+            $('#rentalDays').val(days);
+            calculateFromDays(days);
+            updatePresetButtons();
+        }
+
+        function updatePresetButtons() {
+            var currentDays = parseInt($('#rentalDays').val());
+            $('.btn-preset').removeClass('active');
+            
+            if (currentDays) {
+                $('.btn-preset').each(function() {
+                    var buttonDays = parseInt($(this).attr('onclick').match(/\d+/)[0]);
+                    if (buttonDays === currentDays) {
+                        $(this).addClass('active');
+                    }
+                });
+            }
+        }
+
+        function updateRentalDaysFromDates() {
+            var ngayNhan = new Date($('#NgayNhanXe').val());
+            var ngayTra = new Date($('#NgayTraXeDuKien').val());
+            
+            if (ngayNhan && ngayTra && ngayTra >= ngayNhan) {
+                var days = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
+                $('#rentalDays').val(days);
+                updatePresetButtons();
             }
         }
     </script>
