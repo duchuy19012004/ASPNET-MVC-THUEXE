@@ -200,87 +200,126 @@
     // Open edit modal
     function openEditModal(id, ten, email, soDienThoai, diaChi, vaiTro, isActive, ngayTao) {
         currentUserId = id;
+        console.log('🔄 Opening edit modal for user:', id);
         
         // Load modal content via AJAX
         fetch(`/QuanLyUser/Edit/${id}`)
-            .then(response => response.text())
+            .then(response => {
+                console.log('📨 Modal content response:', response.status);
+                return response.text();
+            })
             .then(html => {
+                console.log('📝 Modal HTML loaded, length:', html.length);
                 document.getElementById('editModalContainer').innerHTML = html;
                 
-                // Initialize modal
-                const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
-                
-                // Populate form with data
-                populateEditForm({
-                    id: id,
-                    ten: ten,
-                    email: email,
-                    soDienThoai: soDienThoai || '',
-                    diaChi: diaChi || '',
-                    vaiTro: vaiTro,
-                    isActive: isActive,
-                    ngayTao: ngayTao
-                });
-                
-                // Show modal
-                editModal.show();
+                // Wait a moment for DOM to update
+                setTimeout(() => {
+                    // Initialize modal
+                    const editModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                    
+                    // Populate form with data
+                    populateEditForm({
+                        id: id,
+                        ten: ten,
+                        email: email,
+                        soDienThoai: soDienThoai || '',
+                        diaChi: diaChi || '',
+                        vaiTro: vaiTro,
+                        isActive: isActive,
+                        ngayTao: ngayTao
+                    });
+                    
+                    // Show modal
+                    console.log('📱 Showing modal');
+                    editModal.show();
+                }, 100);
             })
             .catch(error => {
-                console.error('Error loading edit modal:', error);
+                console.error('❌ Error loading edit modal:', error);
                 showNotification('Có lỗi xảy ra khi tải form chỉnh sửa!', 'error');
             });
     }
 
     // Populate edit form with user data
     function populateEditForm(userData) {
-        setTimeout(() => {
-            // Set form values
-            const form = document.getElementById('editUserForm');
-            if (form) {
-                // Update form action URL
-                form.action = `/QuanLyUser/Edit/${userData.id}`;
-                
-                // Set input values
-                const inputs = {
-                    'Id': userData.id,
-                    'Ten': userData.ten,
-                    'Email': userData.email,
-                    'SoDienThoai': userData.soDienThoai,
-                    'DiaChi': userData.diaChi,
-                    'VaiTro': userData.vaiTro,
-                    'IsActive': userData.isActive
-                };
-                
-                for (const [name, value] of Object.entries(inputs)) {
-                    const input = form.querySelector(`[name="${name}"]`);
-                    if (input) {
-                        if (input.type === 'checkbox') {
-                            input.checked = value;
-                        } else {
-                            input.value = value || '';
-                        }
-                    }
+        console.log('📝 Populating form with data:', userData);
+        
+        const form = document.getElementById('editUserForm');
+        if (!form) {
+            console.error('❌ Form not found');
+            return;
+        }
+        
+        console.log('✅ Form found, updating action URL');
+        // Update form action URL
+        form.action = `/QuanLyUser/Edit/${userData.id}`;
+        
+        // Add hidden field to identify this as a modal submission
+        const existingHidden = form.querySelector('input[name="isModal"]');
+        if (!existingHidden) {
+            const hiddenField = document.createElement('input');
+            hiddenField.type = 'hidden';
+            hiddenField.name = 'isModal';
+            hiddenField.value = 'true';
+            form.appendChild(hiddenField);
+            console.log('✅ Added isModal hidden field');
+        }
+        
+        // Set input values
+        const inputs = {
+            'Id': userData.id,
+            'Ten': userData.ten,
+            'Email': userData.email,
+            'SoDienThoai': userData.soDienThoai,
+            'DiaChi': userData.diaChi,
+            'VaiTro': userData.vaiTro,
+            'IsActive': userData.isActive,
+            'MatKhau': '' // Clear password field
+        };
+        
+        console.log('📋 Setting input values');
+        for (const [name, value] of Object.entries(inputs)) {
+            const input = form.querySelector(`[name="${name}"]`);
+            if (input) {
+                if (input.type === 'checkbox') {
+                    input.checked = value;
+                    console.log(`✅ Set ${name} checkbox:`, value);
+                } else {
+                    input.value = value || '';
+                    console.log(`✅ Set ${name}:`, value);
                 }
-                
-                // Update display elements
-                const userIdDisplay = document.getElementById('userIdDisplay');
-                const userCreateDate = document.getElementById('userCreateDate');
-                const userStatusBadge = document.getElementById('userStatusBadge');
-                const statusText = document.getElementById('statusText');
-                
-                if (userIdDisplay) userIdDisplay.textContent = userData.id;
-                if (userCreateDate) userCreateDate.textContent = userData.ngayTao;
-                
-                if (userStatusBadge) {
-                    userStatusBadge.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
-                    userStatusBadge.className = `badge bg-${userData.isActive ? 'success' : 'danger'} role-badge`;
-                }
-                
-                if (statusText) {
-                    statusText.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
-                }
+            } else {
+                console.warn(`⚠️ Input not found: ${name}`);
             }
-        }, 100);
+        }
+        
+        // Update display elements
+        const userIdDisplay = document.getElementById('userIdDisplay');
+        const userCreateDate = document.getElementById('userCreateDate');
+        const userStatusBadge = document.getElementById('userStatusBadge');
+        const statusText = document.getElementById('statusText');
+        
+        if (userIdDisplay) {
+            userIdDisplay.textContent = userData.id;
+            console.log('✅ Updated user ID display');
+        }
+        if (userCreateDate) {
+            userCreateDate.textContent = userData.ngayTao;
+            console.log('✅ Updated create date');
+        }
+        
+        if (userStatusBadge) {
+            userStatusBadge.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
+            userStatusBadge.className = `badge bg-${userData.isActive ? 'success' : 'danger'} role-badge`;
+            console.log('✅ Updated status badge');
+        }
+        
+        if (statusText) {
+            statusText.textContent = userData.isActive ? 'Hoạt động' : 'Khóa';
+            console.log('✅ Updated status text');
+        }
+        
+        console.log('🎉 Form population completed');
     }
 
     // Show delete confirmation
