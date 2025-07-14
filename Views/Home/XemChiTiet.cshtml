@@ -8,22 +8,81 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/xem-chi-tiet.css" />
 }
+<style>
+    .breadcrumb {
+        background: #fff;
+        color: #000;
+        padding: 10px 0;
+        margin-bottom: 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .breadcrumb-item a {
+        color: #000;
+        text-decoration: none;
+        transition: var(--transition);
+        font-weight: 500;
+        display: inline-flex !important;
+        align-items: center;
+        gap: 5px;
+        cursor: pointer !important;
+        padding: 8px 12px;
+        border-radius: 6px;
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
+        user-select: none;
+        min-height: 20px;
+        min-width: 20px;
+    }
+    .breadcrumb-item a:hover {
+        color: #000;
+        background: rgba(0,0,0,0.08);
+        text-shadow: 0 0 8px rgba(0,0,0,0.6);
+    }
+    .breadcrumb-item a span {
+        display: inline;
+        cursor: pointer;
+        pointer-events: none;
+    }
+    .breadcrumb-item a i {
+        cursor: pointer;
+        pointer-events: none;
+    }
+    .breadcrumb-item a * {
+        pointer-events: none;
+    }
+    .breadcrumb-item {
+        position: relative;
+        display: inline-block;
+    }
+    .breadcrumb-item.active {
+        color: #000;
+        font-weight: 600;
+    }
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: "›";
+        color: #000;
+        font-weight: bold;
+        margin: 0 10px;
+    }
+</style>
 <!-- Enhanced Breadcrumb -->
 <nav aria-label="breadcrumb" class="breadcrumb">
     <div class="container">
         <ol class="breadcrumb mb-0">
             <li class="breadcrumb-item">
-                <a asp-action="Index" asp-controller="Home">
-                    <i class="bi bi-house-door"></i> Trang chủ
+                <a href="@Url.Action("Index", "Home")">
+                    <span class="d-flex align-items-center"><i class="bi bi-house-door"></i> <span>Trang chủ</span></span>
                 </a>
             </li>
             <li class="breadcrumb-item">
                 <a asp-action="Index" asp-controller="Home" asp-route-loaiXe="@Model.MaLoaiXe">
-                    <i class="bi bi-grid"></i> @Model.LoaiXe?.TenLoaiXe
+                    <span class="d-flex align-items-center"><i class="bi bi-grid"></i> <span>@Model.LoaiXe?.TenLoaiXe</span></span>
                 </a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                <i class="bi bi-eye"></i> @Model.TenXe
+                <span class="d-flex align-items-center"><i class="bi bi-eye"></i> <span>@Model.TenXe</span></span>
             </li>
         </ol>
     </div>
@@ -161,7 +220,7 @@
                             @if (Model.TrangThai == "Sẵn sàng")
                             {
                                 <button class="btn-secondary-custom" onclick="showQuickBookingModal(@Model.MaXe)">
-                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                                    <i class="bi bi-cart-plus"></i> Thêm vào danh sách
                                 </button>
                                 <button class="btn-primary-custom" onclick="datGiuXe(@Model.MaXe)">
                                     <i class="bi bi-calendar-check"></i> Đặt ngay
@@ -330,7 +389,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="quickBookingModalLabel">
-                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ xe
+                    <i class="bi bi-cart-plus"></i> Thêm vào danh sách
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -772,8 +831,8 @@
             
             if (!originalText) {
                 // Determine original text based on button context
-                if (button.innerHTML.includes('cart-plus') || button.innerHTML.includes('Thêm vào giỏ')) {
-                    originalText = '<i class="bi bi-cart-plus"></i> Thêm vào giỏ';
+                if (button.innerHTML.includes('cart-plus') || button.innerHTML.includes('Thêm vào danh sách')) {
+                    originalText = '<i class="bi bi-cart-plus"></i> Thêm vào danh sách';
                 } else if (button.innerHTML.includes('calendar-check') || button.innerHTML.includes('Đặt ngay')) {
                     originalText = '<i class="bi bi-calendar-check"></i> Đặt ngay';
                 } else {
@@ -783,7 +842,7 @@
                         if (button.classList.contains('btn-primary-custom')) {
                             originalText = '<i class="bi bi-calendar-check"></i> Đặt ngay';
                         } else {
-                            originalText = '<i class="bi bi-cart-plus"></i> Thêm vào giỏ';
+                            originalText = '<i class="bi bi-cart-plus"></i> Thêm vào danh sách';
                         }
                     } else {
                         originalText = '<i class="bi bi-x-circle"></i> Xe đang được thuê';
@@ -810,7 +869,7 @@
             const dayAfter = new Date(today);
             dayAfter.setDate(dayAfter.getDate() + 3);
 
-            document.getElementById('ngayNhanXe').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('ngayNhanXe').value = today.toISOString().split('T')[0]; // Sửa: lấy ngày hôm nay
             document.getElementById('ngayTraXe').value = dayAfter.toISOString().split('T')[0];
             
             document.getElementById('ngayNhanXe').min = today.toISOString().split('T')[0];
@@ -1003,7 +1062,7 @@
                 }
             });
             
-            // Reset "Thêm vào giỏ" buttons
+            // Reset "Thêm vào danh sách" buttons
             const cartButtons = document.querySelectorAll('[onclick*="showQuickBookingModal"]');
             cartButtons.forEach(button => {
                 if (button.disabled || button.innerHTML.includes('Đang thêm') || button.innerHTML.includes('Đang xử lý')) {

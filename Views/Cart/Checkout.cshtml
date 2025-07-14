@@ -42,7 +42,7 @@
         border-left: 3px solid #667eea;
     }
     
-    .vehicle-mini-image {
+    .vehicle-image {
         width: 60px;
         height: 45px;
         object-fit: cover;
@@ -156,13 +156,13 @@
                         <div class="order-item">
                             <div class="row align-items-center">
                                 <div class="col-md-2">
-                                                                    @if (!string.IsNullOrEmpty(item.HinhAnhHienThi))
-                                {
-                                    <img src="/images/xe/@item.HinhAnhHienThi" alt="@item.TenXe" class="vehicle-mini-image" />
+                                    @if (!string.IsNullOrEmpty(item.HinhAnhHienThi))
+                                    {
+                                        <img src="/images/xe/@item.HinhAnhHienThi" alt="@item.TenXe" class="vehicle-image" onerror="this.onerror=null;this.src='/images/default.jpg';" />
                                     }
                                     else
                                     {
-                                        <img src="/images/default.jpg" alt="@item.TenXe" class="vehicle-mini-image" />
+                                        <img src="/images/default.jpg" alt="@item.TenXe" class="vehicle-image" />
                                     }
                                 </div>
                                 <div class="col-md-6">
@@ -218,7 +218,7 @@
 
                         <div class="text-center mt-3">
                             <a href="@Url.Action("Index")" class="btn btn-outline-light">
-                                <i class="bi bi-arrow-left"></i> Quay lại giỏ xe
+                                <i class="bi bi-arrow-left"></i> Quay lại danh sách xe
                             </a>
                         </div>
 

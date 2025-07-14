@@ -153,9 +153,9 @@
             <div class="booking-item">
                 <div class="row align-items-center">
                     <div class="col-md-2">
-                                                            @if (!string.IsNullOrEmpty(booking.Xe?.HinhAnhHienThi))
-                                    {
-                                        <img src="/images/xe/@booking.Xe.HinhAnhHienThi" alt="@booking.Xe.TenXe" class="vehicle-image" />
+                        @if (!string.IsNullOrEmpty(booking.Xe?.HinhAnhHienThi))
+                        {
+                            <img src="/images/xe/@booking.Xe.HinhAnhHienThi" alt="@booking.Xe.TenXe" class="vehicle-image" onerror="this.onerror=null;this.src='/images/default.jpg';" />
                         }
                         else
                         {

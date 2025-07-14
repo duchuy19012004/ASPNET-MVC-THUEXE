@@ -95,6 +95,13 @@
         color: #4CAF50;
     }
 
+    .vehicle-image {
+        width: 80px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
     .vehicle-details {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -267,20 +274,34 @@
                     <div class="vehicle-price">@chiTiet.ThanhTien.ToString("N0")đ</div>
                 </div>
                 
-                <div class="row">
-                    <div class="col-md-6">
-                        <small class="text-muted">
-                            <strong>Biển số:</strong> @chiTiet.Xe?.BienSoXe<br>
-                            <strong>Hãng xe:</strong> @chiTiet.Xe?.HangXe @chiTiet.Xe?.DongXe<br>
-                            <strong>Loại xe:</strong> @chiTiet.Xe?.LoaiXe?.TenLoaiXe
-                        </small>
+                <div class="row mb-3">
+                    <div class="col-md-2">
+                        @if (!string.IsNullOrEmpty(chiTiet.Xe?.HinhAnhHienThi))
+                        {
+                            <img src="/images/xe/@chiTiet.Xe.HinhAnhHienThi" alt="@chiTiet.Xe.TenXe" class="vehicle-image" onerror="this.onerror=null;this.src='/images/default.jpg';" />
+                        }
+                        else
+                        {
+                            <img src="/images/default.jpg" alt="@chiTiet.Xe?.TenXe" class="vehicle-image" />
+                        }
                     </div>
-                    <div class="col-md-6">
-                        <small class="text-muted">
-                            <strong>Từ:</strong> @chiTiet.NgayNhanXe.ToString("dd/MM/yyyy")<br>
-                            <strong>Đến:</strong> @chiTiet.NgayTraXeDuKien.ToString("dd/MM/yyyy")<br>
-                            <strong>Số ngày:</strong> @chiTiet.SoNgayThue ngày
-                        </small>
+                    <div class="col-md-10">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Biển số:</strong> @chiTiet.Xe?.BienSoXe<br>
+                                    <strong>Hãng xe:</strong> @chiTiet.Xe?.HangXe @chiTiet.Xe?.DongXe<br>
+                                    <strong>Loại xe:</strong> @chiTiet.Xe?.LoaiXe?.TenLoaiXe
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Từ:</strong> @chiTiet.NgayNhanXe.ToString("dd/MM/yyyy")<br>
+                                    <strong>Đến:</strong> @chiTiet.NgayTraXeDuKien.ToString("dd/MM/yyyy")<br>
+                                    <strong>Số ngày:</strong> @chiTiet.SoNgayThue ngày
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

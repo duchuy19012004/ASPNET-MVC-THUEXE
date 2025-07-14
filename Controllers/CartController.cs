@@ -18,11 +18,29 @@ namespace bike.Controllers
             _cartService = cartService;
         }
 
-        // GET: Cart - Xem giỏ xe
+        // GET: Cart - Xem danh sách xe
         public IActionResult Index()
         {
             var cart = _cartService.GetCart();
-            
+
+            // Cập nhật lại HinhAnhHienThi cho từng item từ DB
+            foreach (var item in cart.Items)
+            {
+                var xe = _context.Xe
+                    .Include(x => x.HinhAnhXes)
+                    .FirstOrDefault(x => x.MaXe == item.MaXe);
+
+                if (xe != null)
+                {
+                    var hinhAnh = xe.HinhAnhChinh ?? xe.HinhAnhXes.OrderBy(h => h.ThuTu).FirstOrDefault()?.TenFile;
+                    item.HinhAnhHienThi = string.IsNullOrEmpty(hinhAnh) ? "default.jpg" : hinhAnh;
+                }
+                else
+                {
+                    item.HinhAnhHienThi = "default.jpg";
+                }
+            }
+
             // Load thông tin người dùng nếu đã đăng nhập
             if (User.Identity.IsAuthenticated && string.IsNullOrEmpty(cart.HoTen))
             {
@@ -39,10 +57,14 @@ namespace bike.Controllers
             return View(cart);
         }
 
-        // POST: Cart/Add - Thêm xe vào giỏ
+        // POST: Cart/Add - Thêm xe vào danh sách
         [HttpPost]
         public async Task<IActionResult> Add(int maXe, DateTime ngayNhanXe, DateTime ngayTraXe, string? ghiChu)
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Json(new { success = false, message = "Bạn cần đăng nhập để thêm xe vào danh sách!" });
+            }
             try
             {
                 // Validation
@@ -67,26 +89,31 @@ namespace bike.Controllers
                 }
 
                 // Tạo CartItem
+                var hinhAnh = xe.HinhAnhHienThi;
+                if (string.IsNullOrEmpty(hinhAnh) || !hinhAnh.Contains(".")) {
+                    hinhAnh = "default.jpg";
+                }
+                System.Diagnostics.Debug.WriteLine($"[DEBUG] HinhAnhHienThi khi thêm vào giỏ: {hinhAnh}");
                 var cartItem = new CartItem
                 {
                     MaXe = xe.MaXe,
                     TenXe = xe.TenXe,
                     BienSoXe = xe.BienSoXe,
                     GiaThue = xe.GiaThue,
-                    HinhAnhHienThi = xe.HinhAnhHienThi,
+                    HinhAnhHienThi = hinhAnh,
                     TenLoaiXe = xe.LoaiXe?.TenLoaiXe,
                     NgayNhanXe = ngayNhanXe,
                     NgayTraXe = ngayTraXe,
                     GhiChu = ghiChu
                 };
 
-                // Thêm vào giỏ
+                // Thêm vào danh sách
                 _cartService.AddToCart(cartItem);
 
                 return Json(new 
                 { 
                     success = true, 
-                    message = "Đã thêm xe vào giỏ thành công!",
+                    message = "Đã thêm xe vào danh sách thành công!",
                     cartItemCount = _cartService.GetCartItemCount()
                 });
             }
@@ -96,7 +123,7 @@ namespace bike.Controllers
             }
         }
 
-        // POST: Cart/Remove - Xóa xe khỏi giỏ
+        // POST: Cart/Remove - Xóa xe khỏi danh sách
         [HttpPost]
         public IActionResult Remove(int maXe, DateTime ngayNhanXe, DateTime ngayTraXe)
         {
@@ -106,7 +133,7 @@ namespace bike.Controllers
                 return Json(new 
                 { 
                     success = true, 
-                    message = "Đã xóa xe khỏi giỏ",
+                    message = "Đã xóa xe khỏi danh sách",
                     cartItemCount = _cartService.GetCartItemCount()
                 });
             }
@@ -123,7 +150,7 @@ namespace bike.Controllers
             
             if (cart.TongSoXe == 0)
             {
-                TempData["Error"] = "Giỏ xe của bạn đang trống";
+                TempData["Error"] = "Danh sách xe của bạn đang trống";
                 return RedirectToAction("Index");
             }
 
@@ -143,7 +170,7 @@ namespace bike.Controllers
             return View(cart);
         }
 
-        // POST: Cart/Checkout - Tạo hợp đồng từ giỏ xe
+        // POST: Cart/Checkout - Tạo hợp đồng từ danh sách xe
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(Cart model)
@@ -152,7 +179,7 @@ namespace bike.Controllers
             
             if (cart.TongSoXe == 0)
             {
-                TempData["Error"] = "Giỏ xe của bạn đang trống";
+                TempData["Error"] = "Danh sách xe của bạn đang trống";
                 return RedirectToAction("Index");
             }
 
@@ -240,7 +267,7 @@ namespace bike.Controllers
 
                     await transaction.CommitAsync();
 
-                    // Xóa giỏ xe
+                    // Xóa danh sách xe
                     _cartService.ClearCart();
 
                     // Chuyển đến trang xác nhận
@@ -305,7 +332,7 @@ namespace bike.Controllers
             return View(reservations);
         }
 
-        // GET: Cart/GetItemCount - Lấy số lượng item trong giỏ (AJAX)
+        // GET: Cart/GetItemCount - Lấy số lượng item trong danh sách (AJAX)
         public IActionResult GetItemCount()
         {
             return Json(new { count = _cartService.GetCartItemCount() });

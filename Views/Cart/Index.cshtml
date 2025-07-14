@@ -1,6 +1,6 @@
 @model bike.Models.Cart
 @{
-    ViewData["Title"] = "Giỏ xe của tôi";
+    ViewData["Title"] = "Danh sách xe của tôi";
     Layout = "~/Views/Shared/_HomePage.cshtml";
 }
 
@@ -120,7 +120,7 @@
 
 <div class="cart-container">
     <div class="cart-header">
-        <h2><i class="bi bi-cart3"></i> Giỏ xe của tôi</h2>
+        <h2><i class="bi bi-cart3"></i> Danh sách xe của tôi</h2>
         <p class="mb-0">@Model.TongSoXe xe đã chọn</p>
     </div>
 
@@ -129,7 +129,7 @@
         {
             <div class="empty-cart">
                 <i class="bi bi-cart-x"></i>
-                <h4>Giỏ xe của bạn đang trống</h4>
+                <h4>Danh sách xe của bạn đang trống</h4>
                 <p>Hãy chọn những chiếc xe ưa thích để bắt đầu hành trình của bạn!</p>
                 <a href="@Url.Action("Index", "Home")" class="btn btn-primary">
                     <i class="bi bi-arrow-left"></i> Tiếp tục chọn xe
@@ -138,7 +138,7 @@
         }
         else
         {
-            <!-- Danh sách xe trong giỏ -->
+            <!-- Danh sách xe đã chọn -->
             @foreach (var item in Model.Items)
             {
                 <div class="cart-item">
@@ -146,7 +146,7 @@
                         <div class="col-md-2">
                             @if (!string.IsNullOrEmpty(item.HinhAnhHienThi))
                             {
-                                <img src="/images/xe/@item.HinhAnhHienThi" alt="@item.TenXe" class="vehicle-image" />
+                                <img src="/images/xe/@item.HinhAnhHienThi" alt="@item.TenXe" class="vehicle-image" onerror="this.onerror=null;this.src='/images/default.jpg';" />
                             }
                             else
                             {
@@ -181,7 +181,7 @@
                 </div>
             }
 
-            <!-- Tóm tắt giỏ xe -->
+            <!-- Tóm tắt danh sách xe -->
             <div class="cart-summary">
                 <div class="summary-row">
                     <span>Tổng số xe:</span>
@@ -212,7 +212,7 @@
 
 <script>
 function removeFromCart(maXe, ngayNhanXe, ngayTraXe) {
-    if (confirm('Bạn có chắc chắn muốn xóa xe này khỏi giỏ?')) {
+    if (confirm('Bạn có chắc chắn muốn xóa xe này khỏi danh sách?')) {
         $.ajax({
             url: '@Url.Action("Remove", "Cart")',
             type: 'POST',
@@ -224,7 +224,7 @@ function removeFromCart(maXe, ngayNhanXe, ngayTraXe) {
             },
             success: function(response) {
                 if (response.success) {
-                    // Reload trang để cập nhật giỏ xe
+                    // Reload trang để cập nhật danh sách xe
                     location.reload();
                     
                     // Cập nhật cart badge nếu có

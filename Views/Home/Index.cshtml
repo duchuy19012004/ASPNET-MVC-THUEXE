@@ -173,10 +173,19 @@ else
                         </p>
                         @if (item.TrangThai == "Sẵn sàng")
                         {
-                            <div class="bike-actions mt-2">
-                                <button class="btn btn-sm btn-outline-primary" onclick="showQuickBookingModal(@item.MaXe, '@item.TenXe', @item.GiaThue, '@item.HinhAnhHienThi')" style="margin-right: 8px;">
-                                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
-                                </button>
+                            <div class="bike-actions mt-2 d-flex" style="gap: 8px;">
+                                @if (User.Identity.IsAuthenticated)
+                                {
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showQuickBookingModal(@item.MaXe, '@item.TenXe', @item.GiaThue, '@item.HinhAnhHienThi')">
+                                        <i class="bi bi-cart-plus"></i> Thêm vào danh sách
+                                    </button>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Login", "Account")" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-cart-plus"></i> Thêm vào danh sách
+                                    </a>
+                                }
                                 <a asp-action="XemChiTiet" asp-route-id="@item.MaXe" class="btn btn-sm btn-primary">
                                     <i class="bi bi-eye"></i> Xem chi tiết
                                 </a>
@@ -203,7 +212,7 @@ else
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="quickBookingModalLabel">
-                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ xe
+                    <i class="bi bi-cart-plus"></i> Thêm vào danh sách
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -234,7 +243,7 @@ else
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
                 <button type="button" class="btn btn-primary" onclick="addToCart()">
-                    <i class="bi bi-cart-plus"></i> Thêm vào giỏ
+                    <i class="bi bi-cart-plus"></i> Thêm vào danh sách
                 </button>
             </div>
         </div>
@@ -1047,7 +1056,7 @@ else
             const dayAfter = new Date(today);
             dayAfter.setDate(dayAfter.getDate() + 3);
 
-            document.getElementById('ngayNhanXe').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('ngayNhanXe').value = today.toISOString().split('T')[0]; // Sửa: lấy ngày hôm nay
             document.getElementById('ngayTraXe').value = dayAfter.toISOString().split('T')[0];
             
             // Set min date to today
