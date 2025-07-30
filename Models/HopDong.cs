@@ -29,8 +29,9 @@ namespace bike.Models
         public string? HoTenKhach { get; set; }
 
         [Display(Name = "Số điện thoại")]
-        [Required]
-        [StringLength(20)]
+        [Required(ErrorMessage = "Số điện thoại là bắt buộc")]
+        [StringLength(11, MinimumLength = 10, ErrorMessage = "Số điện thoại phải có từ 10 đến 11 số")]
+        [RegularExpression(@"^\d{10,11}$", ErrorMessage = "Số điện thoại chỉ được nhập số và phải có từ 10 đến 11 số")]
         public string? SoDienThoai { get; set; }
 
         [Display(Name = "CCCD/CMND")]

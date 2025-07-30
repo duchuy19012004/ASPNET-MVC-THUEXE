@@ -209,6 +209,58 @@
             padding: 18px 6px 12px 6px;
         }
     }
+    #phoneValidationMessage {
+        font-size: 13px;
+        margin-top: 4px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+    #phoneValidationMessage.text-info {
+        background-color: #e3f2fd;
+        border-left: 3px solid #2196f3;
+    }
+    #phoneValidationMessage.text-warning {
+        background-color: #fff3e0;
+        border-left: 3px solid #ff9800;
+    }
+    #phoneValidationMessage.text-danger {
+        background-color: #ffebee;
+        border-left: 3px solid #f44336;
+    }
+         #phoneValidationMessage.text-success {
+         background-color: #e8f5e8;
+         border-left: 3px solid #4caf50;
+     }
+     
+     /* Customer name validation styling */
+     #nameValidationMessage {
+         font-size: 13px;
+         margin-top: 4px;
+         padding: 4px 8px;
+         border-radius: 4px;
+         transition: all 0.3s ease;
+     }
+     
+     #nameValidationMessage.text-info {
+         background-color: #e3f2fd;
+         border-left: 3px solid #2196f3;
+     }
+     
+     #nameValidationMessage.text-warning {
+         background-color: #fff3e0;
+         border-left: 3px solid #ff9800;
+     }
+     
+     #nameValidationMessage.text-danger {
+         background-color: #ffebee;
+         border-left: 3px solid #f44336;
+     }
+     
+     #nameValidationMessage.text-success {
+         background-color: #e8f5e8;
+         border-left: 3px solid #4caf50;
+     }
 </style>
 @* --- UI REDESIGN END --- *@
 
@@ -309,20 +361,19 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="HoTenKhach" class="form-label">Họ tên khách <span class="text-danger">*</span></label>
-                            <input asp-for="HoTenKhach" class="form-control" placeholder="Nhập họ tên đầy đủ" />
-                            <span asp-validation-for="HoTenKhach" class="text-danger"></span>
+                            <input asp-for="HoTenKhach" class="form-control" id="HoTenKhach" placeholder="Nhập họ tên đầy đủ" />
+                            <div id="nameValidationMessage" class="form-text"></div>
                         </div>
                         <div class="mb-3">
                             <label asp-for="SoDienThoai" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                            <input asp-for="SoDienThoai" class="form-control" placeholder="VD: 0901234567" />
-                            <span asp-validation-for="SoDienThoai" class="text-danger"></span>
+                            <input asp-for="SoDienThoai" class="form-control" id="SoDienThoai" placeholder="VD: 0901234567" maxlength="11" />
+                            <div id="phoneValidationMessage" class="form-text"></div>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="SoCCCD" class="form-label">CCCD/CMND <span class="text-danger">*</span></label>
                             <input asp-for="SoCCCD" class="form-control" id="SoCCCD" placeholder="Nhập số CCCD/CMND (12 số)" maxlength="12" />
-                            <span asp-validation-for="SoCCCD" class="text-danger"></span>
                             <div id="cccdValidationMessage" class="form-text"></div>
                         </div>
                         <div class="mb-3">
@@ -524,18 +575,42 @@
         }
 
         function setupEventHandlers() {
-            // CCCD/CMND validation
-            $('#SoCCCD').on('input paste keyup', function() {
-                validateCCCD();
+            // Customer name validation
+            $('#HoTenKhach').on('input', function() {
+                clearTimeout(window.nameTimeout);
+                window.nameTimeout = setTimeout(function() {
+                    validateName();
+                }, 300);
             });
             
-            // Ngăn chặn nhập ký tự không phải số
-            $('#SoCCCD').on('keypress', function(e) {
-                var charCode = (e.which) ? e.which : e.keyCode;
-                if (charCode > 31 && (charCode < 48 || charCode > 57)) {
-                    return false;
-                }
-                return true;
+            // CCCD/CMND validation
+            $('#SoCCCD').on('input', function() {
+                clearTimeout(window.cccdTimeout);
+                window.cccdTimeout = setTimeout(function() {
+                    validateCCCD();
+                }, 300);
+            });
+            
+            // Xử lý paste cho CCCD
+            $('#SoCCCD').on('paste', function(e) {
+                setTimeout(function() {
+                    validateCCCD();
+                }, 100);
+            });
+
+            // Validate Số điện thoại theo thời gian thực
+            $('#SoDienThoai').on('input', function() {
+                clearTimeout(window.phoneTimeout);
+                window.phoneTimeout = setTimeout(function() {
+                    validatePhone();
+                }, 300);
+            });
+            
+            // Xử lý paste cho số điện thoại
+            $('#SoDienThoai').on('paste', function(e) {
+                setTimeout(function() {
+                    validatePhone();
+                }, 100);
             });
 
             // Rental period handlers
@@ -653,11 +728,29 @@
                     $('#vehicleSelectionError').text('');
                 }
 
+                // Validate Customer name
+                if (!validateName()) {
+                    e.preventDefault();
+                    $('html, body').animate({
+                        scrollTop: $('#HoTenKhach').offset().top - 100
+                    }, 500);
+                    return false;
+                }
+
                 // Validate CCCD/CMND
                 if (!validateCCCD()) {
                     e.preventDefault();
                     $('html, body').animate({
                         scrollTop: $('#SoCCCD').offset().top - 100
+                    }, 500);
+                    return false;
+                }
+
+                // Validate Số điện thoại
+                if (!validatePhone()) {
+                    e.preventDefault();
+                    $('html, body').animate({
+                        scrollTop: $('#SoDienThoai').offset().top - 100
                     }, 500);
                     return false;
                 }
@@ -920,6 +1013,39 @@
             }
         }
 
+        // Customer name validation function
+        function validateName() {
+            var nameValue = $('#HoTenKhach').val().trim();
+            var validationMessage = $('#nameValidationMessage');
+            
+            // Kiểm tra độ dài
+            if (nameValue.length === 0) {
+                validationMessage.html('<i class="bi bi-info-circle"></i> Vui lòng nhập họ tên khách hàng');
+                validationMessage.removeClass('text-danger text-success text-warning').addClass('text-info');
+                return false;
+            } else if (nameValue.length < 3) {
+                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Họ tên phải có ít nhất 3 ký tự');
+                validationMessage.removeClass('text-success text-info text-danger').addClass('text-warning');
+                return false;
+            } else if (nameValue.length > 100) {
+                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Họ tên không được vượt quá 100 ký tự');
+                validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
+                return false;
+            } else {
+                // Kiểm tra format: phải có ít nhất 2 từ (họ và tên)
+                var words = nameValue.split(' ').filter(word => word.length > 0);
+                if (words.length < 2) {
+                    validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Vui lòng nhập đầy đủ họ và tên');
+                    validationMessage.removeClass('text-success text-info text-warning').addClass('text-warning');
+                    return false;
+                }
+                
+                validationMessage.html('<i class="bi bi-check-circle"></i> Họ tên hợp lệ');
+                validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
+                return true;
+            }
+        }
+
         // CCCD/CMND validation function
         function validateCCCD() {
             var cccdValue = $('#SoCCCD').val();
@@ -956,6 +1082,38 @@
                 }
                 
                 validationMessage.html('<i class="bi bi-check-circle"></i> CCCD/CMND hợp lệ');
+                validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
+                return true;
+            }
+        }
+
+        // Validate Số điện thoại theo thời gian thực
+        function validatePhone() {
+            var phoneValue = $('#SoDienThoai').val();
+            var validationMessage = $('#phoneValidationMessage');
+            
+            // Loại bỏ ký tự không phải số
+            var numericOnly = phoneValue.replace(/[^0-9]/g, '');
+            if (phoneValue !== numericOnly) {
+                $('#SoDienThoai').val(numericOnly);
+                phoneValue = numericOnly;
+            }
+            
+            // Kiểm tra độ dài
+            if (phoneValue.length === 0) {
+                validationMessage.html('<i class="bi bi-info-circle"></i> Vui lòng nhập số điện thoại');
+                validationMessage.removeClass('text-danger text-success text-warning').addClass('text-info');
+                return false;
+            } else if (phoneValue.length < 10) {
+                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Số điện thoại phải có từ 10 đến 11 số (thiếu <strong>' + (10 - phoneValue.length) + '</strong> số)');
+                validationMessage.removeClass('text-success text-info text-danger').addClass('text-warning');
+                return false;
+            } else if (phoneValue.length > 11) {
+                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Số điện thoại chỉ được nhập tối đa 11 số');
+                validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
+                return false;
+            } else {
+                validationMessage.html('<i class="bi bi-check-circle"></i> Số điện thoại hợp lệ');
                 validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
                 return true;
             }
