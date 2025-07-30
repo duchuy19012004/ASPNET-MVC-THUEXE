@@ -171,6 +171,35 @@
         font-size: 13px;
         margin-top: 2px;
     }
+    
+    /* CCCD validation styling */
+    #cccdValidationMessage {
+        font-size: 13px;
+        margin-top: 4px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+    
+    #cccdValidationMessage.text-info {
+        background-color: #e3f2fd;
+        border-left: 3px solid #2196f3;
+    }
+    
+    #cccdValidationMessage.text-warning {
+        background-color: #fff3e0;
+        border-left: 3px solid #ff9800;
+    }
+    
+    #cccdValidationMessage.text-danger {
+        background-color: #ffebee;
+        border-left: 3px solid #f44336;
+    }
+    
+    #cccdValidationMessage.text-success {
+        background-color: #e8f5e8;
+        border-left: 3px solid #4caf50;
+    }
     /* Responsive tweaks */
     @@media (max-width: 768px) {
         .create-container {
@@ -292,8 +321,9 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label asp-for="SoCCCD" class="form-label">CCCD/CMND <span class="text-danger">*</span></label>
-                            <input asp-for="SoCCCD" class="form-control" placeholder="Nhập số CCCD/CMND" />
+                            <input asp-for="SoCCCD" class="form-control" id="SoCCCD" placeholder="Nhập số CCCD/CMND (12 số)" maxlength="12" />
                             <span asp-validation-for="SoCCCD" class="text-danger"></span>
+                            <div id="cccdValidationMessage" class="form-text"></div>
                         </div>
                         <div class="mb-3">
                             <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
@@ -494,6 +524,20 @@
         }
 
         function setupEventHandlers() {
+            // CCCD/CMND validation
+            $('#SoCCCD').on('input paste keyup', function() {
+                validateCCCD();
+            });
+            
+            // Ngăn chặn nhập ký tự không phải số
+            $('#SoCCCD').on('keypress', function(e) {
+                var charCode = (e.which) ? e.which : e.keyCode;
+                if (charCode > 31 && (charCode < 48 || charCode > 57)) {
+                    return false;
+                }
+                return true;
+            });
+
             // Rental period handlers
             $('#rentalDays').on('input', function() {
                 var days = parseInt($(this).val());
@@ -607,6 +651,15 @@
                     return false;
                 } else {
                     $('#vehicleSelectionError').text('');
+                }
+
+                // Validate CCCD/CMND
+                if (!validateCCCD()) {
+                    e.preventDefault();
+                    $('html, body').animate({
+                        scrollTop: $('#SoCCCD').offset().top - 100
+                    }, 500);
+                    return false;
                 }
 
                 // Xóa các input hidden cũ nếu có
@@ -864,6 +917,47 @@
                 var days = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
                 $('#rentalDays').val(days);
                 updatePresetButtons();
+            }
+        }
+
+        // CCCD/CMND validation function
+        function validateCCCD() {
+            var cccdValue = $('#SoCCCD').val();
+            var validationMessage = $('#cccdValidationMessage');
+            
+            // Loại bỏ tất cả ký tự không phải số
+            var numericOnly = cccdValue.replace(/[^0-9]/g, '');
+            
+            // Cập nhật giá trị input nếu có ký tự không phải số
+            if (cccdValue !== numericOnly) {
+                $('#SoCCCD').val(numericOnly);
+                cccdValue = numericOnly;
+            }
+            
+            // Kiểm tra độ dài
+            if (cccdValue.length === 0) {
+                validationMessage.html('<i class="bi bi-info-circle"></i> Vui lòng nhập số CCCD/CMND');
+                validationMessage.removeClass('text-danger text-success text-warning').addClass('text-info');
+                return false;
+            } else if (cccdValue.length < 12) {
+                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> CCCD/CMND phải có đúng 12 số (còn thiếu <strong>' + (12 - cccdValue.length) + '</strong> số)');
+                validationMessage.removeClass('text-success text-info text-danger').addClass('text-warning');
+                return false;
+            } else if (cccdValue.length > 12) {
+                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> CCCD/CMND chỉ được nhập tối đa 12 số');
+                validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
+                return false;
+            } else {
+                // Kiểm tra thêm: CCCD không được bắt đầu bằng 000000
+                if (cccdValue.startsWith('000000')) {
+                    validationMessage.html('<i class="bi bi-exclamation-triangle"></i> CCCD/CMND không hợp lệ (số không được bắt đầu bằng 000000)');
+                    validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
+                    return false;
+                }
+                
+                validationMessage.html('<i class="bi bi-check-circle"></i> CCCD/CMND hợp lệ');
+                validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
+                return true;
             }
         }
     </script>

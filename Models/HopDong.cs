@@ -34,8 +34,9 @@ namespace bike.Models
         public string? SoDienThoai { get; set; }
 
         [Display(Name = "CCCD/CMND")]
-        [Required]
-        [StringLength(20)]
+        [Required(ErrorMessage = "CCCD/CMND là bắt buộc")]
+        [StringLength(12, MinimumLength = 12, ErrorMessage = "CCCD/CMND phải có đúng 12 số")]
+        [RegularExpression(@"^\d{12}$", ErrorMessage = "CCCD/CMND chỉ được nhập số và phải có đúng 12 số")]
         public string? SoCCCD { get; set; }
 
         [Display(Name = "Địa chỉ")]
