@@ -7,6 +7,15 @@
 
 <div class="container-fluid">
 
+    @if (ViewData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Lỗi:</strong> @ViewData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <div class="page-header">
         <div class="d-flex justify-content-between align-items-center">
             <div class="d-flex align-items-center">

@@ -73,20 +73,24 @@ namespace bike.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaBaoCao"));
 
-                    b.Property<decimal>("ChiPhiSuaChuaThucTe")
+                    b.Property<decimal?>("ChiPhiSuaChuaThucTe")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<decimal>("ChiPhiSuaChuaUocTinh")
+                    b.Property<decimal?>("ChiPhiSuaChuaUocTinh")
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("GhiChu")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
-                    b.Property<decimal>("GiaTriXeSauKhiHong")
+                    b.Property<string>("GhiChuThanhToan")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal?>("GiaTriXeSauKhiHong")
                         .HasColumnType("decimal(18, 2)");
 
-                    b.Property<decimal>("GiaTriXeTruocKhiHong")
+                    b.Property<decimal?>("GiaTriXeTruocKhiHong")
                         .HasColumnType("decimal(18, 2)");
 
                     b.Property<string>("LoaiThietHai")
@@ -114,8 +118,19 @@ namespace bike.Migrations
                     b.Property<DateTime>("NgayTao")
                         .HasColumnType("datetime2");
 
-                    b.Property<decimal>("PhiDenBuKhachHang")
+                    b.Property<DateTime?>("NgayThanhToan")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("PhiDenBuKhachHang")
                         .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal?>("SoTienDaThanhToan")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TrangThaiThanhToan")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("TrangThaiXuLy")
                         .IsRequired()

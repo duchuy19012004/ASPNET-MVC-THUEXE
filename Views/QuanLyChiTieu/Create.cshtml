@@ -38,7 +38,7 @@
                 </div>
                 <div class="mb-3">
                     <label asp-for="NgayChi" class="form-label"></label>
-                    <input asp-for="NgayChi" class="form-control" type="date" />
+                    <input asp-for="NgayChi" class="form-control" type="date" value="@DateTime.Now.ToString("yyyy-MM-dd")" />
                     <span asp-validation-for="NgayChi" class="text-danger"></span>
                 </div>
                 <div class="mb-3">

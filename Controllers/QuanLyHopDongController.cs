@@ -175,7 +175,6 @@ namespace bike.Controllers
                     var datCho = await _context.DatCho
                         .Include(d => d.Xe)
                         .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho);
-                    
                     if (datCho != null && hopDong.ChiTietHopDong == null)
                     {
                         hopDong.ChiTietHopDong = new List<ChiTietHopDong>
@@ -194,102 +193,91 @@ namespace bike.Controllers
                 return View(hopDong);
             }
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            try
             {
-                try
+                // Lưu người tạo
+                hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                hopDong.NgayTao = DateTime.Now;
+                hopDong.TrangThai = "Đang thuê";
+
+                // TÁI TẠO ChiTietHopDong từ thông tin DatCho
+                if (hopDong.MaDatCho.HasValue)
                 {
-                    // Lưu người tạo
-                    hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                    hopDong.NgayTao = DateTime.Now;
-                    hopDong.TrangThai = "Đang thuê";
+                    var datCho = await _context.DatCho
+                        .Include(d => d.Xe)
+                        .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho.Value);
 
-                    // TÁI TẠO ChiTietHopDong từ thông tin DatCho
-                    if (hopDong.MaDatCho.HasValue)
+                    if (datCho == null)
                     {
-                        var datCho = await _context.DatCho
-                            .Include(d => d.Xe)
-                            .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho.Value);
-
-                        if (datCho == null)
-                        {
-                            TempData["Error"] = "Không tìm thấy phiếu đặt chỗ!";
-                            return View(hopDong);
-                        }
-
-                        // Tính toán chi tiết hợp đồng từ DatCho
-                        var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
-                        var tienThueXe = datCho.Xe.GiaThue * soNgay;
-                        
-                        hopDong.TongTien = tienThueXe + hopDong.PhuPhi;
-
-                        // Lưu hợp đồng trước để có MaHopDong
-                        _context.HopDong.Add(hopDong);
-                        await _context.SaveChangesAsync();
-
-                        // Tạo và lưu chi tiết hợp đồng
-                        var chiTietHopDong = new ChiTietHopDong
-                        {
-                            MaHopDong = hopDong.MaHopDong,
-                            MaXe = datCho.MaXe,
-                            GiaThueNgay = datCho.Xe.GiaThue,
-                            NgayNhanXe = hopDong.NgayNhanXe,
-                            NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
-                            SoNgayThue = soNgay,
-                            ThanhTien = tienThueXe,
-                            TrangThaiXe = "Đang thuê",
-                            NgayTao = DateTime.Now
-                        };
-                        
-                        _context.ChiTietHopDong.Add(chiTietHopDong);
-                        await _context.SaveChangesAsync();
-
-                        // Cập nhật trạng thái xe
-                        datCho.Xe.TrangThai = "Đang thuê";
-                        
-                        // Cập nhật trạng thái phiếu đặt chỗ
-                        datCho.TrangThai = "Đã xử lý";
-                        
-                        await _context.SaveChangesAsync();
-                        await transaction.CommitAsync();
-
-                        TempData["Success"] = $"Tạo hợp đồng thành công! Mã HĐ: HD{hopDong.MaHopDong:D6}";
-                        return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
-                    }
-                    else
-                    {
-                        TempData["Error"] = "Thiếu thông tin phiếu đặt chỗ!";
+                        TempData["Error"] = "Không tìm thấy phiếu đặt chỗ!";
                         return View(hopDong);
                     }
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    TempData["Error"] = $"Có lỗi xảy ra: {ex.Message}";
-                    
-                    // Load lại thông tin nếu có lỗi
-                    if (hopDong.MaDatCho.HasValue)
+
+                    // Tính toán chi tiết hợp đồng từ DatCho
+                    var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
+                    var tienThueXe = datCho.Xe.GiaThue * soNgay;
+                    hopDong.TongTien = tienThueXe + hopDong.PhuPhi;
+
+                    // Lưu hợp đồng trước để có MaHopDong
+                    _context.HopDong.Add(hopDong);
+                    await _context.SaveChangesAsync();
+
+                    // Tạo và lưu chi tiết hợp đồng
+                    var chiTietHopDong = new ChiTietHopDong
                     {
-                        var datCho = await _context.DatCho
-                            .Include(d => d.Xe)
-                            .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho);
-                        
-                        if (datCho != null && hopDong.ChiTietHopDong == null)
-                        {
-                            hopDong.ChiTietHopDong = new List<ChiTietHopDong>
-                            {
-                                new ChiTietHopDong
-                                {
-                                    MaXe = datCho.MaXe,
-                                    GiaThueNgay = datCho.Xe.GiaThue,
-                                    NgayNhanXe = datCho.NgayNhanXe,
-                                    NgayTraXeDuKien = datCho.NgayTraXe,
-                                    SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1
-                                }
-                            };
-                        }
-                    }
+                        MaHopDong = hopDong.MaHopDong,
+                        MaXe = datCho.MaXe,
+                        GiaThueNgay = datCho.Xe.GiaThue,
+                        NgayNhanXe = hopDong.NgayNhanXe,
+                        NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
+                        SoNgayThue = soNgay,
+                        ThanhTien = tienThueXe,
+                        TrangThaiXe = "Đang thuê",
+                        NgayTao = DateTime.Now
+                    };
+                    _context.ChiTietHopDong.Add(chiTietHopDong);
+                    await _context.SaveChangesAsync();
+
+                    // Cập nhật trạng thái xe
+                    datCho.Xe.TrangThai = "Đang thuê";
+                    // Cập nhật trạng thái phiếu đặt chỗ
+                    datCho.TrangThai = "Đã xử lý";
+                    await _context.SaveChangesAsync();
+
+                    TempData["Success"] = $"Tạo hợp đồng thành công! Mã HĐ: HD{hopDong.MaHopDong:D6}";
+                    return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
+                }
+                else
+                {
+                    TempData["Error"] = "Thiếu thông tin phiếu đặt chỗ!";
                     return View(hopDong);
                 }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Có lỗi xảy ra: {ex.Message}";
+                // Load lại thông tin nếu có lỗi
+                if (hopDong.MaDatCho.HasValue)
+                {
+                    var datCho = await _context.DatCho
+                        .Include(d => d.Xe)
+                        .FirstOrDefaultAsync(d => d.MaDatCho == hopDong.MaDatCho);
+                    if (datCho != null && hopDong.ChiTietHopDong == null)
+                    {
+                        hopDong.ChiTietHopDong = new List<ChiTietHopDong>
+                        {
+                            new ChiTietHopDong
+                            {
+                                MaXe = datCho.MaXe,
+                                GiaThueNgay = datCho.Xe.GiaThue,
+                                NgayNhanXe = datCho.NgayNhanXe,
+                                NgayTraXeDuKien = datCho.NgayTraXe,
+                                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1
+                            }
+                        };
+                    }
+                }
+                return View(hopDong);
             }
         }
 
@@ -358,165 +346,159 @@ namespace bike.Controllers
                 return NotFound();
             }
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            try
             {
-                try
+                // Cập nhật hợp đồng
+                hopDong.NgayTraXeThucTe = ngayTraThucTe;
+                hopDong.PhuPhi += phuPhi;
+                hopDong.GhiChu += ghiChu;
+                hopDong.TrangThai = "Hoàn thành";
+
+                decimal tongPhiDenBu = 0;
+
+                // Cập nhật chi tiết từng xe với xử lý thiệt hại
+                for (int i = 0; i < hopDong.ChiTietHopDong.Count; i++)
                 {
-                    // Cập nhật hợp đồng
-                    hopDong.NgayTraXeThucTe = ngayTraThucTe;
-                    hopDong.PhuPhi += phuPhi;
-                    hopDong.GhiChu += ghiChu;
-                    hopDong.TrangThai = "Hoàn thành";
-
-                    decimal tongPhiDenBu = 0;
-
-                    // Cập nhật chi tiết từng xe với xử lý thiệt hại
-                    for (int i = 0; i < hopDong.ChiTietHopDong.Count; i++)
-                    {
-                        var ct = hopDong.ChiTietHopDong.ElementAt(i);
-                        
-                        // Cập nhật thông tin cơ bản
-                        ct.NgayTraXeThucTe = ngayTraThucTe;
-                        var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days + 1;
-                        ct.SoNgayThue = soNgayThucTe;
-                        ct.ThanhTien = ct.GiaThueNgay * soNgayThucTe;
-
-                        // Xử lý thiệt hại nếu có
-                        string tinhTrang = i < tinhTrangTraXe.Count ? tinhTrangTraXe[i] : "Bình thường";
-                        string moTa = i < moTaThietHai.Count ? moTaThietHai[i] : "";
-                        decimal chiPhi = i < chiPhiSuaChua.Count ? chiPhiSuaChua[i] : 0;
-
-                        // Cập nhật thông tin thiệt hại trong ChiTietHopDong
-                        ct.TinhTrangTraXe = tinhTrang;
-                        ct.MoTaThietHai = moTa;
-
-                        // Tính phí đền bù bằng service
-                        if (tinhTrang != "Bình thường")
-                        {
-                            var compensationResult = _damageService.ProcessDamageReport(
-                                tinhTrang, ct.Xe.GiaTriXe, chiPhi, soNgayThucTe);
-                            
-                            ct.PhiDenBu = compensationResult.CompensationAmount;
-                            tongPhiDenBu += ct.PhiDenBu;
-
-                            // Cập nhật trạng thái xe theo kết quả xử lý
-                            ct.Xe.TrangThai = compensationResult.NewBikeStatus;
-                            ct.TrangThaiXe = compensationResult.NewBikeStatus;
-
-                            // Cập nhật thông tin thiệt hại vào xe
-                            ct.Xe.NgayGapSuCo = ngayTraThucTe;
-                            ct.Xe.MoTaThietHai = moTa;
-                            ct.Xe.ChiPhiSuaChua = chiPhi;
-
-                            // Tạo báo cáo thiệt hại chi tiết
-                            var baoCaoThietHai = new BaoCaoThietHai
-                            {
-                                MaChiTiet = ct.MaChiTiet,
-                                LoaiThietHai = tinhTrang,
-                                MoTaChiTiet = moTa,
-                                NgayPhatHien = ngayTraThucTe,
-                                ChiPhiSuaChuaUocTinh = chiPhi,
-                                PhiDenBuKhachHang = ct.PhiDenBu,
-                                GiaTriXeTruocKhiHong = ct.Xe.GiaTriXe,
-                                GiaTriXeSauKhiHong = compensationResult.NewBikeStatus == "Mất" ? 0 : 
-                                    ct.Xe.GiaTriXe - compensationResult.CompensationAmount,
-                                TrangThaiXuLy = compensationResult.NewBikeStatus == "Mất" ? "Không thể sửa" : "Chờ xử lý",
-                                MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
-                                NgayTao = DateTime.Now,
-                                NgayCapNhat = DateTime.Now
-                            };
-
-                            _context.BaoCaoThietHai.Add(baoCaoThietHai);
-
-                            // Tự động tạo chi tiêu cho việc sửa chữa xe (nếu có chi phí ước tính)
-                            if (chiPhi > 0)
-                            {
-                                var chiTieuSuaChua = new ChiTieu
-                                {
-                                    NoiDung = $"Sửa chữa xe {ct.Xe.TenXe} ({ct.Xe.BienSoXe}) - {tinhTrang}",
-                                    SoTien = chiPhi,
-                                    NgayChi = ngayTraThucTe,
-                                    GhiChu = string.IsNullOrEmpty(moTa) ? $"Sửa chữa do {tinhTrang.ToLower()}" : moTa,
-                                    MaXe = ct.MaXe
-                                };
-
-                                _context.ChiTieu.Add(chiTieuSuaChua);
-                            }
-                        }
-                        else
-                        {
-                            // Xe bình thường - trạng thái sẵn sàng
-                            ct.Xe.TrangThai = "Sẵn sàng";
-                            ct.TrangThaiXe = "Đã trả";
-                            ct.PhiDenBu = 0;
-                        }
-                    }
-
-                    // Cộng phí đền bù vào tổng phí phụ
-                    hopDong.PhuPhi += tongPhiDenBu;
-
-                    // Tính lại tổng tiền
-                    hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + hopDong.PhuPhi;
-
-                    await _context.SaveChangesAsync();
-
-                    // Tự động tạo hóa đơn sau khi hoàn tất trả xe
-                    var existingHoaDon = await _context.HoaDon
-                        .FirstOrDefaultAsync(h => h.MaHopDong == hopDong.MaHopDong);
+                    var ct = hopDong.ChiTietHopDong.ElementAt(i);
                     
-                    string hoaDonInfo = "";
-                    if (existingHoaDon == null)
+                    // Cập nhật thông tin cơ bản
+                    ct.NgayTraXeThucTe = ngayTraThucTe;
+                    var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days + 1;
+                    ct.SoNgayThue = soNgayThucTe;
+                    ct.ThanhTien = ct.GiaThueNgay * soNgayThucTe;
+
+                    // Xử lý thiệt hại nếu có
+                    string tinhTrang = i < tinhTrangTraXe.Count ? tinhTrangTraXe[i] : "Bình thường";
+                    string moTa = i < moTaThietHai.Count ? moTaThietHai[i] : "";
+                    decimal chiPhi = i < chiPhiSuaChua.Count ? chiPhiSuaChua[i] : 0;
+
+                    // Cập nhật thông tin thiệt hại trong ChiTietHopDong
+                    ct.TinhTrangTraXe = tinhTrang;
+                    ct.MoTaThietHai = moTa;
+
+                    // Tính phí đền bù bằng service
+                    if (tinhTrang != "Bình thường")
                     {
-                        var hoaDon = new HoaDon
+                        var compensationResult = _damageService.ProcessDamageReport(
+                            tinhTrang, ct.Xe.GiaTriXe, chiPhi, soNgayThucTe);
+                        
+                        ct.PhiDenBu = compensationResult.CompensationAmount;
+                        tongPhiDenBu += ct.PhiDenBu;
+
+                        // Cập nhật trạng thái xe theo kết quả xử lý
+                        ct.Xe.TrangThai = compensationResult.NewBikeStatus;
+                        ct.TrangThaiXe = compensationResult.NewBikeStatus;
+
+                        // Cập nhật thông tin thiệt hại vào xe
+                        ct.Xe.NgayGapSuCo = ngayTraThucTe;
+                        ct.Xe.MoTaThietHai = moTa;
+                        ct.Xe.ChiPhiSuaChua = chiPhi;
+
+                        // Tạo báo cáo thiệt hại chi tiết
+                        var baoCaoThietHai = new BaoCaoThietHai
                         {
-                            MaHopDong = hopDong.MaHopDong,
-                            NgayThanhToan = ngayTraThucTe,
-                            SoTien = hopDong.TongTien,
-                            TrangThai = "Đã thanh toán",
-                            GhiChu = $"Hóa đơn được tạo tự động sau khi hoàn tất trả xe. {ghiChu}",
+                            MaChiTiet = ct.MaChiTiet,
+                            LoaiThietHai = tinhTrang,
+                            MoTaChiTiet = moTa,
+                            NgayPhatHien = ngayTraThucTe,
+                            ChiPhiSuaChuaUocTinh = chiPhi,
+                            PhiDenBuKhachHang = ct.PhiDenBu,
+                            GiaTriXeTruocKhiHong = ct.Xe.GiaTriXe,
+                            GiaTriXeSauKhiHong = compensationResult.NewBikeStatus == "Mất" ? 0 : 
+                                ct.Xe.GiaTriXe - compensationResult.CompensationAmount,
+                            TrangThaiXuLy = compensationResult.NewBikeStatus == "Mất" ? "Không thể sửa" : "Chờ xử lý",
+                            MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
                             NgayTao = DateTime.Now,
-                            MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
+                            NgayCapNhat = DateTime.Now
                         };
 
-                        _context.HoaDon.Add(hoaDon);
-                        await _context.SaveChangesAsync();
-                        
-                        hoaDonInfo = $" Mã hóa đơn: HD{hoaDon.MaHoaDon:D6}";
-                    }
+                        _context.BaoCaoThietHai.Add(baoCaoThietHai);
 
-                    await transaction.CommitAsync();
-
-                    if (tongPhiDenBu > 0)
-                    {
-                        // Tính tổng chi phí sửa chữa đã tạo chi tiêu
-                        var tongChiPhiSuaChua = hopDong.ChiTietHopDong
-                            .Where(ct => ct.TinhTrangTraXe != "Bình thường")
-                            .Sum(ct => ct.Xe.ChiPhiSuaChua);
-
-                        TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công! Phí đền bù: {tongPhiDenBu:N0}đ.{hoaDonInfo}";
-                        
-                        if (tongChiPhiSuaChua > 0)
+                        // Tự động tạo chi tiêu cho việc sửa chữa xe (nếu có chi phí ước tính)
+                        if (chiPhi > 0)
                         {
-                            TempData["Warning"] = $"Có thiệt hại xe được ghi nhận. Chi phí sửa chữa {tongChiPhiSuaChua:N0}đ đã được thêm vào danh sách chi tiêu.";
-                        }
-                        else
-                        {
-                            TempData["Warning"] = "Có thiệt hại xe được ghi nhận. Vui lòng kiểm tra báo cáo thiệt hại.";
+                            var chiTieuSuaChua = new ChiTieu
+                            {
+                                NoiDung = $"Sửa chữa xe {ct.Xe.TenXe} ({ct.Xe.BienSoXe}) - {tinhTrang}",
+                                SoTien = chiPhi,
+                                NgayChi = ngayTraThucTe,
+                                GhiChu = string.IsNullOrEmpty(moTa) ? $"Sửa chữa do {tinhTrang.ToLower()}" : moTa,
+                                MaXe = ct.MaXe
+                            };
+
+                            _context.ChiTieu.Add(chiTieuSuaChua);
                         }
                     }
                     else
                     {
-                        TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công!{hoaDonInfo}";
+                        // Xe bình thường - trạng thái sẵn sàng
+                        ct.Xe.TrangThai = "Sẵn sàng";
+                        ct.TrangThaiXe = "Đã trả";
+                        ct.PhiDenBu = 0;
                     }
+                }
 
-                    return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
-                }
-                catch (Exception ex)
+                // Cộng phí đền bù vào tổng phí phụ
+                hopDong.PhuPhi += tongPhiDenBu;
+
+                // Tính lại tổng tiền
+                hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + hopDong.PhuPhi;
+
+                await _context.SaveChangesAsync();
+
+                // Tự động tạo hóa đơn sau khi hoàn tất trả xe
+                var existingHoaDon = await _context.HoaDon
+                    .FirstOrDefaultAsync(h => h.MaHopDong == hopDong.MaHopDong);
+                
+                string hoaDonInfo = "";
+                if (existingHoaDon == null)
                 {
-                    await transaction.RollbackAsync();
-                    ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
-                    return View(hopDong);
+                    var hoaDon = new HoaDon
+                    {
+                        MaHopDong = hopDong.MaHopDong,
+                        NgayThanhToan = ngayTraThucTe,
+                        SoTien = hopDong.TongTien,
+                        TrangThai = "Đã thanh toán",
+                        GhiChu = $"Hóa đơn được tạo tự động sau khi hoàn tất trả xe. {ghiChu}",
+                        NgayTao = DateTime.Now,
+                        MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier))
+                    };
+
+                    _context.HoaDon.Add(hoaDon);
+                    await _context.SaveChangesAsync();
+                    
+                    hoaDonInfo = $" Mã hóa đơn: HD{hoaDon.MaHoaDon:D6}";
                 }
+
+                if (tongPhiDenBu > 0)
+                {
+                    // Tính tổng chi phí sửa chữa đã tạo chi tiêu
+                    var tongChiPhiSuaChua = hopDong.ChiTietHopDong
+                        .Where(ct => ct.TinhTrangTraXe != "Bình thường")
+                        .Sum(ct => ct.Xe.ChiPhiSuaChua);
+
+                    TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công! Phí đền bù: {tongPhiDenBu:N0}đ.{hoaDonInfo}";
+                    
+                    if (tongChiPhiSuaChua > 0)
+                    {
+                        TempData["Warning"] = $"Có thiệt hại xe được ghi nhận. Chi phí sửa chữa {tongChiPhiSuaChua:N0}đ đã được thêm vào danh sách chi tiêu.";
+                    }
+                    else
+                    {
+                        TempData["Warning"] = "Có thiệt hại xe được ghi nhận. Vui lòng kiểm tra báo cáo thiệt hại.";
+                    }
+                }
+                else
+                {
+                    TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công!{hoaDonInfo}";
+                }
+
+                return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
+                return View(hopDong);
             }
         }
 
@@ -542,19 +524,30 @@ namespace bike.Controllers
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            // Lấy danh sách xe sẵn sàng
-            await LoadXeListForView();
-
-            // Tạo model mới với giá trị mặc định
-            var hopDong = new HopDong
+            Console.WriteLine("GET Create action called");
+            
+            try
             {
-                NgayNhanXe = DateTime.Today,
-                NgayTraXeDuKien = DateTime.Today.AddDays(3),
-                NgayTao = DateTime.Now,
-                TrangThai = "Đang thuê"
-            };
+                // Lấy danh sách xe sẵn sàng
+                await LoadXeListForView();
 
-            return View(hopDong);
+                // Tạo model mới với giá trị mặc định
+                var hopDong = new HopDong
+                {
+                    NgayNhanXe = DateTime.Today,
+                    NgayTraXeDuKien = DateTime.Today.AddDays(3),
+                    NgayTao = DateTime.Now,
+                    TrangThai = "Đang thuê"
+                };
+
+                Console.WriteLine("GET Create action completed successfully");
+                return View(hopDong);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GET Create: {ex.Message}");
+                return View(new HopDong());
+            }
         }
 
         // POST: QuanLyHopDong/Create - Xử lý tạo hợp đồng mới
@@ -562,122 +555,246 @@ namespace bike.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(HopDong hopDong, List<int> danhSachXe)
         {
+            // Debug: Log thông tin đầu vào
+            Console.WriteLine($"Create action called with danhSachXe count: {danhSachXe?.Count ?? 0}");
+            Console.WriteLine($"HoTenKhach: {hopDong.HoTenKhach}");
+            Console.WriteLine($"SoDienThoai: {hopDong.SoDienThoai}");
+            Console.WriteLine($"SoCCCD: {hopDong.SoCCCD}");
+            Console.WriteLine($"NgayNhanXe: {hopDong.NgayNhanXe}");
+            Console.WriteLine($"NgayTraXeDuKien: {hopDong.NgayTraXeDuKien}");
+            Console.WriteLine($"TienCoc: {hopDong.TienCoc}");
+            Console.WriteLine($"PhuPhi: {hopDong.PhuPhi}");
+            
+            // Debug: Log all form data
+            Console.WriteLine("All form data:");
+            foreach (var key in Request.Form.Keys)
+            {
+                Console.WriteLine($"{key}: {Request.Form[key]}");
+            }
+            
+            // Debug: Log danhSachXe specifically
+            if (danhSachXe != null)
+            {
+                Console.WriteLine("danhSachXe details:");
+                for (int i = 0; i < danhSachXe.Count; i++)
+                {
+                    Console.WriteLine($"danhSachXe[{i}]: {danhSachXe[i]}");
+                }
+            }
+            
+            // Kiểm tra và sửa lỗi binding ngày tháng
+            if (hopDong.NgayNhanXe == default(DateTime))
+            {
+                var ngayNhanStr = Request.Form["NgayNhanXe"].ToString();
+                if (DateTime.TryParse(ngayNhanStr, out var ngayNhan))
+                {
+                    hopDong.NgayNhanXe = ngayNhan;
+                    Console.WriteLine($"Fixed NgayNhanXe from form: {ngayNhanStr} -> {ngayNhan}");
+                }
+            }
+            
+            if (hopDong.NgayTraXeDuKien == default(DateTime))
+            {
+                var ngayTraStr = Request.Form["NgayTraXeDuKien"].ToString();
+                if (DateTime.TryParse(ngayTraStr, out var ngayTra))
+                {
+                    hopDong.NgayTraXeDuKien = ngayTra;
+                    Console.WriteLine($"Fixed NgayTraXeDuKien from form: {ngayTraStr} -> {ngayTra}");
+                }
+            }
+            
+            // Kiểm tra và sửa lỗi binding số tiền
+            if (Request.Form.ContainsKey("TienCoc"))
+            {
+                var tienCocStr = Request.Form["TienCoc"].ToString();
+                if (decimal.TryParse(tienCocStr, out var tienCoc))
+                {
+                    hopDong.TienCoc = tienCoc;
+                    Console.WriteLine($"Fixed TienCoc from form: {tienCocStr} -> {tienCoc}");
+                }
+            }
+            
+            if (Request.Form.ContainsKey("PhuPhi"))
+            {
+                var phuPhiStr = Request.Form["PhuPhi"].ToString();
+                if (decimal.TryParse(phuPhiStr, out var phuPhi))
+                {
+                    hopDong.PhuPhi = phuPhi;
+                    Console.WriteLine($"Fixed PhuPhi from form: {phuPhiStr} -> {phuPhi}");
+                }
+            }
+            
             // Kiểm tra có chọn xe không
+            Console.WriteLine($"Checking danhSachXe: null={danhSachXe == null}, count={danhSachXe?.Count ?? 0}");
             if (danhSachXe == null || !danhSachXe.Any())
             {
+                Console.WriteLine("No vehicles selected, adding error to ModelState");
                 ModelState.AddModelError("DanhSachXe", "Vui lòng chọn ít nhất một xe!");
                 await LoadXeListForView();
                 return View(hopDong);
             }
 
             // Lấy thông tin tất cả xe được chọn
+            Console.WriteLine($"Looking for vehicles with IDs: {string.Join(", ", danhSachXe)}");
             var cacXeThue = await _context.Xe
                 .Where(x => danhSachXe.Contains(x.MaXe))
                 .ToListAsync();
+            Console.WriteLine($"Found {cacXeThue.Count} vehicles in database");
 
             // Kiểm tra từng xe
             var xeKhongKhaDung = cacXeThue.Where(x => x.TrangThai != "Sẵn sàng").ToList();
+            Console.WriteLine($"Found {xeKhongKhaDung.Count} unavailable vehicles");
             if (xeKhongKhaDung.Any())
             {
-                ModelState.AddModelError("DanhSachXe", 
-                    $"Xe không khả dụng: {string.Join(", ", xeKhongKhaDung.Select(x => x.BienSoXe))}");
+                var errorMsg = $"Xe không khả dụng: {string.Join(", ", xeKhongKhaDung.Select(x => x.BienSoXe))}";
+                Console.WriteLine($"Adding error: {errorMsg}");
+                ModelState.AddModelError("DanhSachXe", errorMsg);
             }
 
             // Kiểm tra xe có tồn tại không
+            Console.WriteLine($"Vehicle count check: found={cacXeThue.Count}, requested={danhSachXe.Count}");
             if (cacXeThue.Count != danhSachXe.Count)
             {
-                ModelState.AddModelError("DanhSachXe", "Một số xe không tồn tại trong hệ thống!");
+                var errorMsg = "Một số xe không tồn tại trong hệ thống!";
+                Console.WriteLine($"Adding error: {errorMsg}");
+                ModelState.AddModelError("DanhSachXe", errorMsg);
             }
 
             // Kiểm tra CCCD đã tồn tại trong hợp đồng đang thuê chưa
+            Console.WriteLine($"Checking existing contract for CCCD: {hopDong.SoCCCD}");
             var existingContract = await _context.HopDong
                 .AnyAsync(h => h.SoCCCD == hopDong.SoCCCD && h.TrangThai == "Đang thuê");
+            Console.WriteLine($"Existing contract found: {existingContract}");
             if (existingContract)
             {
-                ModelState.AddModelError("SoCCCD", "Khách hàng này đang có hợp đồng thuê xe khác!");
+                var errorMsg = "Khách hàng này đang có hợp đồng thuê xe khác!";
+                Console.WriteLine($"Adding error: {errorMsg}");
+                ModelState.AddModelError("SoCCCD", errorMsg);
             }
 
+            // Debug: Log ModelState errors
+            Console.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+            if (!ModelState.IsValid)
+            {
+                Console.WriteLine("ModelState is invalid. Errors:");
+                foreach (var modelState in ModelState.Values)
+                {
+                    foreach (var error in modelState.Errors)
+                    {
+                        Console.WriteLine($"Error: {error.ErrorMessage}");
+                    }
+                }
+            }
+            
             if (ModelState.IsValid)
             {
-                using (var transaction = await _context.Database.BeginTransactionAsync())
+                try
                 {
-                    try
+                    // Set thông tin tự động
+                    hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                    hopDong.NgayTao = DateTime.Now;
+                    hopDong.TrangThai = "Đang thuê";
+
+                    // Tính tổng tiền từ tất cả xe
+                    var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
+                    var tongTienThueXe = cacXeThue.Sum(xe => xe.GiaThue * soNgay);
+                    hopDong.TongTien = tongTienThueXe + hopDong.PhuPhi;
+
+                    // Lưu hợp đồng trước để có MaHopDong
+                    _context.HopDong.Add(hopDong);
+                    await _context.SaveChangesAsync();
+
+                    // Tạo chi tiết hợp đồng cho từng xe
+                    foreach (var xe in cacXeThue)
                     {
-                        // Set thông tin tự động
-                        hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                        hopDong.NgayTao = DateTime.Now;
-                        hopDong.TrangThai = "Đang thuê";
-
-                        // Tính tổng tiền từ tất cả xe
-                        var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
-                        var tongTienThueXe = cacXeThue.Sum(xe => xe.GiaThue * soNgay);
-                        hopDong.TongTien = tongTienThueXe + hopDong.PhuPhi;
-
-                        // Lưu hợp đồng trước để có MaHopDong
-                        _context.HopDong.Add(hopDong);
-                        await _context.SaveChangesAsync();
-
-                        // Tạo chi tiết hợp đồng cho từng xe
-                        foreach (var xe in cacXeThue)
+                        var tienThueXeNay = xe.GiaThue * soNgay;
+                        
+                        var chiTietHopDong = new ChiTietHopDong
                         {
-                            var tienThueXeNay = xe.GiaThue * soNgay;
-                            
-                            var chiTietHopDong = new ChiTietHopDong
-                            {
-                                MaHopDong = hopDong.MaHopDong,
-                                MaXe = xe.MaXe,
-                                GiaThueNgay = xe.GiaThue,
-                                NgayNhanXe = hopDong.NgayNhanXe,
-                                NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
-                                SoNgayThue = soNgay,
-                                ThanhTien = tienThueXeNay,
-                                TrangThaiXe = "Đang thuê",
-                                NgayTao = DateTime.Now
-                            };
+                            MaHopDong = hopDong.MaHopDong,
+                            MaXe = xe.MaXe,
+                            GiaThueNgay = xe.GiaThue,
+                            NgayNhanXe = hopDong.NgayNhanXe,
+                            NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
+                            SoNgayThue = soNgay,
+                            ThanhTien = tienThueXeNay,
+                            TrangThaiXe = "Đang thuê",
+                            NgayTao = DateTime.Now
+                        };
 
-                            _context.ChiTietHopDong.Add(chiTietHopDong);
+                        _context.ChiTietHopDong.Add(chiTietHopDong);
 
-                            // Cập nhật trạng thái xe
-                            xe.TrangThai = "Đang thuê";
-                        }
-
-                        await _context.SaveChangesAsync();
-                        await transaction.CommitAsync();
-
-                        TempData["Success"] = $"Tạo hợp đồng thành công với {cacXeThue.Count} xe! Mã HĐ: HD{hopDong.MaHopDong:D6}";
-                        return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
+                        // Cập nhật trạng thái xe
+                        xe.TrangThai = "Đang thuê";
                     }
-                    catch (Exception ex)
-                    {
-                        await transaction.RollbackAsync();
-                        ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
-                    }
+
+                    Console.WriteLine("Saving changes to database...");
+                    await _context.SaveChangesAsync();
+                    Console.WriteLine("Changes saved successfully");
+
+                    var successMsg = $"Tạo hợp đồng thành công với {cacXeThue.Count} xe! Mã HĐ: HD{hopDong.MaHopDong:D6}";
+                    Console.WriteLine($"Success: {successMsg}");
+                    TempData["Success"] = successMsg;
+                    
+                    return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Exception occurred: {ex.Message}");
+                    Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                    ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
                 }
             }
 
             // Nếu có lỗi, load lại danh sách xe
+            Console.WriteLine("Returning to view due to validation errors or other issues");
+            
+            // Thêm thông tin debug vào TempData
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                TempData["DebugErrors"] = string.Join("; ", errors);
+                Console.WriteLine($"Debug errors: {TempData["DebugErrors"]}");
+            }
+            
+            Console.WriteLine("Loading vehicle list for view...");
             await LoadXeListForView();
+            Console.WriteLine("Vehicle list loaded successfully");
+            
+            Console.WriteLine("Returning to Create view");
             return View(hopDong);
         }
 
         // Helper method để load danh sách xe
         private async Task LoadXeListForView()
         {
-            ViewBag.XeList = await _context.Xe
-                .Include(x => x.LoaiXe)
-                .Where(x => x.TrangThai == "Sẵn sàng")
-                .Select(x => new
-                {
-                    x.MaXe,
-                    x.TenXe,
-                    x.BienSoXe,
-                    x.HangXe,
-                    x.DongXe,
-                    x.GiaThue,
-                    LoaiXe = x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại",
-                    Display = x.TenXe + " - " + x.BienSoXe + " (" + (x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại") + ") - " + x.GiaThue.ToString("N0") + "đ/ngày"
-                })
-                .ToListAsync();
+            try
+            {
+                Console.WriteLine("Loading available vehicles from database...");
+                var xeList = await _context.Xe
+                    .Include(x => x.LoaiXe)
+                    .Where(x => x.TrangThai == "Sẵn sàng")
+                    .Select(x => new
+                    {
+                        x.MaXe,
+                        x.TenXe,
+                        x.BienSoXe,
+                        x.HangXe,
+                        x.DongXe,
+                        x.GiaThue,
+                        LoaiXe = x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại",
+                        Display = x.TenXe + " - " + x.BienSoXe + " (" + (x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại") + ") - " + x.GiaThue.ToString("N0") + "đ/ngày"
+                    })
+                    .ToListAsync();
+                
+                ViewBag.XeList = xeList;
+                Console.WriteLine($"Loaded {xeList.Count} available vehicles");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading vehicle list: {ex.Message}");
+                ViewBag.XeList = new List<object>();
+            }
         }
 
         // AJAX: Lấy thông tin xe
@@ -836,6 +953,31 @@ namespace bike.Controllers
             {
                 return Content($"Lỗi: {ex.Message}");
             }
+        }
+
+        // GET: QuanLyHopDong/InHopDongA4/5 - In hợp đồng A4
+        [HttpGet]
+        public async Task<IActionResult> InHopDongA4(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var hopDong = await _context.HopDong
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
+                .Include(h => h.DatCho)
+                .Include(h => h.HoaDon) 
+                .Include(h => h.NguoiTao)
+                .FirstOrDefaultAsync(h => h.MaHopDong == id);
+
+            if (hopDong == null)
+            {
+                return NotFound();
+            }
+
+            return View(hopDong);
         }
     }
 }

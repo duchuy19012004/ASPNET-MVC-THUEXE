@@ -194,95 +194,89 @@ namespace bike.Controllers
                 return View(cart);
             }
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            try
             {
-                try
+                // Kiểm tra tất cả xe vẫn còn khả dụng
+                foreach (var item in cart.Items)
                 {
-                    // Kiểm tra tất cả xe vẫn còn khả dụng
-                    foreach (var item in cart.Items)
+                    var xe = await _context.Xe.FindAsync(item.MaXe);
+                    if (xe == null || xe.TrangThai != "Sẵn sàng")
                     {
-                        var xe = await _context.Xe.FindAsync(item.MaXe);
-                        if (xe == null || xe.TrangThai != "Sẵn sàng")
-                        {
-                            ModelState.AddModelError("", $"Xe {item.TenXe} không còn khả dụng");
-                            cart.HoTen = model.HoTen;
-                            cart.Email = model.Email;
-                            cart.SoDienThoai = model.SoDienThoai;
-                            cart.GhiChuChung = model.GhiChuChung;
-                            return View(cart);
-                        }
+                        ModelState.AddModelError("", $"Xe {item.TenXe} không còn khả dụng");
+                        cart.HoTen = model.HoTen;
+                        cart.Email = model.Email;
+                        cart.SoDienThoai = model.SoDienThoai;
+                        cart.GhiChuChung = model.GhiChuChung;
+                        return View(cart);
                     }
+                }
 
-                    // Tạo hợp đồng chính
-                    var hopDong = new HopDong
+                // Tạo hợp đồng chính
+                var hopDong = new HopDong
+                {
+                    HoTenKhach = model.HoTen,
+                    SoDienThoai = model.SoDienThoai,
+                    SoCCCD = "", // Sẽ được cập nhật sau
+                    DiaChi = "", // Sẽ được cập nhật sau
+                    NgayNhanXe = cart.Items.Min(i => i.NgayNhanXe),
+                    NgayTraXeDuKien = cart.Items.Max(i => i.NgayTraXe),
+                    TienCoc = 0, // Sẽ được cập nhật sau
+                    PhuPhi = 0,
+                    GhiChu = model.GhiChuChung,
+                    NgayTao = DateTime.Now,
+                    TrangThai = "Chờ xác nhận", // Trạng thái đặt chỗ
+                    ChiTietHopDong = new List<ChiTietHopDong>()
+                };
+
+                // Nếu đã đăng nhập, lưu người tạo
+                if (User.Identity.IsAuthenticated)
+                {
+                    hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                }
+
+                // Tạo chi tiết hợp đồng cho từng xe
+                foreach (var item in cart.Items)
+                {
+                    var xe = await _context.Xe.FindAsync(item.MaXe);
+                    var soNgayThue = (item.NgayTraXe - item.NgayNhanXe).Days + 1;
+
+                    var chiTiet = new ChiTietHopDong
                     {
-                        HoTenKhach = model.HoTen,
-                        SoDienThoai = model.SoDienThoai,
-                        SoCCCD = "", // Sẽ được cập nhật sau
-                        DiaChi = "", // Sẽ được cập nhật sau
-                        NgayNhanXe = cart.Items.Min(i => i.NgayNhanXe),
-                        NgayTraXeDuKien = cart.Items.Max(i => i.NgayTraXe),
-                        TienCoc = 0, // Sẽ được cập nhật sau
-                        PhuPhi = 0,
-                        GhiChu = model.GhiChuChung,
-                        NgayTao = DateTime.Now,
-                        TrangThai = "Chờ xác nhận", // Trạng thái đặt chỗ
-                        ChiTietHopDong = new List<ChiTietHopDong>()
+                        MaXe = item.MaXe,
+                        GiaThueNgay = xe.GiaThue,
+                        NgayNhanXe = item.NgayNhanXe,
+                        NgayTraXeDuKien = item.NgayTraXe,
+                        SoNgayThue = soNgayThue,
+                        ThanhTien = xe.GiaThue * soNgayThue,
+                        TrangThaiXe = "Chờ xác nhận",
+                        GhiChu = item.GhiChu,
+                        NgayTao = DateTime.Now
                     };
 
-                    // Nếu đã đăng nhập, lưu người tạo
-                    if (User.Identity.IsAuthenticated)
-                    {
-                        hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                    }
-
-                    // Tạo chi tiết hợp đồng cho từng xe
-                    foreach (var item in cart.Items)
-                    {
-                        var xe = await _context.Xe.FindAsync(item.MaXe);
-                        var soNgayThue = (item.NgayTraXe - item.NgayNhanXe).Days + 1;
-
-                        var chiTiet = new ChiTietHopDong
-                        {
-                            MaXe = item.MaXe,
-                            GiaThueNgay = xe.GiaThue,
-                            NgayNhanXe = item.NgayNhanXe,
-                            NgayTraXeDuKien = item.NgayTraXe,
-                            SoNgayThue = soNgayThue,
-                            ThanhTien = xe.GiaThue * soNgayThue,
-                            TrangThaiXe = "Chờ xác nhận",
-                            GhiChu = item.GhiChu,
-                            NgayTao = DateTime.Now
-                        };
-
-                        hopDong.ChiTietHopDong.Add(chiTiet);
-                    }
-
-                    // Tính tổng tiền
-                    hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien);
-
-                    // Lưu hợp đồng
-                    _context.HopDong.Add(hopDong);
-                    await _context.SaveChangesAsync();
-
-                    await transaction.CommitAsync();
-
-                    // Xóa danh sách xe
-                    _cartService.ClearCart();
-
-                    // Chuyển đến trang xác nhận
-                    return RedirectToAction("ConfirmationContract", new { id = hopDong.MaHopDong });
+                    hopDong.ChiTietHopDong.Add(chiTiet);
                 }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
-                    cart.HoTen = model.HoTen;
-                    cart.Email = model.Email;
-                    cart.SoDienThoai = model.SoDienThoai;
-                    cart.GhiChuChung = model.GhiChuChung;
-                    return View(cart);
-                }
+
+                // Tính tổng tiền
+                hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien);
+
+                // Lưu hợp đồng
+                _context.HopDong.Add(hopDong);
+                await _context.SaveChangesAsync();
+
+                // Xóa danh sách xe
+                _cartService.ClearCart();
+
+                // Chuyển đến trang xác nhận
+                return RedirectToAction("ConfirmationContract", new { id = hopDong.MaHopDong });
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
+                cart.HoTen = model.HoTen;
+                cart.Email = model.Email;
+                cart.SoDienThoai = model.SoDienThoai;
+                cart.GhiChuChung = model.GhiChuChung;
+                return View(cart);
             }
         }
 

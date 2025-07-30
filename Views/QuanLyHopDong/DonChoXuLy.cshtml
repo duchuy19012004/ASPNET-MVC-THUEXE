@@ -267,7 +267,7 @@
 </div>
 
 <!-- Modal Hủy đơn -->
-<div class="modal fade" id="huyDonModal" tabindex="-1">
+<div class="modal fade" id="huyDonModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -296,7 +296,7 @@
 </div>
 
 <!-- Modal Chi tiết -->
-<div class="modal fade" id="chiTietModal" tabindex="-1">
+<div class="modal fade" id="chiTietModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -325,6 +325,10 @@
         });
 
         function huyDon(maDatCho) {
+            // Xóa backdrop cũ nếu còn
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+
             console.log('Huy don clicked:', maDatCho);
 
             // Set giá trị
@@ -380,6 +384,10 @@
         }
 
         function xemChiTiet(maDatCho) {
+            // Xóa backdrop cũ nếu còn
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+
             console.log('Xem chi tiet clicked:', maDatCho);
 
             // Hiển thị loading
@@ -402,5 +410,20 @@
                 }
             });
         }
+    </script>
+    <script>
+        // Đảm bảo backdrop luôn được xóa khi modal đóng
+        $('#chiTietModal, #huyDonModal').on('hidden.bs.modal', function () {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+        });
+        // Cho phép bấm ESC để tắt modal và backdrop nếu bị kẹt
+        $(document).on('keydown', function(e) {
+            if (e.key === 'Escape') {
+                $('.modal').modal('hide');
+                $('.modal-backdrop').remove();
+                $('body').removeClass('modal-open');
+            }
+        });
     </script>
 }

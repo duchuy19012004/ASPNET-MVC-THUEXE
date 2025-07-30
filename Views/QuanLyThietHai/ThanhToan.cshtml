@@ -1,0 +1,309 @@
+@model bike.Models.BaoCaoThietHai
+@{
+    ViewData["Title"] = "Thanh Toán Phí Đền Bù";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .payment-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+
+    .payment-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+    }
+
+    .payment-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 15px 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .damage-info {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .payment-summary {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .payment-amount {
+        font-size: 32px;
+        font-weight: bold;
+        text-align: center;
+        margin: 10px 0;
+    }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        padding: 15px 40px;
+        font-size: 18px;
+        font-weight: bold;
+        width: 100%;
+    }
+
+    .status-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-paid {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-partial {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .status-unpaid {
+        background: #f8d7da;
+        color: #721c24;
+    }
+</style>
+
+<div class="payment-container">
+    <!-- Header -->
+    <div class="payment-header">
+        <h2><i class="bi bi-cash-coin"></i> Thanh Toán Phí Đền Bù</h2>
+        <p class="mb-0">Báo cáo thiệt hại #@Model.MaBaoCao</p>
+    </div>
+
+    <!-- Body -->
+    <div class="payment-body">
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            </div>
+        }
+        
+        <!-- Thông tin thiệt hại -->
+        <div class="damage-info">
+            <h4 class="mb-3"><i class="bi bi-exclamation-triangle"></i> Thông tin thiệt hại</h4>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Hợp đồng:</strong> HD@(Model.ChiTietHopDong?.HopDong?.MaHopDong.ToString("D6"))</p>
+                    <p><strong>Khách hàng:</strong> @Model.ChiTietHopDong?.HopDong?.HoTenKhach</p>
+                    <p><strong>Xe:</strong> @Model.ChiTietHopDong?.Xe?.TenXe - @Model.ChiTietHopDong?.Xe?.BienSoXe</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Loại thiệt hại:</strong> @Model.LoaiThietHai</p>
+                    <p><strong>Ngày phát hiện:</strong> @Model.NgayPhatHien.ToString("dd/MM/yyyy")</p>
+                    <p><strong>Trạng thái:</strong> 
+                        <span class="status-badge @(Model.TrangThaiThanhToan switch {
+                            "Đã thanh toán đủ" => "status-paid",
+                            "Đã thanh toán một phần" => "status-partial",
+                            _ => "status-unpaid"
+                        })">@Model.TrangThaiThanhToan</span>
+                    </p>
+                </div>
+            </div>
+            <div class="mt-3">
+                <p><strong>Mô tả:</strong> @Model.MoTaChiTiet</p>
+            </div>
+        </div>
+
+        <!-- Tóm tắt thanh toán -->
+        <div class="payment-summary">
+            <h4 class="text-center mb-3">Tóm tắt thanh toán</h4>
+            <div class="row text-center">
+                <div class="col-md-4">
+                    <div class="payment-amount">@(Model.ChiPhiSuaChuaUocTinh.HasValue ? Model.ChiPhiSuaChuaUocTinh.Value.ToString("N0") : "0")đ</div>
+                    <small>Phí đền bù</small>
+                </div>
+                <div class="col-md-4">
+                    <div class="payment-amount">@(Model.SoTienDaThanhToan.HasValue ? Model.SoTienDaThanhToan.Value.ToString("N0") : "0")đ</div>
+                    <small>Đã thanh toán</small>
+                </div>
+                <div class="col-md-4">
+                    <div class="payment-amount">@Model.SoTienConLai.ToString("N0")đ</div>
+                    <small>Còn lại</small>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.SoTienConLai > 0)
+        {
+            <!-- Form thanh toán -->
+            <form asp-action="ThanhToan" method="post">
+                <input type="hidden" asp-for="MaBaoCao" />
+                
+                <h4 class="mb-3"><i class="bi bi-credit-card"></i> Thêm thanh toán</h4>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Số tiền thanh toán <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" name="SoTienDaThanhToan" id="soTienThanhToan" class="form-control" 
+                                       min="0" max="@Model.SoTienConLai" step="1000"
+                                       placeholder="Nhập số tiền..." required />
+                                <button type="button" class="btn btn-outline-secondary dropdown-toggle" 
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-lightning"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="setPaymentAmount(0.5)">
+                                        <i class="bi bi-50-circle"></i> Thanh toán 1 phần (50%)
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setPaymentAmount(1.0)">
+                                        <i class="bi bi-100-circle"></i> Thanh toán hết (100%)
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setPaymentAmount(0.25)">
+                                        <i class="bi bi-25-circle"></i> Thanh toán 25%
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="setPaymentAmount(0.75)">
+                                        <i class="bi bi-75-circle"></i> Thanh toán 75%
+                                    </a></li>
+                                </ul>
+                            </div>
+                            <small class="form-text text-muted">Tối đa: @Model.SoTienConLai.ToString("N0")đ</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú thanh toán</label>
+                            <textarea name="GhiChuThanhToan" class="form-control" rows="3"
+                                      placeholder="Ghi chú về việc thanh toán..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-pay">
+                    <i class="bi bi-check-circle"></i> Cập Nhật Thanh Toán
+                </button>
+            </form>
+        }
+        else
+        {
+            <div class="alert alert-success text-center">
+                <i class="bi bi-check-circle-fill"></i>
+                <strong>Đã thanh toán đủ!</strong> Khách hàng đã thanh toán toàn bộ phí đền bù.
+            </div>
+        }
+
+        <!-- Lịch sử thanh toán -->
+        @if (Model.SoTienDaThanhToan > 0)
+        {
+            <div class="mt-4">
+                <h5><i class="bi bi-clock-history"></i> Lịch sử thanh toán</h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ngày thanh toán</th>
+                                <th>Số tiền</th>
+                                <th>Ghi chú</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@(Model.NgayThanhToan?.ToString("dd/MM/yyyy HH:mm") ?? "N/A")</td>
+                                <td class="text-success">@(Model.SoTienDaThanhToan.HasValue ? Model.SoTienDaThanhToan.Value.ToString("N0") : "0")đ</td>
+                                <td>@(Model.GhiChuThanhToan ?? "Không có")</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- Buttons -->
+        <div class="d-flex gap-3 mt-4">
+            <a asp-action="Details" asp-route-id="@Model.MaBaoCao" class="btn btn-info flex-fill">
+                <i class="bi bi-eye"></i> Xem chi tiết
+            </a>
+            <a asp-action="Index" class="btn btn-secondary flex-fill">
+                <i class="bi bi-arrow-left"></i> Quay lại
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Format số tiền input
+            $('input[name="SoTienDaThanhToan"]').on('input', function() {
+                const value = parseInt($(this).val()) || 0;
+                const maxValue = @Model.SoTienConLai;
+                
+                if (value > maxValue) {
+                    $(this).val(maxValue);
+                    alert('Số tiền không được vượt quá số tiền còn lại!');
+                }
+            });
+
+            // Validate form
+            $('form').on('submit', function(e) {
+                var soTien = parseInt($('input[name="SoTienDaThanhToan"]').val()) || 0;
+                var soTienConLai = parseInt('@Model.SoTienConLai');
+                
+                if (soTien <= 0) {
+                    e.preventDefault();
+                    alert('Vui lòng nhập số tiền thanh toán!');
+                    return false;
+                }
+                
+                if (soTien > soTienConLai) {
+                    e.preventDefault();
+                    alert('Số tiền thanh toán không được vượt quá số tiền còn lại!');
+                    return false;
+                }
+                
+                return confirm('Xác nhận cập nhật thanh toán ' + soTien.toLocaleString('vi-VN') + 'đ?');
+            });
+        });
+
+        // Function để set số tiền thanh toán dựa trên phần trăm chi phí ước tính
+        function setPaymentAmount(percentage) {
+            const chiPhiUocTinh = @(Model.ChiPhiSuaChuaUocTinh ?? 0);
+            const soTienConLai = @Model.SoTienConLai;
+            
+            if (chiPhiUocTinh <= 0) {
+                alert('Không có chi phí ước tính để tính toán!');
+                return;
+            }
+            
+            // Tính số tiền dựa trên phần trăm chi phí ước tính
+            let soTienThanhToan = Math.round(chiPhiUocTinh * percentage);
+            
+            // Đảm bảo không vượt quá số tiền còn lại
+            if (soTienThanhToan > soTienConLai) {
+                soTienThanhToan = soTienConLai;
+                alert('Số tiền đã được điều chỉnh xuống ' + soTienConLai.toLocaleString('vi-VN') + 'đ (số tiền còn lại tối đa)');
+            }
+            
+            // Set giá trị vào input
+            document.getElementById('soTienThanhToan').value = soTienThanhToan;
+            
+            // Hiển thị thông báo
+            const percentageText = (percentage * 100) + '%';
+            const chiPhiText = chiPhiUocTinh.toLocaleString('vi-VN') + 'đ';
+            const soTienText = soTienThanhToan.toLocaleString('vi-VN') + 'đ';
+            
+            console.log(`Đã set thanh toán ${percentageText} chi phí ước tính (${chiPhiText}) = ${soTienText}`);
+        }
+    </script>
+} 

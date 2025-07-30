@@ -81,7 +81,6 @@
         <!-- Script riêng cho trang quản lý xe -->
         <!-- ========== KẾT THÚC PHẦN SCRIPTS ========== -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <style>
@@ -103,6 +102,24 @@
             gap: 15px;
         }
     </style>
+    <script>
+        // Dọn dẹp backdrop và modal-open khi tất cả modal đã đóng (ưu tiên sự kiện)
+        document.addEventListener('hidden.bs.modal', function () {
+            setTimeout(function () {
+                if (document.querySelectorAll('.modal.show').length === 0) {
+                    document.body.classList.remove('modal-open');
+                    document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+                }
+            }, 200);
+        });
+        // Force remove modal overlay nếu bị kẹt (dự phòng)
+        setInterval(function() {
+            if (document.body.classList.contains('modal-open') && document.querySelectorAll('.modal.show').length === 0) {
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+            }
+        }, 1000);
+    </script>
     @RenderSection("Scripts", required: false)
 
 </body>

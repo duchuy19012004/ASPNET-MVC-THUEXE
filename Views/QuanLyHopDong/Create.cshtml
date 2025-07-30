@@ -5,311 +5,197 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
+@* --- UI REDESIGN START --- *@
 <style>
+    /* Improved container and card style */
     .create-container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 30px 0;
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0;
     }
-
-    .create-header {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        padding: 30px;
-        border-radius: 15px 15px 0 0;
-        text-align: center;
+    .card-ui {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+        margin-bottom: 32px;
+        padding: 32px 28px 24px 28px;
+        border: 1px solid #f0f0f0;
     }
-
-    .create-body {
-        background: white;
-        padding: 30px;
-        border-radius: 0 0 15px 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    .card-ui .section-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1a202c;
+        margin-bottom: 18px;
+        border-left: 4px solid #20c997;
+        padding-left: 12px;
+        background: #f8f9fa;
+        border-radius: 6px 0 0 6px;
+        padding-top: 6px;
+        padding-bottom: 6px;
     }
-
-    .section-title {
-        color: #333;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #f0f0f0;
-    }
-
     .form-section {
-        margin-bottom: 30px;
+        margin-bottom: 0;
     }
-
-    .money-input {
-        font-size: 18px;
-        font-weight: bold;
-        text-align: right;
+    .form-label {
+        font-weight: 500;
+        color: #495057;
     }
-
+    .form-control, .form-select {
+        border-radius: 6px;
+        border: 1px solid #ced4da;
+        font-size: 1rem;
+        margin-bottom: 10px;
+    }
+    .row {
+        margin-bottom: 0;
+    }
+    .mb-3 {
+        margin-bottom: 18px !important;
+    }
     .summary-box {
         background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         color: white;
-        padding: 20px;
-        border-radius: 10px;
-        margin-top: 20px;
+        padding: 24px 18px;
+        border-radius: 12px;
+        margin-top: 24px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
     }
-
     .total-amount {
-        font-size: 32px;
-        font-weight: bold;
+        font-size: 2rem;
+        font-weight: 700;
         text-align: center;
         margin-top: 10px;
     }
-
     .btn-create {
         background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         color: white;
         border: none;
-        padding: 15px 40px;
-        font-size: 18px;
-        font-weight: bold;
+        padding: 14px 0;
+        font-size: 1.1rem;
+        font-weight: 600;
         width: 100%;
-        margin-top: 20px;
+        margin-top: 18px;
+        border-radius: 8px;
         transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.08);
     }
-
-        .btn-create:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
-            color: white;
-        }
-
-    /* Styles cho chọn nhiều xe với search và filter */
+    .btn-create:hover {
+        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+        color: #fff;
+        box-shadow: 0 6px 24px rgba(40, 167, 69, 0.18);
+    }
+    .btn-secondary {
+        border-radius: 8px;
+        margin-top: 10px;
+    }
+    /* Section separation */
+    .section-space {
+        margin-bottom: 32px;
+    }
+    /* Vehicle selection improvements */
     .vehicle-selection {
-        border: 2px dashed #ddd;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
         background: #f8f9fa;
+        border: 1.5px dashed #b2dfdb;
+        border-radius: 10px;
+        padding: 18px 18px 10px 18px;
+        margin-bottom: 18px;
     }
-
     .vehicle-filters {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
+        background: #fff;
         border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px 10px 8px 10px;
+        margin-bottom: 10px;
     }
-
-    .filter-row {
-        display: flex;
-        gap: 15px;
-        align-items: end;
-        flex-wrap: wrap;
-    }
-
-    .filter-group {
-        flex: 1;
-        min-width: 150px;
-    }
-
-    .filter-group label {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 5px;
-        display: block;
-    }
-
     .quick-filter-buttons {
-        display: flex;
-        gap: 8px;
-        margin-top: 10px;
-        flex-wrap: wrap;
+        margin-top: 8px;
+        gap: 6px;
     }
-
     .btn-quick-filter {
-        padding: 4px 8px;
-        font-size: 11px;
-        border: 1px solid #ccc;
-        background: white;
+        padding: 3px 10px;
+        font-size: 12px;
         border-radius: 4px;
-        cursor: pointer;
-        transition: all 0.2s;
     }
-
-    .btn-quick-filter:hover, .btn-quick-filter.active {
-        background: #007bff;
-        color: white;
-        border-color: #007bff;
-    }
-
     .vehicle-item {
-        background: white;
+        background: #fff;
         border: 1px solid #e0e0e0;
         border-radius: 8px;
-        padding: 15px;
-        margin-bottom: 15px;
+        padding: 10px 16px;
+        margin-bottom: 10px;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
     }
-
-    .vehicle-info-display {
-        flex: 1;
-    }
-
     .vehicle-info-display h6 {
-        margin: 0;
-        color: #333;
-        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 2px;
     }
-
-    .vehicle-info-display small {
-        color: #666;
-    }
-
     .vehicle-price {
-        color: #dc3545;
-        font-weight: bold;
-        font-size: 16px;
-        margin-right: 15px;
+        font-size: 1rem;
+        margin-right: 10px;
     }
-
     .btn-remove-vehicle {
-        background: #dc3545;
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 5px;
+        padding: 6px 10px;
         font-size: 12px;
-    }
-
-    .btn-add-vehicle {
-        background: #28a745;
-        color: white;
-        border: none;
-        padding: 10px 20px;
         border-radius: 5px;
+    }
+    .selected-vehicles-summary {
+        background: #e3f2fd;
+        border-radius: 8px;
+        padding: 10px 16px;
         margin-top: 10px;
     }
-
-    .selected-vehicles-summary {
-        background: #e9ecef;
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 20px;
-    }
-
     .no-vehicles-selected {
-        text-align: center;
-        color: #6c757d;
-        font-style: italic;
-        padding: 40px;
+        padding: 30px 0;
+        font-size: 1rem;
     }
-
-    /* Select2 customization */
-    .select2-container--default .select2-selection--single {
-        height: 38px;
-        border: 1px solid #ced4da;
-        border-radius: 0.375rem;
-    }
-
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 36px;
-        padding-left: 12px;
-    }
-
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 36px;
-    }
-
-    .select2-dropdown {
-        border-radius: 0.375rem;
-    }
-
-    .vehicle-search-info {
-        background: #e3f2fd;
-        padding: 10px;
-        border-radius: 5px;
-        margin-bottom: 15px;
-        font-size: 14px;
-        color: #1565c0;
-    }
-
-    /* Currency preview styling giống QuanLyNhanVien */
-    .currency-preview {
-        color: #17a2b8 !important;
-        font-weight: 500;
-        font-size: 13px;
-        margin-top: 4px;
-        display: block;
-    }
-
-    .currency-preview i {
-        margin-right: 5px;
-    }
-
     /* Rental period section styling */
     .rental-period-section {
         background: #f8f9fa;
         border: 1px solid #e9ecef;
         border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
+        padding: 18px 18px 10px 18px;
+        margin-bottom: 10px;
     }
-
     .preset-buttons {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
+        gap: 6px;
     }
-
     .btn-preset {
-        padding: 8px 16px;
-        font-size: 14px;
-        border: 1px solid #dee2e6;
-        background: white;
+        padding: 7px 14px;
+        font-size: 13px;
         border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        color: #495057;
     }
-
-    .btn-preset:hover {
-        background: #007bff;
-        color: white;
-        border-color: #007bff;
-        transform: translateY(-1px);
+    /* Currency preview */
+    .currency-preview {
+        color: #17a2b8 !important;
+        font-size: 13px;
+        margin-top: 2px;
     }
-
-    .btn-preset.active {
-        background: #007bff;
-        color: white;
-        border-color: #007bff;
-    }
-
-    #rentalDays {
-        font-size: 16px;
-        font-weight: 500;
-        text-align: center;
+    /* Responsive tweaks */
+    @@media (max-width: 768px) {
+        .create-container {
+            padding: 0 4px;
+        }
+        .card-ui {
+            padding: 18px 6px 12px 6px;
+        }
     }
 </style>
+@* --- UI REDESIGN END --- *@
 
 <div class="create-container">
-    <!-- Header -->
-    <div class="create-header">
-        <h2><i class="bi bi-file-earmark-plus"></i> Tạo Hợp Đồng Thuê Xe Mới</h2>
-        <p class="mb-0">Nhập đầy đủ thông tin để tạo hợp đồng</p>
+    <div class="card-ui section-space">
+        <div class="create-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-radius: 10px 10px 0 0; padding: 24px 0 16px 0; text-align: center;">
+            <h2 style="font-size:2rem;"><i class="bi bi-file-earmark-plus"></i> Tạo Hợp Đồng Thuê Xe Mới</h2>
+            <p class="mb-0" style="font-size:1.1rem;">Nhập đầy đủ thông tin để tạo hợp đồng</p>
+        </div>
     </div>
-
-    <!-- Body -->
-    <div class="create-body">
-        <form asp-action="Create" method="post" id="createContractForm">
-            @Html.AntiForgeryToken()
-
-            <!-- Chọn nhiều xe với search và filter -->
-            <div class="section-title">
-                <i class="bi bi-bicycle"></i> Chọn xe thuê
-            </div>
+    <form asp-action="Create" method="post" id="createContractForm">
+        @Html.AntiForgeryToken()
+        <div class="card-ui section-space">
+            <div class="section-title"><i class="bi bi-bicycle"></i> Chọn xe thuê</div>
             <div class="form-section">
                 <div class="vehicle-selection">
-                    <!-- Filter và search -->
                     <div class="vehicle-filters">
                         <div class="filter-row">
                             <div class="filter-group">
@@ -341,26 +227,20 @@
                                 </button>
                             </div>
                         </div>
-                        
-                                                 <!-- Quick filter buttons -->
-                         <div class="quick-filter-buttons">
-                             <button type="button" class="btn-quick-filter" data-filter="honda">Honda</button>
-                             <button type="button" class="btn-quick-filter" data-filter="yamaha">Yamaha</button>
-                             <button type="button" class="btn-quick-filter" data-filter="suzuki">Suzuki</button>
-                             <button type="button" class="btn-quick-filter" data-filter="cheap">Giá rẻ (&lt;150k)</button>
-                             <button type="button" class="btn-quick-filter" data-filter="premium">Cao cấp (&gt;300k)</button>
-                             <button type="button" class="btn-quick-filter" data-filter="xe-may">Xe máy</button>
-                             <button type="button" class="btn-quick-filter" data-filter="xe-so">Xe số</button>
-                         </div>
+                        <div class="quick-filter-buttons">
+                            <button type="button" class="btn-quick-filter" data-filter="honda">Honda</button>
+                            <button type="button" class="btn-quick-filter" data-filter="yamaha">Yamaha</button>
+                            <button type="button" class="btn-quick-filter" data-filter="suzuki">Suzuki</button>
+                            <button type="button" class="btn-quick-filter" data-filter="cheap">Giá rẻ (&lt;150k)</button>
+                            <button type="button" class="btn-quick-filter" data-filter="premium">Cao cấp (&gt;300k)</button>
+                            <button type="button" class="btn-quick-filter" data-filter="xe-may">Xe máy</button>
+                            <button type="button" class="btn-quick-filter" data-filter="xe-so">Xe số</button>
+                        </div>
                     </div>
-
-                    <!-- Search info -->
                     <div class="vehicle-search-info">
-                        <i class="bi bi-info-circle"></i> 
+                        <i class="bi bi-info-circle"></i>
                         <span id="searchInfo">Hiển thị <span id="availableCount">0</span> xe khả dụng. Sử dụng tìm kiếm hoặc bộ lọc để tìm xe nhanh hơn.</span>
                     </div>
-
-                    <!-- Chọn xe với Select2 -->
                     <div class="row mb-3">
                         <div class="col-md-10">
                             <select id="availableVehicles" class="form-select" style="width: 100%;">
@@ -373,19 +253,13 @@
                             </button>
                         </div>
                     </div>
-
-                    <!-- Danh sách xe đã chọn -->
                     <div id="selectedVehiclesList">
                         <div class="no-vehicles-selected" id="noVehiclesMessage">
                             <i class="bi bi-info-circle"></i> Chưa có xe nào được chọn
                         </div>
                     </div>
-
-                    <!-- Validation error -->
                     <div class="text-danger" id="vehicleSelectionError"></div>
                 </div>
-
-                <!-- Tóm tắt xe đã chọn -->
                 <div class="selected-vehicles-summary" id="vehiclesSummary" style="display: none;">
                     <h6><i class="bi bi-list-check"></i> Tóm tắt xe đã chọn:</h6>
                     <div class="row">
@@ -398,11 +272,9 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Thông tin khách hàng -->
-            <div class="section-title">
-                <i class="bi bi-person"></i> Thông tin khách hàng
-            </div>
+        </div>
+        <div class="card-ui section-space">
+            <div class="section-title"><i class="bi bi-person"></i> Thông tin khách hàng</div>
             <div class="form-section">
                 <div class="row">
                     <div class="col-md-6">
@@ -430,13 +302,10 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Thời gian thuê -->
-            <div class="section-title">
-                <i class="bi bi-calendar"></i> Thời gian thuê
-            </div>
+        </div>
+        <div class="card-ui section-space">
+            <div class="section-title"><i class="bi bi-calendar"></i> Thời gian thuê</div>
             <div class="form-section">
-                <!-- Nhập nhanh số ngày thuê -->
                 <div class="rental-period-section mb-4">
                     <div class="row">
                         <div class="col-md-6">
@@ -458,7 +327,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
@@ -476,11 +344,9 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Thông tin tài chính -->
-            <div class="section-title">
-                <i class="bi bi-cash-coin"></i> Thông tin tài chính
-            </div>
+        </div>
+        <div class="card-ui section-space">
+            <div class="section-title"><i class="bi bi-cash-coin"></i> Thông tin tài chính</div>
             <div class="form-section">
                 <div class="row">
                     <div class="col-md-4">
@@ -492,14 +358,7 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label asp-for="TienCoc" class="form-label">Tiền cọc</label>
-                            <input asp-for="TienCoc"
-                                   class="form-control money-input"
-                                   id="TienCoc"
-                                   type="number"
-                                   min="0"
-                                   step="1000"
-                                   value="0"
-                                   placeholder="Ví dụ: 500000" />
+                            <input asp-for="TienCoc" class="form-control money-input" id="TienCoc" type="number" min="0" step="1000" value="0" placeholder="Ví dụ: 500000" />
                             <span asp-validation-for="TienCoc" class="text-danger"></span>
                             <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                         </div>
@@ -507,61 +366,48 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label asp-for="PhuPhi" class="form-label">Phụ phí</label>
-                            <input asp-for="PhuPhi" 
-                                   class="form-control money-input" 
-                                   type="number" 
-                                   min="0" 
-                                   step="1000"
-                                   value="0" 
-                                   id="PhuPhi" 
-                                   placeholder="Ví dụ: 100000" />
+                            <input asp-for="PhuPhi" class="form-control money-input" type="number" min="0" step="1000" value="0" id="PhuPhi" placeholder="Ví dụ: 100000" />
                             <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                         </div>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label asp-for="GhiChu" class="form-label">Ghi chú</label>
                     <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Ghi chú thêm nếu có..."></textarea>
                 </div>
             </div>
-
-            <!-- Tổng kết -->
-            <div class="summary-box">
-                <h4 class="text-center">Tổng kết hợp đồng</h4>
-                <div class="row mt-3">
-                    <div class="col-6">
-                        <p>Số xe thuê:</p>
-                        <p>Số ngày thuê:</p>
-                        <p>Tiền thuê xe:</p>
-                        <p>Tiền cọc:</p>
-                        <p>Phụ phí:</p>
-                    </div>
-                    <div class="col-6 text-end">
-                        <p><span id="soXeThue">0</span> xe</p>
-                        <p><span id="soNgayThue">0</span> ngày</p>
-                        <p><span id="tienThue">0</span>đ</p>
-                        <p><span id="tienCocDisplay">0</span>đ</p>
-                        <p><span id="phuPhiDisplay">0</span>đ</p>
-                    </div>
+        </div>
+        <div class="summary-box">
+            <h4 class="text-center">Tổng kết hợp đồng</h4>
+            <div class="row mt-3">
+                <div class="col-6">
+                    <p>Số xe thuê:</p>
+                    <p>Số ngày thuê:</p>
+                    <p>Tiền thuê xe:</p>
+                    <p>Tiền cọc:</p>
+                    <p>Phụ phí:</p>
                 </div>
-                <hr />
-                <div class="total-amount">
-                    Tổng cộng: <span id="tongTien">0</span>đ
+                <div class="col-6 text-end">
+                    <p><span id="soXeThue">0</span> xe</p>
+                    <p><span id="soNgayThue">0</span> ngày</p>
+                    <p><span id="tienThue">0</span>đ</p>
+                    <p><span id="tienCocDisplay">0</span>đ</p>
+                    <p><span id="phuPhiDisplay">0</span>đ</p>
                 </div>
             </div>
-
-            <input type="hidden" asp-for="TongTien" id="TongTienInput" />
-
-            <button type="submit" class="btn btn-create">
-                <i class="bi bi-check-circle"></i> Tạo Hợp Đồng
-            </button>
-
-            <a asp-action="Index" class="btn btn-secondary mt-3 w-100">
-                <i class="bi bi-arrow-left"></i> Quay lại
-            </a>
-        </form>
-    </div>
+            <hr />
+            <div class="total-amount">
+                Tổng cộng: <span id="tongTien">0</span>đ
+            </div>
+        </div>
+        <input type="hidden" asp-for="TongTien" id="TongTienInput" />
+        <button type="submit" class="btn btn-create">
+            <i class="bi bi-check-circle"></i> Tạo Hợp Đồng
+        </button>
+        <a asp-action="Index" class="btn btn-secondary w-100">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </form>
 </div>
 
 @section Scripts {
@@ -763,6 +609,9 @@
                     $('#vehicleSelectionError').text('');
                 }
 
+                // Xóa các input hidden cũ nếu có
+                $('input[name^="danhSachXe["]').remove();
+
                 // Thêm danh sách xe vào form
                 selectedVehicles.forEach(function(vehicle, index) {
                     $('<input>').attr({
@@ -772,11 +621,21 @@
                     }).appendTo('#createContractForm');
                 });
 
+                // Debug: Log form data
+                console.log('Form data being submitted:');
+                console.log('Selected vehicles:', selectedVehicles);
+                console.log('Form validation:', $(this).valid());
+
                 if (!$(this).valid()) {
+                    console.log('Form validation failed');
                     return false;
                 }
 
-                return confirm('Bạn có chắc chắn muốn tạo hợp đồng này với ' + selectedVehicles.length + ' xe?');
+                var confirmed = confirm('Bạn có chắc chắn muốn tạo hợp đồng này với ' + selectedVehicles.length + ' xe?');
+                if (confirmed) {
+                    console.log('Form submission confirmed');
+                }
+                return confirmed;
             });
         }
 

@@ -1,0 +1,412 @@
+@model bike.Models.BaoCaoThietHai
+@{
+    ViewData["Title"] = $"Chi tiết báo cáo thiệt hại #{Model.MaBaoCao}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+    }
+
+    .detail-number {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .detail-status {
+        display: inline-block;
+        padding: 8px 20px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        margin-top: 10px;
+    }
+
+    .detail-body {
+        padding: 30px;
+    }
+
+    .section-divider {
+        height: 2px;
+        background: #f0f0f0;
+        margin: 30px 0;
+    }
+
+    .info-section {
+        margin-bottom: 30px;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .info-item {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 3px solid #ff6b6b;
+    }
+
+    .info-label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #333;
+        font-weight: 600;
+    }
+
+    .payment-summary {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 25px;
+        border-radius: 10px;
+        margin-top: 20px;
+    }
+
+    .payment-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 16px;
+    }
+
+    .payment-total {
+        font-size: 28px;
+        font-weight: bold;
+        border-top: 2px solid rgba(255,255,255,0.3);
+        padding-top: 15px;
+        margin-top: 15px;
+    }
+
+    .severity-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .severity-critical {
+        background: #721c24;
+        color: white;
+    }
+
+    .severity-medium {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .action-section {
+        margin-top: 30px;
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+    }
+
+    .btn-payment {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+    }
+
+    .btn-edit {
+        background: #ffc107;
+        color: #212529;
+        border: none;
+        padding: 12px 30px;
+    }
+
+    .btn-back {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+    }
+
+    .description-box {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+        border-left: 4px solid #17a2b8;
+    }
+
+    .timeline {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+    .timeline-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        font-size: 18px;
+    }
+
+    .timeline-content {
+        flex: 1;
+    }
+
+    .timeline-date {
+        font-size: 12px;
+        color: #666;
+    }
+</style>
+
+<div class="detail-container">
+    <div class="detail-card">
+        <!-- Header -->
+        <div class="detail-header">
+            <div class="detail-number">
+                <i class="bi bi-exclamation-triangle"></i> Báo cáo #@Model.MaBaoCao
+            </div>
+            <div class="detail-status">
+                @Model.TrangThaiThanhToan
+            </div>
+            <p class="mb-0 mt-3">Ngày phát hiện: @Model.NgayPhatHien.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <!-- Body -->
+        <div class="detail-body">
+            <!-- Thông tin thiệt hại -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-exclamation-triangle"></i> Thông tin thiệt hại
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Loại thiệt hại</div>
+                        <div class="info-value">
+                            @Model.LoaiThietHai
+                            <span class="severity-badge @(Model.LaThietHaiNang ? "severity-critical" : "severity-medium")">
+                                @(Model.LaThietHaiNang ? "Nghiêm trọng" : "Nhẹ")
+                            </span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Vị trí thiệt hại</div>
+                        <div class="info-value">@(Model.ViTriThietHai ?? "Không xác định")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Phí đền bù</div>
+                        <div class="info-value text-danger">@(Model.PhiDenBuKhachHang.HasValue ? Model.PhiDenBuKhachHang.Value.ToString("N0") : "0")đ</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Chi phí sửa chữa thực tế</div>
+                        <div class="info-value text-danger">@(Model.ChiPhiSuaChuaThucTe.HasValue ? Model.ChiPhiSuaChuaThucTe.Value.ToString("N0") : "0")đ</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Giá trị xe trước khi hỏng</div>
+                        <div class="info-value">@(Model.GiaTriXeTruocKhiHong.HasValue ? Model.GiaTriXeTruocKhiHong.Value.ToString("N0") : "0")đ</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Giá trị xe sau khi hỏng</div>
+                        <div class="info-value">@(Model.GiaTriXeSauKhiHong.HasValue ? Model.GiaTriXeSauKhiHong.Value.ToString("N0") : "0")đ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Thông tin hợp đồng và xe -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-file-earmark-text"></i> Thông tin hợp đồng
+                </h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Mã hợp đồng</div>
+                        <div class="info-value">HD@(Model.ChiTietHopDong?.HopDong?.MaHopDong.ToString("D6") ?? "N/A")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Khách hàng</div>
+                        <div class="info-value">@Model.ChiTietHopDong?.HopDong?.HoTenKhach</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Số điện thoại</div>
+                        <div class="info-value">@Model.ChiTietHopDong?.HopDong?.SoDienThoai</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Tên xe</div>
+                        <div class="info-value">@Model.ChiTietHopDong?.Xe?.TenXe</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Biển số xe</div>
+                        <div class="info-value">@Model.ChiTietHopDong?.Xe?.BienSoXe</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Hãng xe</div>
+                        <div class="info-value">@Model.ChiTietHopDong?.Xe?.HangXe</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Mô tả chi tiết -->
+            @if (!string.IsNullOrEmpty(Model.MoTaChiTiet))
+            {
+                <div class="description-box">
+                    <h4 class="mb-3"><i class="bi bi-chat-left-text"></i> Mô tả chi tiết</h4>
+                    <p class="mb-0">@Model.MoTaChiTiet</p>
+                </div>
+            }
+
+            <!-- Thông tin thanh toán -->
+            <div class="info-section">
+                <h3 class="section-title">
+                    <i class="bi bi-cash-coin"></i> Thông tin thanh toán
+                </h3>
+                <div class="payment-summary">
+                    <div class="payment-row">
+                        <span>Phí đền bù khách hàng:</span>
+                        <span>@(Model.PhiDenBuKhachHang.HasValue ? Model.PhiDenBuKhachHang.Value.ToString("N0") : "0")đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Đã thanh toán:</span>
+                        <span>@(Model.SoTienDaThanhToan.HasValue ? Model.SoTienDaThanhToan.Value.ToString("N0") : "0")đ</span>
+                    </div>
+                    <div class="payment-row">
+                        <span>Còn lại:</span>
+                        <span>@(Model.SoTienConLai.ToString("N0"))đ</span>
+                    </div>
+                    <div class="payment-row payment-total">
+                        <span>Trạng thái:</span>
+                        <span>@Model.TrangThaiThanhToan</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.GhiChuThanhToan))
+                {
+                    <div class="mt-3">
+                        <strong>Ghi chú thanh toán:</strong> @Model.GhiChuThanhToan
+                    </div>
+                }
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline">
+                <h4 class="mb-3"><i class="bi bi-clock-history"></i> Lịch sử xử lý</h4>
+                
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: #ff6b6b; color: white;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div><strong>Phát hiện thiệt hại</strong></div>
+                        <div class="timeline-date">@Model.NgayPhatHien.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: #17a2b8; color: white;">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div><strong>Tạo báo cáo</strong></div>
+                        <div class="timeline-date">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                </div>
+
+                @if (Model.NgayThanhToan.HasValue)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-icon" style="background: #28a745; color: white;">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div><strong>Thanh toán</strong></div>
+                            <div class="timeline-date">@Model.NgayThanhToan.Value.ToString("dd/MM/yyyy HH:mm")</div>
+                        </div>
+                    </div>
+                }
+
+                <div class="timeline-item">
+                    <div class="timeline-icon" style="background: #6c757d; color: white;">
+                        <i class="bi bi-pencil"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div><strong>Cập nhật cuối</strong></div>
+                        <div class="timeline-date">@Model.NgayCapNhat.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-section">
+                @if (Model.SoTienConLai > 0)
+                {
+                    <a asp-action="ThanhToan" asp-route-id="@Model.MaBaoCao" class="btn btn-payment">
+                        <i class="bi bi-cash-coin"></i> Thanh toán
+                    </a>
+                }
+                <a asp-action="Edit" asp-route-id="@Model.MaBaoCao" class="btn btn-edit">
+                    <i class="bi bi-pencil"></i> Chỉnh sửa
+                </a>
+                <a asp-action="Index" class="btn btn-back">
+                    <i class="bi bi-arrow-left"></i> Quay lại
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Highlight các thông tin quan trọng
+            if (@Model.LaThietHaiNang.ToString().ToLower()) {
+                $('.detail-header').css('background', 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)');
+            }
+        });
+    </script>
+} 

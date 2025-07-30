@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace bike.Migrations
 {
     /// <inheritdoc />
-    public partial class all : Migration
+    public partial class db : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -299,16 +299,20 @@ namespace bike.Migrations
                     MoTaChiTiet = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
                     NgayPhatHien = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ViTriThietHai = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    ChiPhiSuaChuaUocTinh = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    ChiPhiSuaChuaThucTe = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    PhiDenBuKhachHang = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    GiaTriXeTruocKhiHong = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    GiaTriXeSauKhiHong = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ChiPhiSuaChuaUocTinh = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ChiPhiSuaChuaThucTe = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    PhiDenBuKhachHang = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    GiaTriXeTruocKhiHong = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    GiaTriXeSauKhiHong = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
                     TrangThaiXuLy = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     GhiChu = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
                     MaNguoiTao = table.Column<int>(type: "int", nullable: true),
                     NgayTao = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    NgayCapNhat = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    NgayCapNhat = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    SoTienDaThanhToan = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    NgayThanhToan = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    GhiChuThanhToan = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    TrangThaiThanhToan = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
                 },
                 constraints: table =>
                 {

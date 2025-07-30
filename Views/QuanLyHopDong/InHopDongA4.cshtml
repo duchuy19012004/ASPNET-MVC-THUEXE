@@ -1,0 +1,402 @@
+@model bike.Models.HopDong
+@{
+    ViewData["Title"] = $"In hợp đồng HD{Model.MaHopDong:D6}";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hợp đồng thuê xe - HD@(Model.MaHopDong.ToString("D6"))</title>
+    <style>
+        @* Reset CSS cho in *@
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12pt;
+            line-height: 1.4;
+            color: #000;
+            background: white;
+        }
+
+        @* Định dạng A4 *@
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            margin: 0 auto;
+            padding: 20mm;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        @* Header *@
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 15px;
+        }
+
+        .company-name {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .company-info {
+            font-size: 11pt;
+            margin-bottom: 5px;
+        }
+
+        .contract-title {
+            font-size: 16pt;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        @* Thông tin hợp đồng *@
+        .contract-info {
+            margin-bottom: 20px;
+        }
+
+        .contract-number {
+            font-size: 14pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .contract-date {
+            margin-bottom: 15px;
+        }
+
+        @* Bảng thông tin *@
+        .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .info-table th,
+        .info-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .info-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            width: 30%;
+        }
+
+        @* Danh sách xe *@
+        .vehicle-section {
+            margin-bottom: 20px;
+        }
+
+        .vehicle-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+
+        .vehicle-table th,
+        .vehicle-table td {
+            border: 1px solid #000;
+            padding: 6px;
+            text-align: center;
+            font-size: 10pt;
+        }
+
+        .vehicle-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+
+        @* Tổng kết tài chính *@
+        .financial-summary {
+            margin-bottom: 20px;
+        }
+
+        .financial-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .financial-table th,
+        .financial-table td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: right;
+        }
+
+        .financial-table th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            text-align: left;
+            width: 70%;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        @* Điều khoản *@
+        .terms-section {
+            margin-bottom: 20px;
+        }
+
+        .terms-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .terms-list {
+            list-style-type: decimal;
+            margin-left: 20px;
+        }
+
+        .terms-list li {
+            margin-bottom: 5px;
+        }
+
+        @* Chữ ký *@
+        .signature-section {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .signature-box {
+            width: 45%;
+            text-align: center;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            margin-top: 50px;
+            padding-top: 5px;
+        }
+
+        @* Footer *@
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 10pt;
+            color: #666;
+        }
+
+        @* Print styles *@
+        @@media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            
+            .a4-page {
+                box-shadow: none;
+                margin: 0;
+                padding: 15mm;
+            }
+            
+            .no-print {
+                display: none;
+            }
+        }
+
+        @* Page break *@
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="a4-page">
+        <!-- Header -->
+        <div class="header">
+            <div class="company-name">CÔNG TY CHO THUÊ XE MÁY SÀI GÒN</div>
+            <div class="company-info">Địa chỉ: 95/38 Nguyễn Văn Trỗi, Phường 12, Quận Phú Nhuận, TP.HCM</div>
+            <div class="company-info">Điện thoại: 0908.630.065 | Email: info@chothuexe.com</div>
+        </div>
+
+        <!-- Tiêu đề -->
+        <div class="contract-title">HỢP ĐỒNG THUÊ XE MÁY</div>
+
+        <!-- Thông tin hợp đồng -->
+        <div class="contract-info">
+            <div class="contract-number">Số hợp đồng: HD@(Model.MaHopDong.ToString("D6"))</div>
+            <div class="contract-date">Ngày ký: @Model.NgayTao.ToString("dd/MM/yyyy")</div>
+        </div>
+
+        <!-- Thông tin các bên -->
+        <table class="info-table">
+            <tr>
+                <th>BÊN CHO THUÊ (A):</th>
+                <td>
+                    <strong>CÔNG TY CHO THUÊ XE MÁY SÀI GÒN</strong><br />
+                    Địa chỉ: 95/38 Nguyễn Văn Trỗi, Phường 12, Quận Phú Nhuận, TP.HCM<br />
+                    Điện thoại: 0908.630.065<br />
+                    Đại diện: @(Model.NguoiTao?.Ten ?? "Nhân viên công ty")
+                </td>
+            </tr>
+            <tr>
+                <th>BÊN THUÊ (B):</th>
+                <td>
+                    <strong>Họ và tên:</strong> @Model.HoTenKhach<br />
+                    <strong>Số điện thoại:</strong> @Model.SoDienThoai<br />
+                    <strong>CCCD/CMND:</strong> @Model.SoCCCD<br />
+                    <strong>Địa chỉ:</strong> @(Model.DiaChi ?? "Không có")
+                </td>
+            </tr>
+        </table>
+
+        <!-- Thông tin xe thuê -->
+        <div class="vehicle-section">
+            <h3 style="margin-bottom: 10px;">THÔNG TIN XE THUÊ:</h3>
+            <table class="vehicle-table">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Tên xe</th>
+                        <th>Biển số</th>
+                        <th>Hãng xe</th>
+                        <th>Giá thuê/ngày</th>
+                        <th>Số ngày</th>
+                        <th>Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.ChiTietHopDong?.Any() == true)
+                    {
+                        int stt = 1;
+                        foreach (var chiTiet in Model.ChiTietHopDong)
+                        {
+                            <tr>
+                                <td>@stt</td>
+                                <td>@chiTiet.Xe?.TenXe</td>
+                                <td>@chiTiet.Xe?.BienSoXe</td>
+                                <td>@chiTiet.Xe?.HangXe</td>
+                                <td>@chiTiet.GiaThueNgay.ToString("N0")đ</td>
+                                <td>@chiTiet.SoNgayThue</td>
+                                <td>@chiTiet.ThanhTien.ToString("N0")đ</td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Thời gian thuê -->
+        <table class="info-table">
+            <tr>
+                <th>Thời gian thuê:</th>
+                <td>
+                    <strong>Từ ngày:</strong> @Model.NgayNhanXe.ToString("dd/MM/yyyy")<br />
+                    <strong>Đến ngày:</strong> @Model.NgayTraXeDuKien.ToString("dd/MM/yyyy")<br />
+                    @if (Model.NgayTraXeThucTe.HasValue)
+                    {
+                        <strong>Ngày trả thực tế:</strong> @Model.NgayTraXeThucTe.Value.ToString("dd/MM/yyyy")<br />
+                    }
+                    <strong>Tổng số ngày:</strong> 
+                    @if (Model.NgayTraXeThucTe.HasValue)
+                    {
+                        @((Model.NgayTraXeThucTe.Value - Model.NgayNhanXe).Days + 1)
+                    }
+                    else
+                    {
+                        @((Model.NgayTraXeDuKien - Model.NgayNhanXe).Days + 1)
+                    } ngày
+                </td>
+            </tr>
+        </table>
+
+        <!-- Tổng kết tài chính -->
+        <div class="financial-summary">
+            <h3 style="margin-bottom: 10px;">TỔNG KẾT THANH TOÁN:</h3>
+            <table class="financial-table">
+                @if (Model.ChiTietHopDong?.Any() == true)
+                {
+                    var tongTienThueXe = Model.ChiTietHopDong.Sum(ct => ct.ThanhTien);
+                    <tr>
+                        <th>Tiền thuê xe:</th>
+                        <td>@tongTienThueXe.ToString("N0")đ</td>
+                    </tr>
+                }
+                <tr>
+                    <th>Tiền cọc:</th>
+                    <td>@Model.TienCoc.ToString("N0")đ</td>
+                </tr>
+                @if (Model.PhuPhi > 0)
+                {
+                    <tr>
+                        <th>Phụ phí:</th>
+                        <td>@Model.PhuPhi.ToString("N0")đ</td>
+                    </tr>
+                }
+                <tr class="total-row">
+                    <th>TỔNG CỘNG:</th>
+                    <td>@Model.TongTien.ToString("N0")đ</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Điều khoản -->
+        <div class="terms-section">
+            <div class="terms-title">ĐIỀU KHOẢN VÀ ĐIỀU KIỆN:</div>
+            <ol class="terms-list">
+                <li>Bên thuê phải sử dụng xe đúng mục đích, không được cho người khác thuê lại.</li>
+                <li>Bên thuê phải bảo quản xe cẩn thận, không được làm hư hỏng xe.</li>
+                <li>Bên thuê phải trả xe đúng thời hạn đã thỏa thuận.</li>
+                <li>Nếu xe bị hư hỏng, bên thuê phải bồi thường theo giá trị thực tế.</li>
+                <li>Bên cho thuê có quyền kiểm tra xe bất cứ lúc nào.</li>
+                <li>Hợp đồng này có hiệu lực từ ngày ký đến khi hoàn thành nghĩa vụ.</li>
+            </ol>
+        </div>
+
+        <!-- Chữ ký -->
+        <div class="signature-section">
+            <div class="signature-box">
+                <div class="signature-line">
+                    <strong>BÊN CHO THUÊ (A)</strong><br />
+                    <em>Chữ ký và đóng dấu</em>
+                </div>
+            </div>
+            <div class="signature-box">
+                <div class="signature-line">
+                    <strong>BÊN THUÊ (B)</strong><br />
+                    <em>Chữ ký</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Hợp đồng này được lập thành 02 bản, mỗi bên giữ 01 bản có giá trị pháp lý như nhau.</p>
+            <p>Ngày lập: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    </div>
+
+    <!-- Nút in (chỉ hiển thị khi xem trên màn hình) -->
+    <div class="no-print" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+        <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            <i class="bi bi-printer"></i> In hợp đồng
+        </button>
+        <a href="@Url.Action("ChiTiet", new { id = Model.MaHopDong })" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+</body>
+</html> 

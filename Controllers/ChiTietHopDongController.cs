@@ -108,38 +108,33 @@ namespace bike.Controllers
 
             if (ModelState.IsValid)
             {
-                using (var transaction = await _context.Database.BeginTransactionAsync())
+                try
                 {
-                    try
-                    {
-                        // Set thông tin tự động
-                        chiTiet.GiaThueNgay = xe.GiaThue;
-                        chiTiet.SoNgayThue = (chiTiet.NgayTraXeDuKien - chiTiet.NgayNhanXe).Days + 1;
-                        chiTiet.ThanhTien = chiTiet.GiaThueNgay * chiTiet.SoNgayThue;
-                        chiTiet.NgayTao = DateTime.Now;
-                        chiTiet.TrangThaiXe = "Đang thuê";
+                    // Set thông tin tự động
+                    chiTiet.GiaThueNgay = xe.GiaThue;
+                    chiTiet.SoNgayThue = (chiTiet.NgayTraXeDuKien - chiTiet.NgayNhanXe).Days + 1;
+                    chiTiet.ThanhTien = chiTiet.GiaThueNgay * chiTiet.SoNgayThue;
+                    chiTiet.NgayTao = DateTime.Now;
+                    chiTiet.TrangThaiXe = "Đang thuê";
 
-                        // Thêm chi tiết hợp đồng
-                        _context.ChiTietHopDong.Add(chiTiet);
-                        await _context.SaveChangesAsync();
+                    // Thêm chi tiết hợp đồng
+                    _context.ChiTietHopDong.Add(chiTiet);
+                    await _context.SaveChangesAsync();
 
-                        // Cập nhật trạng thái xe
-                        xe.TrangThai = "Đang thuê";
+                    // Cập nhật trạng thái xe
+                    xe.TrangThai = "Đang thuê";
 
-                        // Cập nhật tổng tiền hợp đồng
-                        hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + chiTiet.ThanhTien + hopDong.PhuPhi;
+                    // Cập nhật tổng tiền hợp đồng
+                    hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + chiTiet.ThanhTien + hopDong.PhuPhi;
 
-                        await _context.SaveChangesAsync();
-                        await transaction.CommitAsync();
+                    await _context.SaveChangesAsync();
 
-                        TempData["Success"] = $"Thêm xe {xe.TenXe} vào hợp đồng thành công!";
-                        return RedirectToAction("ChiTiet", "QuanLyHopDong", new { id = chiTiet.MaHopDong });
-                    }
-                    catch (Exception ex)
-                    {
-                        await transaction.RollbackAsync();
-                        ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
-                    }
+                    TempData["Success"] = $"Thêm xe {xe.TenXe} vào hợp đồng thành công!";
+                    return RedirectToAction("ChiTiet", "QuanLyHopDong", new { id = chiTiet.MaHopDong });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
                 }
             }
 
@@ -188,33 +183,28 @@ namespace bike.Controllers
                 return Json(new { success = false, message = "Hợp đồng phải có ít nhất 1 xe!" });
             }
 
-            using (var transaction = await _context.Database.BeginTransactionAsync())
+            try
             {
-                try
-                {
-                    // Xóa chi tiết hợp đồng
-                    _context.ChiTietHopDong.Remove(chiTiet);
+                // Xóa chi tiết hợp đồng
+                _context.ChiTietHopDong.Remove(chiTiet);
 
-                    // Cập nhật trạng thái xe về sẵn sàng
-                    chiTiet.Xe.TrangThai = "Sẵn sàng";
+                // Cập nhật trạng thái xe về sẵn sàng
+                chiTiet.Xe.TrangThai = "Sẵn sàng";
 
-                    // Cập nhật tổng tiền hợp đồng
-                    var hopDong = chiTiet.HopDong;
-                    hopDong.TongTien = hopDong.TongTien - chiTiet.ThanhTien;
+                // Cập nhật tổng tiền hợp đồng
+                var hopDong = chiTiet.HopDong;
+                hopDong.TongTien = hopDong.TongTien - chiTiet.ThanhTien;
 
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                await _context.SaveChangesAsync();
 
-                    return Json(new { 
-                        success = true, 
-                        message = $"Xóa xe {chiTiet.Xe.TenXe} khỏi hợp đồng thành công!" 
-                    });
-                }
-                catch (Exception ex)
-                {
-                    await transaction.RollbackAsync();
-                    return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
-                }
+                return Json(new { 
+                    success = true, 
+                    message = $"Xóa xe {chiTiet.Xe.TenXe} khỏi hợp đồng thành công!" 
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
             }
         }
 
@@ -269,36 +259,31 @@ namespace bike.Controllers
 
             if (ModelState.IsValid)
             {
-                using (var transaction = await _context.Database.BeginTransactionAsync())
+                try
                 {
-                    try
-                    {
-                        // Lưu thành tiền cũ để tính toán lại tổng tiền
-                        var thanhTienCu = chiTiet.ThanhTien;
+                    // Lưu thành tiền cũ để tính toán lại tổng tiền
+                    var thanhTienCu = chiTiet.ThanhTien;
 
-                        // Cập nhật thông tin
-                        chiTiet.GiaThueNgay = model.GiaThueNgay;
-                        chiTiet.NgayNhanXe = model.NgayNhanXe;
-                        chiTiet.NgayTraXeDuKien = model.NgayTraXeDuKien;
-                        chiTiet.SoNgayThue = (model.NgayTraXeDuKien - model.NgayNhanXe).Days + 1;
-                        chiTiet.ThanhTien = chiTiet.GiaThueNgay * chiTiet.SoNgayThue;
-                        chiTiet.GhiChu = model.GhiChu;
+                    // Cập nhật thông tin
+                    chiTiet.GiaThueNgay = model.GiaThueNgay;
+                    chiTiet.NgayNhanXe = model.NgayNhanXe;
+                    chiTiet.NgayTraXeDuKien = model.NgayTraXeDuKien;
+                    chiTiet.SoNgayThue = (model.NgayTraXeDuKien - model.NgayNhanXe).Days + 1;
+                    chiTiet.ThanhTien = chiTiet.GiaThueNgay * chiTiet.SoNgayThue;
+                    chiTiet.GhiChu = model.GhiChu;
 
-                        // Cập nhật tổng tiền hợp đồng
-                        var hopDong = chiTiet.HopDong;
-                        hopDong.TongTien = hopDong.TongTien - thanhTienCu + chiTiet.ThanhTien;
+                    // Cập nhật tổng tiền hợp đồng
+                    var hopDong = chiTiet.HopDong;
+                    hopDong.TongTien = hopDong.TongTien - thanhTienCu + chiTiet.ThanhTien;
 
-                        await _context.SaveChangesAsync();
-                        await transaction.CommitAsync();
+                    await _context.SaveChangesAsync();
 
-                        TempData["Success"] = "Cập nhật thông tin xe thành công!";
-                        return RedirectToAction("ChiTiet", "QuanLyHopDong", new { id = chiTiet.MaHopDong });
-                    }
-                    catch (Exception ex)
-                    {
-                        await transaction.RollbackAsync();
-                        ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
-                    }
+                    TempData["Success"] = "Cập nhật thông tin xe thành công!";
+                    return RedirectToAction("ChiTiet", "QuanLyHopDong", new { id = chiTiet.MaHopDong });
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Có lỗi xảy ra: " + ex.Message);
                 }
             }
 

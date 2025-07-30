@@ -19,25 +19,39 @@ namespace bike.Controllers
         {
             DateTime homNay = DateTime.Today;
 
-            // Tính tổng chi tiêu trong ngày hôm nay
-            decimal tongChiHomNay = _context.ChiTieu
-                                          .Where(c => c.NgayChi.Date == homNay)
-                                          .Sum(c => c.SoTien);
+            try
+            {
+                // Tính tổng chi tiêu trong ngày hôm nay - sử dụng async
+                decimal tongChiHomNay = await _context.ChiTieu
+                    .Where(c => c.NgayChi.Date == homNay)
+                    .SumAsync(c => c.SoTien);
 
-            // Tính tổng chi tiêu trong tháng hiện tại
-            decimal tongChiThangNay = _context.ChiTieu
-                                            .Where(c => c.NgayChi.Year == homNay.Year && c.NgayChi.Month == homNay.Month)
-                                            .Sum(c => c.SoTien);
+                // Tính tổng chi tiêu trong tháng hiện tại - sử dụng async
+                decimal tongChiThangNay = await _context.ChiTieu
+                    .Where(c => c.NgayChi.Year == homNay.Year && c.NgayChi.Month == homNay.Month)
+                    .SumAsync(c => c.SoTien);
 
-            // Đưa các giá trị đã tính toán vào ViewData để View có thể sử dụng
-            ViewData["TongChiHomNay"] = tongChiHomNay;
-            ViewData["TongChiThangNay"] = tongChiThangNay;
+                // Đưa các giá trị đã tính toán vào ViewData để View có thể sử dụng
+                ViewData["TongChiHomNay"] = tongChiHomNay;
+                ViewData["TongChiThangNay"] = tongChiThangNay;
 
+                // --- PHẦN LẤY DANH SÁCH CHI TIÊU - thêm OrderBy để tối ưu ---
+                var danhSachChiTieu = await _context.ChiTieu
+                    .Include(c => c.Xe)
+                    .OrderByDescending(c => c.NgayChi)
+                    .Take(100) // Giới hạn 100 bản ghi gần nhất để tránh load quá nhiều
+                    .ToListAsync();
 
-            // --- PHẦN LẤY DANH SÁCH CHI TIÊU (Giữ nguyên như cũ) ---
-            var danhSachChiTieu = await _context.ChiTieu.Include(c => c.Xe).ToListAsync();
-
-            return View(danhSachChiTieu);
+                return View(danhSachChiTieu);
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi và trả về view với dữ liệu rỗng
+                ViewData["TongChiHomNay"] = 0;
+                ViewData["TongChiThangNay"] = 0;
+                ViewData["ErrorMessage"] = "Có lỗi xảy ra khi tải dữ liệu: " + ex.Message;
+                return View(new List<ChiTieu>());
+            }
         }
         // Action này có nhiệm vụ hiển thị ra form để người dùng nhập liệu
         public IActionResult Create()

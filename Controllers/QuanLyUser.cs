@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin")] // Chỉ Admin mới được quản lý user
+    
     public class QuanLyUser : Controller
     {
         private readonly IUserService _userService;
@@ -41,6 +41,27 @@ namespace bike.Controllers
         {
             var result = await _userService.CreateUserAsync(user);
             
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (result.IsSuccess && result.Data != null)
+                {
+                    return Json(new {
+                        success = true,
+                        message = result.Message,
+                        user = new {
+                            id = result.Data.Id,
+                            ten = result.Data.Ten,
+                            email = result.Data.Email,
+                            vaiTro = result.Data.VaiTro,
+                            isActive = result.Data.IsActive,
+                            ngayTao = result.Data.NgayTao.ToString("dd/MM/yyyy")
+                        }
+                    });
+                }
+                // Trả về lỗi rõ ràng nếu có
+                return Json(new { success = false, message = result.Message, errors = result.Errors });
+            }
+
             if (result.IsSuccess)
             {
                 TempData["Success"] = result.Message;
@@ -101,6 +122,26 @@ namespace bike.Controllers
 
             var result = await _userService.UpdateUserAsync(model);
             
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (result.IsSuccess && result.Data != null)
+                {
+                    return Json(new {
+                        success = true,
+                        message = result.Message,
+                        user = new {
+                            id = result.Data.Id,
+                            ten = result.Data.Ten,
+                            email = result.Data.Email,
+                            vaiTro = result.Data.VaiTro,
+                            isActive = result.Data.IsActive,
+                            ngayTao = result.Data.NgayTao.ToString("dd/MM/yyyy")
+                        }
+                    });
+                }
+                return Json(new { success = false, message = result.Message, errors = result.Errors });
+            }
+
             if (result.IsSuccess)
             {
                 return HandleSuccessResponse(result.Message);
@@ -113,19 +154,6 @@ namespace bike.Controllers
                 {
                     ModelState.AddModelError(error.Key, message);
                 }
-            }
-
-            // If AJAX request with validation errors, return JSON
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return Json(new { 
-                    success = false, 
-                    message = result.Message, 
-                    errors = result.Errors.ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value.ToArray()
-                    )
-                });
             }
 
             ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text", model.VaiTro);
@@ -165,6 +193,15 @@ namespace bike.Controllers
         {
             var currentUserId = GetCurrentUserId();
             var result = await _userService.DeleteUserAsync(id, currentUserId);
+
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                if (result.IsSuccess)
+                {
+                    return Json(new { success = true, message = result.Message });
+                }
+                return Json(new { success = false, message = result.Message });
+            }
 
             if (result.IsSuccess)
             {
