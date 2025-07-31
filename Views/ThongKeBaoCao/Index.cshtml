@@ -1,0 +1,921 @@
+@model bike.ViewModels.BaoCaoViewModel
+@{
+    ViewData["Title"] = "Thống Kê & Báo Cáo";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    /* Thống kê & Báo cáo styles */
+    .stats-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+    }
+
+    .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    /* Stat cards */
+    .stat-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        transition: transform 0.3s;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .stat-icon.blue {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-icon.orange {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .stat-icon.green {
+        background: linear-gradient(135deg, #38ef7d 0%, #11998e 100%);
+    }
+
+    .stat-icon.purple {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 14px;
+    }
+
+    /* Charts */
+    .chart-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    /* Tables */
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 20px 25px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: bold;
+    }
+
+    /* Top Vehicles Chart Styling */
+    .chart-card .chart-header .bi-trophy {
+        font-size: 1.1em;
+        margin-right: 8px;
+    }
+    
+    #topVehiclesChart {
+        max-height: 300px !important;
+        height: auto !important;
+    }
+    
+    #topVehiclesChart.chart-container {
+        height: 250px;
+    }
+
+    /* Loading animation */
+    .chart-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 200px;
+        color: #666;
+    }
+
+    .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #3498db;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="stats-header">
+        <h1 class="mb-0"><i class="bi bi-bar-chart-line"></i> Thống Kê & Báo Cáo</h1>
+        <p class="mb-0 mt-2">Phân tích chi tiết dữ liệu kinh doanh</p>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row g-3 align-items-end">
+                         <div class="col-md-6">
+                 <label class="form-label">Lọc dữ liệu theo:</label>
+                 <select id="chartFilter" class="form-select">
+                     <option value="7days">7 ngày gần nhất</option>
+                     <option value="week">Tuần này</option>
+                     <option value="month">30 ngày gần nhất</option>
+                     <option value="year">12 tháng gần nhất</option>
+                 </select>
+             </div>
+             <div class="col-md-6">
+                 <label class="form-label">Loại biểu đồ doanh thu:</label>
+                 <select id="chartTypeFilter" class="form-select">
+                     <option value="bar">Biểu đồ cột ngang</option>
+                     <option value="line">Biểu đồ đường</option>
+                 </select>
+             </div>
+            <div class="col-md-6">
+                <button type="button" id="exportBtn" class="btn btn-success">
+                    <i class="bi bi-file-excel"></i> Xuất báo cáo Excel
+                </button>
+                <button type="button" id="printBtn" class="btn btn-info">
+                    <i class="bi bi-printer"></i> In báo cáo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon blue text-white">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <div class="stat-value">@Model.DoanhThuHomNay.ToString("N0")đ</div>
+                <div class="stat-label">Doanh thu tháng này</div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon green text-white">
+                    <i class="bi bi-calendar-check"></i>
+                </div>
+                <div class="stat-value">@Model.TongDonDatXe</div>
+                <div class="stat-label">Đơn đặt tháng này</div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon purple text-white">
+                    <i class="bi bi-bicycle"></i>
+                </div>
+                <div class="stat-value">@Model.XeDangChoThue</div>
+                <div class="stat-label">Xe đang cho thuê</div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon orange text-white">
+                    <i class="bi bi-person-plus"></i>
+                </div>
+                <div class="stat-value">@Model.KhachHangMoi</div>
+                <div class="stat-label">Khách hàng mới tháng này</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">📊 Biểu đồ thống kê</h4>
+                <small class="text-muted">Dữ liệu được cập nhật theo thời gian thực</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row">
+        <!-- Biểu đồ doanh thu (Horizontal Bar Chart) -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="mb-0" id="revenueTitle">Doanh thu theo thời gian</h5>
+                    <small class="text-muted">Đơn vị: VNĐ</small>
+                </div>
+                                         <div id="revenueChartContainer" style="width: 100%; height: auto;">
+            <canvas id="revenueChart"></canvas>
+        </div>
+            </div>
+        </div>
+
+        <!-- Biểu đồ top 5 xe được thuê nhiều nhất (Bar Chart) -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="mb-0" id="topVehiclesTitle">Top 5 xe được thuê nhiều nhất</h5>
+                    <small class="text-muted">Số lần thuê</small>
+                </div>
+                                         <div id="topVehiclesChartContainer" style="width: 100%; height: auto;">
+            <canvas id="topVehiclesChart"></canvas>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row">
+        <!-- Biểu đồ thống kê loại xe (Horizontal Bar Chart) -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="mb-0" id="vehicleTypesTitle">Thống kê loại xe theo danh mục</h5>
+                    <small class="text-muted">Số lượng xe</small>
+                </div>
+                                         <div id="vehicleTypesChartContainer" style="width: 100%; height: auto;">
+            <canvas id="vehicleTypesChart"></canvas>
+        </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tables Row -->
+    <div class="row">
+        <!-- Top xe thuê nhiều -->
+        <div class="col-lg-6 mb-4">
+            <div class="table-card">
+                <div class="table-header">
+                    <i class="bi bi-trophy"></i> Top 5 xe được thuê nhiều nhất
+                    <small class="text-muted ms-2">(chỉ tính hợp đồng đã hoàn thành)</small>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Xe</th>
+                                <th>Biển số</th>
+                                <th>Số lần</th>
+                                <th>Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var xe in Model.TopXeThueNhieu)
+                            {
+                                <tr>
+                                    <td>@xe.TenXe</td>
+                                    <td>@xe.BienSo</td>
+                                    <td><span class="badge bg-primary">@xe.SoLanThue</span></td>
+                                    <td class="text-danger fw-bold">@xe.DoanhThu.ToString("N0")đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thống kê tổng quan -->
+        <div class="col-lg-6 mb-4">
+            <div class="table-card">
+                <div class="table-header">
+                    <i class="bi bi-info-circle"></i> Thống kê tổng quan
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <tbody>
+                            <tr>
+                                <td><strong>Tổng số xe:</strong></td>
+                                <td><span class="badge bg-info">@Model.TongSoXe</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Hợp đồng hoạt động:</strong></td>
+                                <td><span class="badge bg-warning">@Model.HopDongHoatDong</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Xe đang cho thuê:</strong></td>
+                                <td><span class="badge bg-success">@Model.XeDangChoThue</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Xe có sẵn:</strong></td>
+                                <td><span class="badge bg-primary">@(Model.TongSoXe - Model.XeDangChoThue)</span></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Số loại xe:</strong></td>
+                                <td><span class="badge bg-secondary">@Model.BieuDoLoaiXe.Count</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+                 // Biến global để lưu chart instances
+         let revenueChart, topVehiclesChart, vehicleTypesChart;
+         let currentRevenueChartType = 'bar'; // Loại biểu đồ doanh thu hiện tại
+
+        // Biểu đồ doanh thu (Horizontal Bar Chart với 2 màu)
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueData = @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Value).ToList()));
+        const revenueLabels = @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Label).ToList()));
+        
+        // Đảm bảo có dữ liệu cho tất cả các ngày
+        console.log('Revenue Data:', revenueData);
+        console.log('Revenue Labels:', revenueLabels);
+        
+        const maxRevenue = Math.max(...revenueData, 1); // Đảm bảo maxRevenue > 0
+        
+        revenueChart = new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Label).ToList())),
+                datasets: [
+                    {
+                        label: 'Doanh thu',
+                        data: revenueData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.9)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        borderWidth: 0,
+                        borderRadius: {
+                            topLeft: 15,
+                            topRight: 15,
+                            bottomLeft: 15,
+                            bottomRight: 15
+                        },
+                        barThickness: function() {
+                            // Tự động điều chỉnh độ dày thanh dựa trên số lượng dữ liệu
+                            const dataCount = revenueData.length;
+                            if (dataCount <= 7) return 35; // Ít dữ liệu - thanh dày
+                            if (dataCount <= 12) return 25; // Trung bình
+                            if (dataCount <= 30) return 20; // Nhiều dữ liệu - thanh mỏng
+                            return 15; // Rất nhiều dữ liệu - thanh rất mỏng
+                        }()
+                    }
+                ]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'Doanh thu: ' + context.parsed.x.toLocaleString('vi-VN') + 'đ';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('vi-VN') + 'đ';
+                            }
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                                                 layout: {
+                    padding: {
+                        top: 30,
+                        bottom: 30
+                    }
+                },
+                elements: {
+                    bar: {
+                        barPercentage: 0.4,
+                        categoryPercentage: 0.6
+                    }
+                }
+            }
+        });
+
+        // Biểu đồ Top 5 xe được thuê nhiều nhất (Bar Chart)
+        const topVehiclesCtx = document.getElementById('topVehiclesChart').getContext('2d');
+        const topVehicleLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopXeThueNhieu.Select(x => x.TenXe + " (" + x.BienSo + ")").ToList()));
+        const topVehicleData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopXeThueNhieu.Select(x => x.SoLanThue).ToList()));
+        
+        if (topVehicleLabels && topVehicleLabels.length > 0) {
+            topVehiclesChart = new Chart(topVehiclesCtx, {
+                type: 'bar',
+                data: {
+                    labels: topVehicleLabels,
+                    datasets: [{
+                        label: 'Số lần thuê',
+                        data: topVehicleData,
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        borderColor: 'rgb(75, 192, 192)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        barThickness: function() {
+                            // Tự động điều chỉnh độ dày thanh dựa trên số lượng dữ liệu
+                            const dataCount = topVehicleLabels.length;
+                            if (dataCount <= 3) return 40; // Ít dữ liệu - thanh dày
+                            if (dataCount <= 5) return 30; // Trung bình
+                            return 25; // Nhiều dữ liệu - thanh mỏng
+                        }()
+                    }]
+                },
+                            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Số lần thuê: ' + context.parsed.y + ' lần';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 30,
+                            bottom: 30
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            barPercentage: 0.4,
+                            categoryPercentage: 0.6
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('topVehiclesChart').style.display = 'none';
+            document.getElementById('topVehiclesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu xe được thuê</div>';
+        }
+
+        // Biểu đồ thống kê loại xe (Horizontal Bar Chart với 2 màu)
+        const vehicleTypesCtx = document.getElementById('vehicleTypesChart').getContext('2d');
+        const vehicleTypeLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoLoaiXe.Select(x => x.Label).ToList()));
+        const vehicleTypeData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoLoaiXe.Select(x => x.Value).ToList()));
+        
+        if (vehicleTypeLabels && vehicleTypeLabels.length > 0) {
+            const maxVehicles = Math.max(...vehicleTypeData);
+            
+            vehicleTypesChart = new Chart(vehicleTypesCtx, {
+                type: 'bar',
+                data: {
+                    labels: vehicleTypeLabels,
+                    datasets: [
+                        {
+                            label: 'Số lượng xe',
+                            data: vehicleTypeData,
+                            backgroundColor: 'rgba(54, 162, 235, 0.9)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            borderWidth: 0,
+                            borderRadius: {
+                                topLeft: 15,
+                                topRight: 15,
+                                bottomLeft: 15,
+                                bottomRight: 15
+                            },
+                            barThickness: function() {
+                                // Tự động điều chỉnh độ dày thanh dựa trên số lượng dữ liệu
+                                const dataCount = vehicleTypeLabels.length;
+                                if (dataCount <= 3) return 35; // Ít dữ liệu - thanh dày
+                                if (dataCount <= 5) return 25; // Trung bình
+                                return 20; // Nhiều dữ liệu - thanh mỏng
+                            }()
+                        }
+                    ]
+                },
+                            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Số lượng: ' + context.parsed.x + ' xe';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: maxVehicles,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 30,
+                            bottom: 30
+                        }
+                    },
+                    elements: {
+                        bar: {
+                            barPercentage: 0.4,
+                            categoryPercentage: 0.6
+                        }
+                    }
+                }
+            });
+        } else {
+            document.getElementById('vehicleTypesChart').style.display = 'none';
+            document.getElementById('vehicleTypesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu loại xe</div>';
+        }
+
+                 // Function để tạo biểu đồ tuyến tính
+         function createLineChart(ctx, labels, data) {
+             return new Chart(ctx, {
+                 type: 'line',
+                 data: {
+                     labels: labels,
+                     datasets: [{
+                         label: 'Doanh thu',
+                         data: data,
+                         backgroundColor: 'transparent',
+                         borderColor: 'rgba(54, 162, 235, 1)',
+                         borderWidth: 2,
+                         fill: false,
+                         tension: 0,
+                         pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                         pointBorderColor: 'rgba(54, 162, 235, 1)',
+                         pointBorderWidth: 0,
+                         pointRadius: 4,
+                         pointHoverRadius: 6
+                     }]
+                 },
+                 options: {
+                     responsive: true,
+                     maintainAspectRatio: false,
+                     plugins: {
+                         legend: {
+                             display: false
+                         },
+                         tooltip: {
+                             callbacks: {
+                                 label: function(context) {
+                                     return 'Doanh thu: ' + context.parsed.y.toLocaleString('vi-VN') + 'đ';
+                                 }
+                             }
+                         }
+                     },
+                     scales: {
+                         y: {
+                             beginAtZero: true,
+                             ticks: {
+                                 callback: function(value) {
+                                     return value.toLocaleString('vi-VN') + 'đ';
+                                 }
+                             }
+                         },
+                         x: {
+                             ticks: {
+                                 font: {
+                                     size: 12
+                                 }
+                             }
+                         }
+                     },
+                     layout: {
+                         padding: {
+                             top: 30,
+                             bottom: 30
+                         }
+                     }
+                 }
+             });
+         }
+
+         // Function để tự động điều chỉnh chiều cao container
+         function adjustChartHeight(chartId, dataCount) {
+            const container = document.getElementById(chartId + 'Container');
+            if (container) {
+                // Tính toán chiều cao dựa trên số lượng dữ liệu
+                let height;
+                if (dataCount <= 7) {
+                    height = 500; // Ít dữ liệu - chiều cao thấp
+                } else if (dataCount <= 12) {
+                    height = 550; // Trung bình
+                } else if (dataCount <= 30) {
+                    height = 600; // Nhiều dữ liệu - chiều cao cao
+                } else {
+                    height = 800; // Rất nhiều dữ liệu - chiều cao rất cao
+                }
+                container.style.height = height + 'px';
+            }
+        }
+
+                 // Function để cập nhật tất cả charts
+         function updateCharts(filter, chartType = currentRevenueChartType) {
+            showChartLoading(true);
+            
+            fetch(`/ThongKeBaoCao/GetChartData?filter=${filter}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        updateChartTitles(filter);
+                        
+                                                 if (revenueChart) {
+                             // Kiểm tra nếu cần thay đổi loại biểu đồ
+                             if (chartType !== currentRevenueChartType) {
+                                 // Hủy biểu đồ cũ
+                                 revenueChart.destroy();
+                                 
+                                 // Tạo biểu đồ mới
+                                 const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+                                 if (chartType === 'line') {
+                                     revenueChart = createLineChart(revenueCtx, data.doanhThu.labels, data.doanhThu.data);
+                                 } else {
+                                     // Tạo lại biểu đồ cột ngang
+                                     const maxRevenue = Math.max(...data.doanhThu.data, 1);
+                                     revenueChart = new Chart(revenueCtx, {
+                                         type: 'bar',
+                                         data: {
+                                             labels: data.doanhThu.labels,
+                                             datasets: [{
+                                                 label: 'Doanh thu',
+                                                 data: data.doanhThu.data,
+                                                 backgroundColor: 'rgba(54, 162, 235, 0.9)',
+                                                 borderColor: 'rgb(54, 162, 235)',
+                                                 borderWidth: 0,
+                                                 borderRadius: {
+                                                     topLeft: 15,
+                                                     topRight: 15,
+                                                     bottomLeft: 15,
+                                                     bottomRight: 15
+                                                 },
+                                                 barThickness: function() {
+                                                     const dataCount = data.doanhThu.labels.length;
+                                                     if (dataCount <= 7) return 35;
+                                                     if (dataCount <= 12) return 25;
+                                                     if (dataCount <= 30) return 20;
+                                                     return 15;
+                                                 }()
+                                             }]
+                                         },
+                                         options: {
+                                             indexAxis: 'y',
+                                             responsive: true,
+                                             maintainAspectRatio: false,
+                                             plugins: {
+                                                 legend: { display: false },
+                                                 tooltip: {
+                                                     callbacks: {
+                                                         label: function(context) {
+                                                             return 'Doanh thu: ' + context.parsed.x.toLocaleString('vi-VN') + 'đ';
+                                                         }
+                                                     }
+                                                 }
+                                             },
+                                             scales: {
+                                                 x: {
+                                                     beginAtZero: true,
+                                                     ticks: {
+                                                         callback: function(value) {
+                                                             return value.toLocaleString('vi-VN') + 'đ';
+                                                         }
+                                                     }
+                                                 },
+                                                 y: {
+                                                     ticks: { font: { size: 12 } }
+                                                 }
+                                             },
+                                             layout: {
+                                                 padding: { top: 30, bottom: 30 }
+                                             },
+                                             elements: {
+                                                 bar: {
+                                                     barPercentage: 0.4,
+                                                     categoryPercentage: 0.6
+                                                 }
+                                             }
+                                         }
+                                     });
+                                 }
+                                 currentRevenueChartType = chartType;
+                             } else {
+                                 // Cập nhật dữ liệu cho biểu đồ hiện tại
+                                 revenueChart.data.labels = data.doanhThu.labels;
+                                 revenueChart.data.datasets[0].data = data.doanhThu.data;
+                                 
+                                 // Tự động điều chỉnh độ dày thanh và chiều cao container (chỉ cho bar chart)
+                                 if (chartType === 'bar') {
+                                     const dataCount = data.doanhThu.labels.length;
+                                     let newBarThickness;
+                                     
+                                     if (dataCount <= 7) {
+                                         newBarThickness = 35;
+                                     } else if (dataCount <= 12) {
+                                         newBarThickness = 25;
+                                     } else if (dataCount <= 30) {
+                                         newBarThickness = 20;
+                                     } else {
+                                         newBarThickness = 15;
+                                     }
+                                     
+                                     revenueChart.data.datasets[0].barThickness = newBarThickness;
+                                 }
+                                 
+                                 revenueChart.update();
+                             }
+                             
+                             // Điều chỉnh chiều cao container
+                             adjustChartHeight('revenueChart', data.doanhThu.labels.length);
+                         }
+                        
+                        if (topVehiclesChart) {
+                            topVehiclesChart.data.labels = data.topXe.labels;
+                            topVehiclesChart.data.datasets[0].data = data.topXe.data;
+                            
+                            // Tự động điều chỉnh độ dày thanh dựa trên số lượng dữ liệu
+                            const dataCount = data.topXe.labels.length;
+                            let newBarThickness;
+                            if (dataCount <= 3) newBarThickness = 40;
+                            else if (dataCount <= 5) newBarThickness = 30;
+                            else newBarThickness = 25;
+                            
+                            topVehiclesChart.data.datasets[0].barThickness = newBarThickness;
+                            topVehiclesChart.update();
+                        }
+                        
+                        if (vehicleTypesChart) {
+                            vehicleTypesChart.data.labels = data.loaiXe.labels;
+                            vehicleTypesChart.data.datasets[0].data = data.loaiXe.data;
+                            
+                            // Tự động điều chỉnh độ dày thanh và chiều cao container
+                            const dataCount = data.loaiXe.labels.length;
+                            let newBarThickness;
+                            
+                            if (dataCount <= 3) {
+                                newBarThickness = 35;
+                            } else if (dataCount <= 5) {
+                                newBarThickness = 25;
+                            } else {
+                                newBarThickness = 20;
+                            }
+                            
+                            vehicleTypesChart.data.datasets[0].barThickness = newBarThickness;
+                            
+                            // Điều chỉnh chiều cao container
+                            adjustChartHeight('vehicleTypesChart', dataCount);
+                            
+                            vehicleTypesChart.update();
+                        }
+                    } else {
+                        console.error('Error:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching chart data:', error);
+                })
+                .finally(() => {
+                    showChartLoading(false);
+                });
+        }
+
+        // Function để cập nhật titles
+        function updateChartTitles(filter) {
+            const titles = {
+                '7days': '7 ngày gần nhất',
+                'week': 'tuần này',
+                'month': '30 ngày gần nhất', 
+                'year': '12 tháng gần nhất'
+            };
+            
+            const period = titles[filter] || '7 ngày gần nhất';
+            document.getElementById('revenueTitle').textContent = `Doanh thu theo thời gian ${period}`;
+            document.getElementById('topVehiclesTitle').textContent = `Top 5 xe được thuê nhiều nhất ${period}`;
+            document.getElementById('vehicleTypesTitle').textContent = `Thống kê loại xe theo danh mục`;
+        }
+
+        // Function để hiển thị loading
+        function showChartLoading(show) {
+            const charts = ['revenueChart', 'topVehiclesChart', 'vehicleTypesChart'];
+            charts.forEach(chartId => {
+                const canvas = document.getElementById(chartId);
+                if (canvas) {
+                    canvas.style.opacity = show ? '0.5' : '1';
+                }
+            });
+        }
+
+                 // Event listener cho filter dropdown
+         document.getElementById('chartFilter').addEventListener('change', function() {
+             const selectedFilter = this.value;
+             updateCharts(selectedFilter);
+         });
+
+         // Event listener cho chart type dropdown
+         document.getElementById('chartTypeFilter').addEventListener('change', function() {
+             const selectedChartType = this.value;
+             const selectedFilter = document.getElementById('chartFilter').value;
+             updateCharts(selectedFilter, selectedChartType);
+         });
+
+        // Event listener cho export button
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            alert('Chức năng xuất Excel đang được phát triển!');
+        });
+
+        // Event listener cho print button
+        document.getElementById('printBtn').addEventListener('click', function() {
+            window.print();
+        });
+
+        // Set giá trị mặc định cho filter dropdown
+        document.getElementById('chartFilter').value = '@Model.ChartFilter';
+        
+        // Cập nhật titles ban đầu
+        updateChartTitles('@Model.ChartFilter');
+        
+        // Điều chỉnh chiều cao ban đầu cho các biểu đồ
+        adjustChartHeight('revenueChart', revenueData.length);
+        adjustChartHeight('vehicleTypesChart', vehicleTypeLabels.length);
+    </script>
+} 

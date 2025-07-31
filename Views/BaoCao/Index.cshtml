@@ -1,6 +1,6 @@
 ﻿@model bike.ViewModels.BaoCaoViewModel
 @{
-	ViewData["Title"] = "Báo Cáo Tổng Quan"; 
+	ViewData["Title"] = "Dashboard"; 
 	Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
@@ -162,31 +162,11 @@
 <div class="container-fluid">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <h1 class="mb-0"><i class="bi bi-bar-chart-line"></i> Báo Cáo Tổng Quan</h1>
+        <h1 class="mb-0"><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <p class="mb-0 mt-2">Tổng quan tình hình kinh doanh</p>
     </div>
 
-    <!-- Filter Section -->
-    <div class="filter-section">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label">Từ ngày</label>
-                <input type="date" name="tuNgay" class="form-control" value="@Model.TuNgay.ToString("yyyy-MM-dd")" />
-            </div>
-            <div class="col-md-4">
-                <label class="form-label">Đến ngày</label>
-                <input type="date" name="denNgay" class="form-control" value="@Model.DenNgay.ToString("yyyy-MM-dd")" />
-            </div>
-            <div class="col-md-4">
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-funnel"></i> Lọc dữ liệu
-                </button>
-                <a asp-action="ExportExcel" asp-route-tuNgay="@Model.TuNgay" asp-route-denNgay="@Model.DenNgay"
-                   class="btn btn-success">
-                    <i class="bi bi-file-excel"></i> Xuất Excel
-                </a>
-            </div>
-        </form>
-    </div>
+    
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
@@ -268,72 +248,40 @@
         </div>
     </div>
 
-    <!-- Charts Section -->
-    <div class="row mb-3">
+    <!-- Quick Actions Section -->
+    <div class="row mb-4">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">📊 Biểu đồ thống kê</h4>
-                <div class="chart-filter">
-                    <label class="form-label me-2">Lọc theo:</label>
-                    <select id="chartFilter" class="form-select" style="width: auto; display: inline-block;">
-                        <option value="7days">7 ngày gần nhất</option>
-                        <option value="week">Tuần này</option>
-                        <option value="month">30 ngày gần nhất</option>
-                        <option value="year">12 tháng gần nhất</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="row">
-        <!-- Biểu đồ doanh thu -->
-        <div class="col-lg-4 mb-4">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h5 class="mb-0" id="revenueTitle">Doanh thu</h5>
-                    <small class="text-muted">Đơn vị: VNĐ (xe đã trả thành công trừ chi tiêu)</small>
-                </div>
-                <canvas id="revenueChart" height="100"></canvas>
-            </div>
-        </div>
-
-        <!-- Biểu đồ đơn đặt -->
-        <div class="col-lg-4 mb-4">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h5 class="mb-0" id="bookingTitle">Đơn đặt xe</h5>
-                    <small class="text-muted">Số lượng đơn</small>
-                </div>
-                <canvas id="bookingChart" height="100"></canvas>
-            </div>
-        </div>
-
-        <!-- Biểu đồ khách hàng mới -->
-        <div class="col-lg-4 mb-4">
-            <div class="chart-card">
-                <div class="chart-header">
-                    <h5 class="mb-0" id="customersTitle">Khách hàng mới</h5>
-                    <small class="text-muted">Số lượng khách hàng</small>
-                </div>
-                <canvas id="customersChart" height="100"></canvas>
-            </div>
-        </div>
-    </div>
-
-    <!-- Top Vehicles Chart Row -->
-    <div class="row">
-        <div class="col-12 mb-4">
             <div class="chart-card">
                 <div class="chart-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-trophy text-warning"></i> Top 10 xe được thuê nhiều nhất
+                        <i class="bi bi-lightning-charge text-warning"></i> Thao tác nhanh
                     </h5>
-                    <small class="text-muted">Số lần thuê (chỉ tính hợp đồng đã hoàn thành)</small>
                 </div>
-                <div style="height: 250px; position: relative;">
-                    <canvas id="topVehiclesChart"></canvas>
+                <div class="row">
+                    <div class="col-md-3 mb-3">
+                        <a href="/ThongKeBaoCao" class="btn btn-primary w-100">
+                            <i class="bi bi-bar-chart-line"></i><br>
+                            Xem thống kê chi tiết
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/QuanLyHopDong" class="btn btn-success w-100">
+                            <i class="bi bi-receipt"></i><br>
+                            Quản lý hợp đồng
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/QuanLyHoaDon" class="btn btn-info w-100">
+                            <i class="bi bi-receipt-cutoff"></i><br>
+                            Quản lý hóa đơn
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="/Xe" class="btn btn-warning w-100">
+                            <i class="bi bi-scooter"></i><br>
+                            Quản lý xe
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -421,298 +369,10 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Biến global để lưu chart instances
-        let revenueChart, bookingChart, customersChart, topVehiclesChart;
-
-        // Biểu đồ doanh thu
-        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-        revenueChart = new Chart(revenueCtx, {
-            type: 'line',
-            data: {
-                labels: @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Label).ToList())),
-                datasets: [{
-                    label: 'Doanh thu',
-                    data: @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Value).ToList())),
-                    borderColor: 'rgb(75, 192, 192)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true, // Để Chart.js tự giữ tỷ lệ
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('vi-VN') + 'đ';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Biểu đồ đơn đặt
-        const bookingCtx = document.getElementById('bookingChart').getContext('2d');
-        bookingChart = new Chart(bookingCtx, {
-            type: 'bar',
-            data: {
-                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoDonDat.Select(x => x.Label).ToList())),
-                datasets: [{
-                    label: 'Số đơn',
-                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoDonDat.Select(x => x.Value).ToList())),
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgb(54, 162, 235)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true, // Fix: set to true to keep chart height reasonable
-                aspectRatio: 2, // Optional: set a custom aspect ratio (width/height)
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
-            }
-        });
-
-        // Biểu đồ khách hàng mới
-        const customersCtx = document.getElementById('customersChart').getContext('2d');
-        customersChart = new Chart(customersCtx, {
-            type: 'line',
-            data: {
-                labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoKhachHangMoi.Select(x => x.Label).ToList())),
-                datasets: [{
-                    label: 'Khách hàng mới',
-                    data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoKhachHangMoi.Select(x => x.Value).ToList())),
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    tension: 0.4,
-                    fill: true,
-                    pointBackgroundColor: 'rgb(255, 99, 132)',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
-                    pointRadius: 5,
-                    pointHoverRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                aspectRatio: 2,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1,
-                            callback: function(value) {
-                                return value + ' khách';
-                            }
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    },
-                    tooltip: {
-                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff',
-                        callbacks: {
-                            label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y + ' khách hàng';
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Biểu đồ Top xe được thuê nhiều nhất
-        const topVehiclesCtx = document.getElementById('topVehiclesChart');
-        if (topVehiclesCtx) {
-            try {
-                const ctx = topVehiclesCtx.getContext('2d');
-                
-                // Kiểm tra dữ liệu trước khi tạo chart
-                const topVehicleLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopXeThueNhieu.Select(x => x.TenXe + " (" + x.BienSo + ")").ToList()));
-                const topVehicleData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopXeThueNhieu.Select(x => x.SoLanThue).ToList()));
-                
-                if (topVehicleLabels && topVehicleLabels.length > 0) {
-                    topVehiclesChart = new Chart(ctx, {
-                        type: 'bar',
-                        data: {
-                            labels: topVehicleLabels,
-                            datasets: [{
-                                label: 'Số lần thuê',
-                                data: topVehicleData,
-                                backgroundColor: [
-                                    'rgba(255, 99, 132, 0.8)',
-                                    'rgba(54, 162, 235, 0.8)',
-                                    'rgba(255, 205, 86, 0.8)',
-                                    'rgba(75, 192, 192, 0.8)',
-                                    'rgba(153, 102, 255, 0.8)'
-                                ],
-                                borderColor: [
-                                    'rgb(255, 99, 132)',
-                                    'rgb(54, 162, 235)',
-                                    'rgb(255, 205, 86)',
-                                    'rgb(75, 192, 192)',
-                                    'rgb(153, 102, 255)'
-                                ],
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            indexAxis: 'y',
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            return 'Số lần thuê: ' + context.parsed.x + ' lần';
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    beginAtZero: true,
-                                    ticks: {
-                                        stepSize: 1
-                                    }
-                                },
-                                y: {
-                                    ticks: {
-                                        font: {
-                                            size: 12
-                                        }
-                                    }
-                                }
-                            },
-                            layout: {
-                                padding: {
-                                    left: 10,
-                                    right: 10,
-                                    top: 10,
-                                    bottom: 10
-                                }
-                            }
-                        }
-                    });
-                } else {
-                    // Hiển thị thông báo nếu không có dữ liệu
-                    topVehiclesCtx.style.display = 'none';
-                    const parent = topVehiclesCtx.parentElement;
-                    parent.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu xe được thuê</div>';
-                }
-            } catch (error) {
-                console.error('Error creating top vehicles chart:', error);
-                topVehiclesCtx.style.display = 'none';
-                const parent = topVehiclesCtx.parentElement;
-                parent.innerHTML = '<div class="text-center text-danger p-4"><i class="bi bi-exclamation-triangle"></i> Lỗi tải biểu đồ</div>';
-            }
-        }
-
-        // Function để cập nhật tất cả charts
-        function updateCharts(filter) {
-            // Hiển thị loading
-            showChartLoading(true);
-            
-            fetch(`/BaoCao/GetChartData?filter=${filter}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Cập nhật titles
-                        updateChartTitles(filter);
-                        
-                        // Cập nhật dữ liệu charts
-                        if (revenueChart) {
-                            revenueChart.data.labels = data.doanhThu.labels;
-                            revenueChart.data.datasets[0].data = data.doanhThu.data;
-                            revenueChart.update();
-                        }
-                        
-                        if (bookingChart) {
-                            bookingChart.data.labels = data.donDat.labels;
-                            bookingChart.data.datasets[0].data = data.donDat.data;
-                            bookingChart.update();
-                        }
-                        
-                        if (customersChart) {
-                            customersChart.data.labels = data.khachHangMoi.labels;
-                            customersChart.data.datasets[0].data = data.khachHangMoi.data;
-                            customersChart.update();
-                        }
-                        
-                        if (topVehiclesChart) {
-                            topVehiclesChart.data.labels = data.topXe.labels;
-                            topVehiclesChart.data.datasets[0].data = data.topXe.data;
-                            topVehiclesChart.update();
-                        }
-                    } else {
-                        console.error('Error:', data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching chart data:', error);
-                })
-                .finally(() => {
-                    showChartLoading(false);
-                });
-        }
-
-        // Function để cập nhật titles
-        function updateChartTitles(filter) {
-            const titles = {
-                '7days': '7 ngày gần nhất',
-                'week': 'tuần này',
-                'month': '30 ngày gần nhất', 
-                'year': '12 tháng gần nhất'
-            };
-            
-            const period = titles[filter] || '7 ngày gần nhất';
-            document.getElementById('revenueTitle').textContent = `Doanh thu ${period}`;
-            document.getElementById('bookingTitle').textContent = `Đơn đặt xe ${period}`;
-            document.getElementById('customersTitle').textContent = `Khách hàng mới ${period}`;
-        }
-
-        // Function để hiển thị loading
-        function showChartLoading(show) {
-            const charts = ['revenueChart', 'bookingChart', 'customersChart', 'topVehiclesChart'];
-            charts.forEach(chartId => {
-                const canvas = document.getElementById(chartId);
-                if (canvas) {
-                    canvas.style.opacity = show ? '0.5' : '1';
-                }
-            });
-        }
-
-        // Event listener cho filter dropdown
-        document.getElementById('chartFilter').addEventListener('change', function() {
-            const selectedFilter = this.value;
-            updateCharts(selectedFilter);
-        });
-
-        // Set giá trị mặc định cho filter dropdown
-        document.getElementById('chartFilter').value = '@Model.ChartFilter';
-        
-        // Cập nhật titles ban đầu
-        updateChartTitles('@Model.ChartFilter');
+        // Auto refresh dashboard data every 30 seconds
+        setInterval(function() {
+            location.reload();
+        }, 30000);
     </script>
 }

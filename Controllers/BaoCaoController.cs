@@ -22,7 +22,7 @@ namespace bike.Controllers
         }
 
         // GET: BaoCao
-        public async Task<IActionResult> Index(DateTime? tuNgay, DateTime? denNgay, string chartFilter = "7days")
+        public async Task<IActionResult> Index(DateTime? tuNgay, DateTime? denNgay)
         {
             // Nếu không có ngày, mặc định lấy 30 ngày gần nhất
             var endDate = denNgay ?? DateTime.Now.Date;
@@ -31,8 +31,7 @@ namespace bike.Controllers
             var viewModel = new BaoCaoViewModel
             {
                 TuNgay = startDate,
-                DenNgay = endDate,
-                ChartFilter = chartFilter ?? "7days"
+                DenNgay = endDate
             };
 
             // 1. Thống kê tổng quan
@@ -148,73 +147,9 @@ namespace bike.Controllers
                 viewModel.PhanTramDoanhThu = ((double)(currentRevenue - previousRevenue) / (double)previousRevenue) * 100;
             }
 
-            // 3. Dữ liệu biểu đồ theo filter được chọn - CHỈ TÍNH KHI ĐÃ TRẢ XE, TRỪ CHI TIÊU
-            var chartPeriods = GetChartPeriods(chartFilter);
 
-            foreach (var period in chartPeriods)
-            {
-                var doanhThuNgayGross = await _context.HopDong
-                    .Where(h => h.TrangThai == "Hoàn thành" && 
-                               h.NgayTraXeThucTe.HasValue && 
-                               h.NgayTraXeThucTe.Value.Date >= period.StartDate &&
-                               h.NgayTraXeThucTe.Value.Date <= period.EndDate)
-                    .SumAsync(h => h.TongTien);
 
-                // Tính phí đền bù trong khoảng thời gian này
-                var phiDenBuNgay = await _context.BaoCaoThietHai
-                    .Where(b => b.NgayThanhToan.HasValue &&
-                               b.NgayThanhToan.Value.Date >= period.StartDate &&
-                               b.NgayThanhToan.Value.Date <= period.EndDate &&
-                               b.SoTienDaThanhToan.HasValue && 
-                               b.SoTienDaThanhToan.Value > 0)
-                    .SumAsync(b => b.SoTienDaThanhToan ?? 0);
-
-                var chiTieuNgay = await _context.ChiTieu
-                    .Where(ct => ct.NgayChi.Date >= period.StartDate &&
-                                ct.NgayChi.Date <= period.EndDate)
-                    .SumAsync(ct => ct.SoTien);
-
-                var doanhThuNgay = Math.Max(0, doanhThuNgayGross + phiDenBuNgay - chiTieuNgay);
-
-                viewModel.BieuDoDoanhThu.Add(new BieuDoItem
-                {
-                    Label = period.Label,
-                    Value = doanhThuNgay
-                });
-            }
-
-            // 4. Dữ liệu biểu đồ đơn đặt xe
-            foreach (var period in chartPeriods)
-            {
-                var donDatNgay = await _context.DatCho
-                    .Where(d => d.NgayDat.Date >= period.StartDate &&
-                               d.NgayDat.Date <= period.EndDate)
-                    .CountAsync();
-
-                viewModel.BieuDoDonDat.Add(new BieuDoItem
-                {
-                    Label = period.Label,
-                    Value = donDatNgay
-                });
-            }
-
-            // 5. Dữ liệu biểu đồ khách hàng mới
-            foreach (var period in chartPeriods)
-            {
-                var khachHangMoiNgay = await _context.Users
-                    .Where(u => u.NgayTao.Date >= period.StartDate &&
-                               u.NgayTao.Date <= period.EndDate && 
-                               u.VaiTro == "User")
-                    .CountAsync();
-
-                viewModel.BieuDoKhachHangMoi.Add(new BieuDoItem
-                {
-                    Label = period.Label,
-                    Value = khachHangMoiNgay
-                });
-            }
-
-            // 6. Top 5 xe được thuê nhiều nhất - CHỈ TÍNH HỢP ĐỒNG ĐÃ HOÀN THÀNH
+            // 3. Top 5 xe được thuê nhiều nhất - CHỈ TÍNH HỢP ĐỒNG ĐÃ HOÀN THÀNH
             var topXe = await _context.ChiTietHopDong
                 .Include(ct => ct.Xe)
                 .Include(ct => ct.HopDong)
@@ -236,7 +171,7 @@ namespace bike.Controllers
 
             viewModel.TopXeThueNhieu = topXe;
 
-            // 7. 10 đơn đặt gần đây
+            // 4. 10 đơn đặt gần đây
             var donGanDay = await _context.DatCho
                 .Include(d => d.Xe)
                 .OrderByDescending(d => d.NgayDat)
@@ -257,159 +192,7 @@ namespace bike.Controllers
             return View(viewModel);
         }
 
-        // Helper method để lấy periods cho chart theo filter
-        private List<ChartPeriod> GetChartPeriods(string filter)
-        {
-            var periods = new List<ChartPeriod>();
-            var now = DateTime.Now.Date;
 
-            switch (filter?.ToLower())
-            {
-                case "week":
-                    // 7 ngày trong tuần này
-                    var startOfWeek = now.AddDays(-(int)now.DayOfWeek);
-                    for (int i = 0; i < 7; i++)
-                    {
-                        var date = startOfWeek.AddDays(i);
-                        periods.Add(new ChartPeriod
-                        {
-                            StartDate = date,
-                            EndDate = date,
-                            Label = date.ToString("dd/MM")
-                        });
-                    }
-                    break;
-
-                case "month":
-                    // 30 ngày gần nhất
-                    for (int i = 29; i >= 0; i--)
-                    {
-                        var date = now.AddDays(-i);
-                        periods.Add(new ChartPeriod
-                        {
-                            StartDate = date,
-                            EndDate = date,
-                            Label = date.ToString("dd/MM")
-                        });
-                    }
-                    break;
-
-                case "year":
-                    // 12 tháng gần nhất
-                    for (int i = 11; i >= 0; i--)
-                    {
-                        var monthStart = new DateTime(now.Year, now.Month, 1).AddMonths(-i);
-                        var monthEnd = monthStart.AddMonths(1).AddDays(-1);
-                        periods.Add(new ChartPeriod
-                        {
-                            StartDate = monthStart,
-                            EndDate = monthEnd,
-                            Label = monthStart.ToString("MM/yyyy")
-                        });
-                    }
-                    break;
-
-                default: // "7days"
-                    // 7 ngày gần nhất
-                    for (int i = 6; i >= 0; i--)
-                    {
-                        var date = now.AddDays(-i);
-                        periods.Add(new ChartPeriod
-                        {
-                            StartDate = date,
-                            EndDate = date,
-                            Label = date.ToString("dd/MM")
-                        });
-                    }
-                    break;
-            }
-
-            return periods;
-        }
-
-        // GET: BaoCao/GetChartData - Lấy dữ liệu charts theo filter
-        [HttpGet]
-        public async Task<IActionResult> GetChartData(string filter = "7days")
-        {
-            try
-            {
-                var chartPeriods = GetChartPeriods(filter);
-                
-                // Dữ liệu doanh thu
-                var doanhThuData = new List<decimal>();
-                var donDatData = new List<int>();
-                var khachHangMoiData = new List<int>();
-                var labels = new List<string>();
-
-                foreach (var period in chartPeriods)
-                {
-                    // Doanh thu
-                    var doanhThuGross = await _context.HopDong
-                        .Where(h => h.TrangThai == "Hoàn thành" && 
-                                   h.NgayTraXeThucTe.HasValue && 
-                                   h.NgayTraXeThucTe.Value.Date >= period.StartDate &&
-                                   h.NgayTraXeThucTe.Value.Date <= period.EndDate)
-                        .SumAsync(h => h.TongTien);
-
-                    var chiTieu = await _context.ChiTieu
-                        .Where(ct => ct.NgayChi.Date >= period.StartDate &&
-                                    ct.NgayChi.Date <= period.EndDate)
-                        .SumAsync(ct => ct.SoTien);
-
-                    var doanhThu = Math.Max(0, doanhThuGross - chiTieu);
-
-                    // Đơn đặt
-                    var donDat = await _context.DatCho
-                        .Where(d => d.NgayDat.Date >= period.StartDate &&
-                                   d.NgayDat.Date <= period.EndDate)
-                        .CountAsync();
-
-                    // Khách hàng mới
-                    var khachHangMoi = await _context.Users
-                        .Where(u => u.NgayTao.Date >= period.StartDate &&
-                                   u.NgayTao.Date <= period.EndDate && 
-                                   u.VaiTro == "User")
-                        .CountAsync();
-
-                    doanhThuData.Add(doanhThu);
-                    donDatData.Add(donDat);
-                    khachHangMoiData.Add(khachHangMoi);
-                    labels.Add(period.Label);
-                }
-
-                // Top xe được thuê nhiều
-                var topXe = await _context.ChiTietHopDong
-                    .Include(ct => ct.Xe)
-                    .Include(ct => ct.HopDong)
-                    .Where(ct => ct.HopDong.TrangThai == "Hoàn thành" && 
-                                ct.HopDong.NgayTraXeThucTe.HasValue)
-                    .GroupBy(ct => new { ct.Xe.TenXe, ct.Xe.BienSoXe })
-                    .Select(g => new 
-                    {
-                        TenXe = g.Key.TenXe + " (" + g.Key.BienSoXe + ")",
-                        SoLanThue = g.Count()
-                    })
-                    .OrderByDescending(x => x.SoLanThue)
-                    .Take(10)
-                    .ToListAsync();
-
-                return Json(new
-                {
-                    success = true,
-                    doanhThu = new { labels, data = doanhThuData },
-                    donDat = new { labels, data = donDatData },
-                    khachHangMoi = new { labels, data = khachHangMoiData },
-                    topXe = new { 
-                        labels = topXe.Select(x => x.TenXe).ToList(), 
-                        data = topXe.Select(x => x.SoLanThue).ToList() 
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message });
-            }
-        }
 
         // GET: BaoCao/DoanhThuTheoThang - Báo cáo doanh thu theo tháng
         public async Task<IActionResult> DoanhThuTheoThang(int? year)

@@ -28,6 +28,7 @@ namespace bike.ViewModels
         public List<BieuDoItem> BieuDoDoanhThu { get; set; }
         public List<BieuDoItem> BieuDoDonDat { get; set; }
         public List<BieuDoItem> BieuDoKhachHangMoi { get; set; }
+        public List<BieuDoItem> BieuDoLoaiXe { get; set; }
 
         // Top xe được thuê nhiều
         public List<XeThueNhieuItem> TopXeThueNhieu { get; set; }
@@ -40,6 +41,7 @@ namespace bike.ViewModels
             BieuDoDoanhThu = new List<BieuDoItem>();
             BieuDoDonDat = new List<BieuDoItem>();
             BieuDoKhachHangMoi = new List<BieuDoItem>();
+            BieuDoLoaiXe = new List<BieuDoItem>();
             TopXeThueNhieu = new List<XeThueNhieuItem>();
             DonDatGanDay = new List<DonDatGanDayItem>();
         }

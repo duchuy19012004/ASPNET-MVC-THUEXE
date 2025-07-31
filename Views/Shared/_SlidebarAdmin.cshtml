@@ -28,6 +28,12 @@
                     <span class="menu-text">Dashboard</span>
                 </a>
             </li>
+            <li>
+                <a asp-controller="ThongKeBaoCao" asp-action="Index">
+                    <i class="bi bi-bar-chart-line"></i>
+                    <span class="menu-text">Thống kê & Báo cáo</span>
+                </a>
+            </li>
         }
 
         @* Menu cho Admin và Staff *@
@@ -118,6 +124,30 @@
         border: 2px solid white;
         animation: pulse-sidebar 2s infinite;
         z-index: 10;
+    }
+
+    /* Thêm thuộc tính để sidebar có thể cuộn dọc */
+    .sidebar {
+        height: 100vh;
+        overflow-y: auto;
+    }
+    /* Scrollbar cho Chrome, Edge, Safari */
+    .sidebar::-webkit-scrollbar {
+        width: 8px;
+        background: #f1f1f1;
+        border-radius: 8px;
+    }
+    .sidebar::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 8px;
+    }
+    .sidebar::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    }
+    /* Scrollbar cho Firefox */
+    .sidebar {
+        scrollbar-width: thin;
+        scrollbar-color: #764ba2 #f1f1f1;
     }
 
     @@keyframes pulse-sidebar {
