@@ -69,5 +69,6 @@ namespace bike.Models
         // Navigation properties
         public virtual ICollection<HopDong> HopDongKhachHang { get; set; } = new List<HopDong>();
         public virtual ICollection<HopDong> HopDongNguoiTao { get; set; } = new List<HopDong>();
+        public virtual UserPermission? UserPermission { get; set; }
     }
 }

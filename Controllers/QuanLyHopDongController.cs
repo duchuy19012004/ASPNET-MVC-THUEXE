@@ -10,7 +10,6 @@ using bike.Services;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin", "Staff")]
     public class QuanLyHopDongController : Controller
     {
         private readonly BikeDbContext _context;
@@ -23,6 +22,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHopDong - Danh sách hợp đồng
+        [PermissionAuthorize("CanViewHopDong")]
         public async Task<IActionResult> Index(string trangThai = "", int page = 1, int pageSize = 10)
         {
             var query = _context.HopDong
@@ -72,6 +72,7 @@ namespace bike.Controllers
 
         // GET: QuanLyHopDong/TimPhieuDatCho - Tìm phiếu đặt chỗ theo SĐT
         [HttpGet]
+        [PermissionAuthorize("CanViewHopDong")]
         public IActionResult TimPhieuDatCho()
         {
             return View();
@@ -79,6 +80,7 @@ namespace bike.Controllers
 
         // POST: QuanLyHopDong/TimPhieuDatCho
         [HttpPost]
+        [PermissionAuthorize("CanViewHopDong")]
         public async Task<IActionResult> TimPhieuDatCho(string soDienThoai)
         {
             if (string.IsNullOrEmpty(soDienThoai))
@@ -103,6 +105,7 @@ namespace bike.Controllers
 
         // GET: QuanLyHopDong/TaoHopDong/5 - Tạo hợp đồng từ phiếu đặt chỗ
         [HttpGet]
+        [PermissionAuthorize("CanCreateHopDong")]
         public async Task<IActionResult> TaoHopDong(int? id)
         {
             if (id == null)
@@ -165,6 +168,7 @@ namespace bike.Controllers
         // POST: QuanLyHopDong/TaoHopDong
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanCreateHopDong")]
         public async Task<IActionResult> TaoHopDong(HopDong hopDong)
         {
             if (!ModelState.IsValid)
@@ -282,6 +286,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHopDong/ChiTiet/5 - Xem chi tiết hợp đồng
+        [PermissionAuthorize("CanViewHopDong")]
         public async Task<IActionResult> ChiTiet(int? id)
         {
             if (id == null)
@@ -307,6 +312,7 @@ namespace bike.Controllers
 
         // GET: QuanLyHopDong/TraXe/5 - Form trả xe
         [HttpGet]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> TraXe(int? id)
         {
             if (id == null)
@@ -333,6 +339,7 @@ namespace bike.Controllers
         // POST: QuanLyHopDong/TraXe
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> TraXe(int id, DateTime ngayTraThucTe, decimal phuPhi, string ghiChu, 
             List<string> tinhTrangTraXe, List<string> moTaThietHai, List<decimal> chiPhiSuaChua)
         {

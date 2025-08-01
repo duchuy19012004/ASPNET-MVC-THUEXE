@@ -8,7 +8,6 @@ using System.Security.Claims;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin")]
     public class QuanLyNhanVienController : Controller
     {
         private readonly BikeDbContext _context;
@@ -19,6 +18,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyNhanVien
+        [PermissionAuthorize("CanViewNhanVien")]
         public async Task<IActionResult> Index(string searchString, string vaiTro, string trangThai, int page = 1, int pageSize = 10)
         {
             var query = _context.Users
@@ -85,6 +85,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyNhanVien/Details/5
+        [PermissionAuthorize("CanViewNhanVien")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -104,6 +105,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyNhanVien/Create
+        [PermissionAuthorize("CanCreateNhanVien")]
         public IActionResult Create()
         {
             return View();
@@ -112,6 +114,7 @@ namespace bike.Controllers
         // POST: QuanLyNhanVien/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanCreateNhanVien")]
         public async Task<IActionResult> Create(User nhanVien)
         {
             try
@@ -162,6 +165,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyNhanVien/Edit/5
+        [PermissionAuthorize("CanEditNhanVien")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -200,6 +204,7 @@ namespace bike.Controllers
         // POST: QuanLyNhanVien/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditNhanVien")]
         public async Task<IActionResult> Edit(int id, EditUserViewModel editModel)
         {
             if (id != editModel.Id)
@@ -269,6 +274,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyNhanVien/Delete/5
+        [PermissionAuthorize("CanDeleteNhanVien")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -290,6 +296,7 @@ namespace bike.Controllers
         // POST: QuanLyNhanVien/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanDeleteNhanVien")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try
@@ -316,6 +323,7 @@ namespace bike.Controllers
         // POST: QuanLyNhanVien/KichHoat/5 - Kích hoạt lại nhân viên
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditNhanVien")]
         public async Task<IActionResult> KichHoat(int id)
         {
             try

@@ -15,6 +15,13 @@ namespace bike.Services.QuanLyUsers
         Task<ServiceResult<UserModel>> UpdateUserAsync(EditUserViewModel model);
         Task<ServiceResult<bool>> DeleteUserAsync(int id, int currentUserId);
         IEnumerable<SelectListItem> GetRoleOptions();
+        
+        // Quản lý quyền user
+        Task<UserPermissionViewModel> GetUserPermissionsAsync(int userId);
+        Task<bool> UpdateUserPermissionsAsync(UserPermissionViewModel model);
+        Task<UserPermission> GetUserPermissionEntityAsync(int userId);
+        Task<bool> CreateUserPermissionAsync(int userId);
+        Task<bool> HasPermissionAsync(int userId, string permissionName);
     }
 
     public class UserService : IUserService
@@ -189,10 +196,263 @@ namespace bike.Services.QuanLyUsers
         {
             return new[]
             {
-                new SelectListItem { Value = "Admin", Text = "Quản trị viên" },
-                new SelectListItem { Value = "Staff", Text = "Nhân viên" },
-                new SelectListItem { Value = "User", Text = "Khách hàng" }
+                new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = "Admin", Text = "Quản trị viên" },
+                new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = "Staff", Text = "Nhân viên" },
+                new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem { Value = "User", Text = "Khách hàng" }
             };
+        }
+
+        // Implement các method quản lý quyền
+        public async Task<UserPermissionViewModel> GetUserPermissionsAsync(int userId)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if (user == null) return null;
+
+            var permission = await GetUserPermissionEntityAsync(userId);
+            if (permission == null)
+            {
+                await CreateUserPermissionAsync(userId);
+                permission = await GetUserPermissionEntityAsync(userId);
+            }
+
+            return new UserPermissionViewModel
+            {
+                UserId = userId,
+                UserName = user.Ten,
+                UserEmail = user.Email,
+                XePermission = GetPermissionLevel(permission.CanViewXe, permission.CanCreateXe, permission.CanEditXe, permission.CanDeleteXe),
+                LoaiXePermission = GetPermissionLevel(permission.CanViewLoaiXe, permission.CanCreateLoaiXe, permission.CanEditLoaiXe, permission.CanDeleteLoaiXe),
+                HopDongPermission = GetPermissionLevel(permission.CanViewHopDong, permission.CanCreateHopDong, permission.CanEditHopDong, permission.CanDeleteHopDong),
+                HoaDonPermission = GetPermissionLevel(permission.CanViewHoaDon, permission.CanCreateHoaDon, permission.CanEditHoaDon, permission.CanDeleteHoaDon),
+                NhanVienPermission = GetPermissionLevel(permission.CanViewNhanVien, permission.CanCreateNhanVien, permission.CanEditNhanVien, permission.CanDeleteNhanVien),
+                UserPermission = GetPermissionLevel(permission.CanViewUser, permission.CanCreateUser, permission.CanEditUser, permission.CanDeleteUser),
+                BannerPermission = GetPermissionLevel(permission.CanViewBanner, permission.CanCreateBanner, permission.CanEditBanner, permission.CanDeleteBanner),
+                ChiTieuPermission = GetPermissionLevel(permission.CanViewChiTieu, permission.CanCreateChiTieu, permission.CanEditChiTieu, permission.CanDeleteChiTieu),
+                ThietHaiPermission = GetPermissionLevel(permission.CanViewThietHai, permission.CanCreateThietHai, permission.CanEditThietHai, permission.CanDeleteThietHai),
+                BaoCaoPermission = GetPermissionLevel(permission.CanViewBaoCao, false, false, permission.CanExportBaoCao),
+                HinhAnhXePermission = GetPermissionLevel(permission.CanViewHinhAnhXe, permission.CanUploadHinhAnhXe, false, permission.CanDeleteHinhAnhXe)
+            };
+        }
+
+        public async Task<bool> UpdateUserPermissionsAsync(UserPermissionViewModel model)
+        {
+            try
+            {
+                var permission = await GetUserPermissionEntityAsync(model.UserId);
+                if (permission == null)
+                {
+                    await CreateUserPermissionAsync(model.UserId);
+                    permission = await GetUserPermissionEntityAsync(model.UserId);
+                }
+
+                // Cập nhật quyền xe
+                UpdatePermissionFromLevel(permission, model.XePermission, 
+                    "CanViewXe", "CanCreateXe", "CanEditXe", "CanDeleteXe");
+
+                // Cập nhật quyền loại xe
+                UpdatePermissionFromLevel(permission, model.LoaiXePermission,
+                    "CanViewLoaiXe", "CanCreateLoaiXe", "CanEditLoaiXe", "CanDeleteLoaiXe");
+
+                // Cập nhật quyền hợp đồng
+                UpdatePermissionFromLevel(permission, model.HopDongPermission,
+                    "CanViewHopDong", "CanCreateHopDong", "CanEditHopDong", "CanDeleteHopDong");
+
+                // Cập nhật quyền hóa đơn
+                UpdatePermissionFromLevel(permission, model.HoaDonPermission,
+                    "CanViewHoaDon", "CanCreateHoaDon", "CanEditHoaDon", "CanDeleteHoaDon");
+
+                // Cập nhật quyền nhân viên
+                UpdatePermissionFromLevel(permission, model.NhanVienPermission,
+                    "CanViewNhanVien", "CanCreateNhanVien", "CanEditNhanVien", "CanDeleteNhanVien");
+
+                // Cập nhật quyền user
+                UpdatePermissionFromLevel(permission, model.UserPermission,
+                    "CanViewUser", "CanCreateUser", "CanEditUser", "CanDeleteUser");
+
+                // Cập nhật quyền banner
+                UpdatePermissionFromLevel(permission, model.BannerPermission,
+                    "CanViewBanner", "CanCreateBanner", "CanEditBanner", "CanDeleteBanner");
+
+                // Cập nhật quyền chi tiêu
+                UpdatePermissionFromLevel(permission, model.ChiTieuPermission,
+                    "CanViewChiTieu", "CanCreateChiTieu", "CanEditChiTieu", "CanDeleteChiTieu");
+
+                // Cập nhật quyền thiệt hại
+                UpdatePermissionFromLevel(permission, model.ThietHaiPermission,
+                    "CanViewThietHai", "CanCreateThietHai", "CanEditThietHai", "CanDeleteThietHai");
+
+                // Cập nhật quyền báo cáo
+                UpdatePermissionFromLevel(permission, model.BaoCaoPermission,
+                    "CanViewBaoCao", "CanExportBaoCao", "CanViewThongKe", "CanExportBaoCao");
+
+                // Cập nhật quyền hình ảnh xe
+                UpdatePermissionFromLevel(permission, model.HinhAnhXePermission,
+                    "CanViewHinhAnhXe", "CanUploadHinhAnhXe", "CanViewHinhAnhXe", "CanDeleteHinhAnhXe");
+
+                await _userRepository.UpdateUserPermissionAsync(permission);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<UserPermission> GetUserPermissionEntityAsync(int userId)
+        {
+            return await _userRepository.GetUserPermissionAsync(userId);
+        }
+
+        public async Task<bool> CreateUserPermissionAsync(int userId)
+        {
+            try
+            {
+                var permission = new UserPermission
+                {
+                    UserId = userId,
+                    CanViewXe = true,
+                    CanViewLoaiXe = true,
+                    CanViewHopDong = true,
+                    CanViewHoaDon = true,
+                    CanViewBanner = true,
+                    CanViewThietHai = true,
+                    CanViewCart = true,
+                    CanCheckout = true,
+                    CanDatCho = true,
+                    CanViewDatCho = true,
+                    CanViewHinhAnhXe = true
+                };
+
+                await _userRepository.CreateUserPermissionAsync(permission);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> HasPermissionAsync(int userId, string permissionName)
+        {
+            var permission = await GetUserPermissionEntityAsync(userId);
+            if (permission == null) return false;
+
+            return permissionName switch
+            {
+                "CanViewXe" => permission.CanViewXe,
+                "CanCreateXe" => permission.CanCreateXe,
+                "CanEditXe" => permission.CanEditXe,
+                "CanDeleteXe" => permission.CanDeleteXe,
+                "CanViewLoaiXe" => permission.CanViewLoaiXe,
+                "CanCreateLoaiXe" => permission.CanCreateLoaiXe,
+                "CanEditLoaiXe" => permission.CanEditLoaiXe,
+                "CanDeleteLoaiXe" => permission.CanDeleteLoaiXe,
+                "CanViewHopDong" => permission.CanViewHopDong,
+                "CanCreateHopDong" => permission.CanCreateHopDong,
+                "CanEditHopDong" => permission.CanEditHopDong,
+                "CanDeleteHopDong" => permission.CanDeleteHopDong,
+                "CanPrintHopDong" => permission.CanPrintHopDong,
+                "CanViewHoaDon" => permission.CanViewHoaDon,
+                "CanCreateHoaDon" => permission.CanCreateHoaDon,
+                "CanEditHoaDon" => permission.CanEditHoaDon,
+                "CanDeleteHoaDon" => permission.CanDeleteHoaDon,
+                "CanPrintHoaDon" => permission.CanPrintHoaDon,
+                "CanViewNhanVien" => permission.CanViewNhanVien,
+                "CanCreateNhanVien" => permission.CanCreateNhanVien,
+                "CanEditNhanVien" => permission.CanEditNhanVien,
+                "CanDeleteNhanVien" => permission.CanDeleteNhanVien,
+                "CanViewUser" => permission.CanViewUser,
+                "CanCreateUser" => permission.CanCreateUser,
+                "CanEditUser" => permission.CanEditUser,
+                "CanDeleteUser" => permission.CanDeleteUser,
+                "CanViewBanner" => permission.CanViewBanner,
+                "CanCreateBanner" => permission.CanCreateBanner,
+                "CanEditBanner" => permission.CanEditBanner,
+                "CanDeleteBanner" => permission.CanDeleteBanner,
+                "CanViewChiTieu" => permission.CanViewChiTieu,
+                "CanCreateChiTieu" => permission.CanCreateChiTieu,
+                "CanEditChiTieu" => permission.CanEditChiTieu,
+                "CanDeleteChiTieu" => permission.CanDeleteChiTieu,
+                "CanViewThietHai" => permission.CanViewThietHai,
+                "CanCreateThietHai" => permission.CanCreateThietHai,
+                "CanEditThietHai" => permission.CanEditThietHai,
+                "CanDeleteThietHai" => permission.CanDeleteThietHai,
+                "CanThanhToanThietHai" => permission.CanThanhToanThietHai,
+                "CanViewBaoCao" => permission.CanViewBaoCao,
+                "CanViewThongKe" => permission.CanViewThongKe,
+                "CanExportBaoCao" => permission.CanExportBaoCao,
+                "CanViewCart" => permission.CanViewCart,
+                "CanCheckout" => permission.CanCheckout,
+                "CanDatCho" => permission.CanDatCho,
+                "CanViewDatCho" => permission.CanViewDatCho,
+                "CanViewHinhAnhXe" => permission.CanViewHinhAnhXe,
+                "CanUploadHinhAnhXe" => permission.CanUploadHinhAnhXe,
+                "CanDeleteHinhAnhXe" => permission.CanDeleteHinhAnhXe,
+                _ => false
+            };
+        }
+
+        private string GetPermissionLevel(bool canView, bool canCreate, bool canEdit, bool canDelete)
+        {
+            if (canView && canCreate && canEdit && canDelete) return "All";
+            if (canView && canDelete) return "Delete";
+            if (canView && canEdit) return "Edit";
+            if (canView && canCreate) return "Create";
+            if (canView) return "View";
+            return "None";
+        }
+
+        private void UpdatePermissionFromLevel(UserPermission permission, string level, 
+            string viewProp, string createProp, string editProp, string deleteProp)
+        {
+            switch (level)
+            {
+                case "None":
+                    SetProperty(permission, viewProp, false);
+                    SetProperty(permission, createProp, false);
+                    SetProperty(permission, editProp, false);
+                    SetProperty(permission, deleteProp, false);
+                    break;
+                case "View":
+                    SetProperty(permission, viewProp, true);
+                    SetProperty(permission, createProp, false);
+                    SetProperty(permission, editProp, false);
+                    SetProperty(permission, deleteProp, false);
+                    break;
+                case "Create":
+                    SetProperty(permission, viewProp, true);
+                    SetProperty(permission, createProp, true);
+                    SetProperty(permission, editProp, false);
+                    SetProperty(permission, deleteProp, false);
+                    break;
+                case "Edit":
+                    SetProperty(permission, viewProp, true);
+                    SetProperty(permission, createProp, false);
+                    SetProperty(permission, editProp, true);
+                    SetProperty(permission, deleteProp, false);
+                    break;
+                case "Delete":
+                    SetProperty(permission, viewProp, true);
+                    SetProperty(permission, createProp, false);
+                    SetProperty(permission, editProp, false);
+                    SetProperty(permission, deleteProp, true);
+                    break;
+                case "All":
+                    SetProperty(permission, viewProp, true);
+                    SetProperty(permission, createProp, true);
+                    SetProperty(permission, editProp, true);
+                    SetProperty(permission, deleteProp, true);
+                    break;
+            }
+        }
+
+        private void SetProperty(UserPermission permission, string propertyName, bool value)
+        {
+            var property = typeof(UserPermission).GetProperty(propertyName);
+            if (property != null)
+            {
+                property.SetValue(permission, value);
+            }
         }
     }
 

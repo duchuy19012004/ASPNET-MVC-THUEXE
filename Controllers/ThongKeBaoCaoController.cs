@@ -11,7 +11,6 @@ using bike.Attributes;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin")]
     public class ThongKeBaoCaoController : Controller
     {
         private readonly BikeDbContext _context;
@@ -22,6 +21,7 @@ namespace bike.Controllers
         }
 
         // GET: ThongKeBaoCao
+        [PermissionAuthorize("CanViewBaoCao")]
         public async Task<IActionResult> Index(string chartFilter = "7days")
         {
             var viewModel = new BaoCaoViewModel
@@ -261,6 +261,7 @@ namespace bike.Controllers
 
         // GET: ThongKeBaoCao/GetChartData - Lấy dữ liệu charts theo filter
         [HttpGet]
+        [PermissionAuthorize("CanViewBaoCao")]
         public async Task<IActionResult> GetChartData(string filter = "7days")
         {
             try

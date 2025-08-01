@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Truy cập bị từ chối";
+    Layout = "_AccessDeniedLayout";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h2 class="text-danger mb-3">Truy cập bị từ chối</h2>
+                    
+                    <p class="lead mb-4">
+                        Bạn không có quyền truy cập vào trang này. Vui lòng liên hệ quản trị viên để được cấp quyền phù hợp.
+                    </p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Lưu ý:</strong> Nếu bạn tin rằng đây là lỗi, vui lòng kiểm tra lại quyền của tài khoản trong phần Quản lý người dùng.
+                    </div>
+                    
+                    <div class="mt-4">
+                        <a href="@Url.Action("Index", "Home")" class="btn btn-primary me-2">
+                            <i class="fas fa-home me-1"></i>
+                            Về trang chủ
+                        </a>
+                        
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Quay lại
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+ 

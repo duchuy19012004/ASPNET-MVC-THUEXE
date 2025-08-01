@@ -7,7 +7,6 @@ using bike.Attributes;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin", "Staff")]
     public class HinhAnhXeController : Controller
     {
         private readonly BikeDbContext _context;
@@ -20,6 +19,7 @@ namespace bike.Controllers
         }
 
         // GET: HinhAnhXe
+        [PermissionAuthorize("CanViewXe")]
         public async Task<IActionResult> Index(int? maXe)
         {
             var query = _context.HinhAnhXe.Include(h => h.Xe).AsQueryable();
@@ -39,6 +39,7 @@ namespace bike.Controllers
         }
 
         // GET: HinhAnhXe/Details/5
+        [PermissionAuthorize("CanViewXe")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -58,6 +59,7 @@ namespace bike.Controllers
         }
 
         // GET: HinhAnhXe/Create
+        [PermissionAuthorize("CanEditXe")]
         public IActionResult Create(int? maXe)
         {
             var model = new HinhAnhXe();
@@ -73,6 +75,7 @@ namespace bike.Controllers
         // POST: HinhAnhXe/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditXe")]
         public async Task<IActionResult> Create([Bind("MaXe,MoTa,ThuTu,LaAnhChinh")] HinhAnhXe hinhAnhXe, IFormFile HinhAnh)
         {
             ModelState.Remove("TenFile");
@@ -122,6 +125,7 @@ namespace bike.Controllers
         }
 
         // GET: HinhAnhXe/Edit/5
+        [PermissionAuthorize("CanEditXe")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -141,6 +145,7 @@ namespace bike.Controllers
         // POST: HinhAnhXe/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditXe")]
         public async Task<IActionResult> Edit(int id, [Bind("MaHinhAnh,MaXe,TenFile,MoTa,ThuTu,LaAnhChinh,NgayThem")] HinhAnhXe hinhAnhXe, IFormFile? HinhAnh)
         {
             if (id != hinhAnhXe.MaHinhAnh)
@@ -203,6 +208,7 @@ namespace bike.Controllers
         }
 
         // GET: HinhAnhXe/Delete/5
+        [PermissionAuthorize("CanDeleteXe")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -224,6 +230,7 @@ namespace bike.Controllers
         // POST: HinhAnhXe/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanDeleteXe")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var hinhAnhXe = await _context.HinhAnhXe.FindAsync(id);
@@ -293,6 +300,7 @@ namespace bike.Controllers
 
         // AJAX: Set main image
         [HttpPost]
+        [PermissionAuthorize("CanEditXe")]
         public async Task<IActionResult> SetMainImage(int id)
         {
             try

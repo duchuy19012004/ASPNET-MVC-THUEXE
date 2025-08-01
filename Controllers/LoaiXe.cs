@@ -4,12 +4,10 @@ using bike.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using bike.Attributes;
+
 namespace bike.Controllers
 {
-    namespace bike.Controllers
-    {
-       [CustomAuthorize("Admin", "Staff")]
-        public class LoaiXeController : Controller
+    public class LoaiXeController : Controller
 
         {
             private readonly BikeDbContext _context;
@@ -19,12 +17,14 @@ namespace bike.Controllers
             }
 
             // GET: /LoaiXe
+            [PermissionAuthorize("CanViewLoaiXe")]
             public async Task<IActionResult> Index()
             {
                 return View(await _context.LoaiXe.ToListAsync());
             }
 
             // GET: /LoaiXe/Create
+            [PermissionAuthorize("CanCreateLoaiXe")]
             public IActionResult Create()
             {
                 return View();
@@ -33,6 +33,7 @@ namespace bike.Controllers
             // POST: /LoaiXe/Create
             [HttpPost]
             [ValidateAntiForgeryToken]
+            [PermissionAuthorize("CanCreateLoaiXe")]
             public async Task<IActionResult> Create([Bind("TenLoaiXe")] LoaiXe loaiXe)
             {
                 if (ModelState.IsValid)
@@ -46,6 +47,7 @@ namespace bike.Controllers
             }
 
             // GET: /LoaiXe/Edit/5
+            [PermissionAuthorize("CanEditLoaiXe")]
             public async Task<IActionResult> Edit(int? id)
             {
                 if (id == null) return NotFound();
@@ -57,6 +59,7 @@ namespace bike.Controllers
             // POST: /LoaiXe/Edit/5
             [HttpPost]
             [ValidateAntiForgeryToken]
+            [PermissionAuthorize("CanEditLoaiXe")]
             public async Task<IActionResult> Edit(int id, [Bind("MaLoaiXe,TenLoaiXe,NgayTao,NgayCapNhat")] LoaiXe loaiXe)
             {
                 if (id != loaiXe.MaLoaiXe) return NotFound();
@@ -80,6 +83,7 @@ namespace bike.Controllers
             }
 
             // GET: /LoaiXe/Delete/5
+            [PermissionAuthorize("CanDeleteLoaiXe")]
             public async Task<IActionResult> Delete(int? id)
             {
                 if (id == null) return NotFound();
@@ -91,6 +95,7 @@ namespace bike.Controllers
             // POST: /LoaiXe/Delete/5
             [HttpPost, ActionName("Delete")]
             [ValidateAntiForgeryToken]
+            [PermissionAuthorize("CanDeleteLoaiXe")]
             public async Task<IActionResult> DeleteConfirmed(int id)
             {
                 var loaiXe = await _context.LoaiXe.FindAsync(id);
@@ -108,4 +113,3 @@ namespace bike.Controllers
             }
         }
     }
-}

@@ -14,6 +14,11 @@ namespace bike.Repository
         Task<bool> DeleteUserAsync(int id);
         Task<bool> UserExistsAsync(int id);
         Task<int> SaveChangesAsync();
+        
+        // Quản lý quyền user
+        Task<UserPermission?> GetUserPermissionAsync(int userId);
+        Task<UserPermission> CreateUserPermissionAsync(UserPermission permission);
+        Task<UserPermission> UpdateUserPermissionAsync(UserPermission permission);
     }
 
     public class UserRepository : IUserRepository
@@ -84,6 +89,27 @@ namespace bike.Repository
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();
+        }
+
+        // Implement các method quản lý quyền
+        public async Task<UserPermission?> GetUserPermissionAsync(int userId)
+        {
+            return await _context.UserPermissions
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+        }
+
+        public async Task<UserPermission> CreateUserPermissionAsync(UserPermission permission)
+        {
+            _context.UserPermissions.Add(permission);
+            await _context.SaveChangesAsync();
+            return permission;
+        }
+
+        public async Task<UserPermission> UpdateUserPermissionAsync(UserPermission permission)
+        {
+            _context.UserPermissions.Update(permission);
+            await _context.SaveChangesAsync();
+            return permission;
         }
     }
 } 

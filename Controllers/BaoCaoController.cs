@@ -11,7 +11,6 @@ using bike.Attributes;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin", "Staff")]
     public class BaoCaoController : Controller
     {
         private readonly BikeDbContext _context;
@@ -22,6 +21,7 @@ namespace bike.Controllers
         }
 
         // GET: BaoCao
+        [PermissionAuthorize("CanViewBaoCao")]
         public async Task<IActionResult> Index(DateTime? tuNgay, DateTime? denNgay)
         {
             // Nếu không có ngày, mặc định lấy 30 ngày gần nhất
@@ -195,6 +195,7 @@ namespace bike.Controllers
 
 
         // GET: BaoCao/DoanhThuTheoThang - Báo cáo doanh thu theo tháng
+        [PermissionAuthorize("CanViewBaoCao")]
         public async Task<IActionResult> DoanhThuTheoThang(int? year)
         {
             var currentYear = year ?? DateTime.Now.Year;
@@ -234,6 +235,7 @@ namespace bike.Controllers
         }
 
         // GET: BaoCao/ExportExcel - Xuất báo cáo Excel
+        [PermissionAuthorize("CanViewBaoCao")]
         public async Task<IActionResult> ExportExcel(DateTime? tuNgay, DateTime? denNgay)
         {
             // TODO: Implement Excel export using EPPlus or similar library

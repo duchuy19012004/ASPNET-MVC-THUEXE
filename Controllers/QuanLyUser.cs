@@ -113,50 +113,86 @@ namespace bike.Controllers
         // POST: User/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, EditUserViewModel model, bool isModal = false)
+        public async Task<IActionResult> Edit(int id, EditUserViewModel model)
         {
             if (id != model.Id)
             {
-                return HandleNotFoundResponse("Không tìm thấy người dùng!");
+                return NotFound();
             }
 
-            var result = await _userService.UpdateUserAsync(model);
-            
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            if (ModelState.IsValid)
             {
-                if (result.IsSuccess && result.Data != null)
+                var result = await _userService.UpdateUserAsync(model);
+                if (result.IsSuccess)
                 {
-                    return Json(new {
-                        success = true,
-                        message = result.Message,
-                        user = new {
-                            id = result.Data.Id,
-                            ten = result.Data.Ten,
-                            email = result.Data.Email,
-                            vaiTro = result.Data.VaiTro,
-                            isActive = result.Data.IsActive,
-                            ngayTao = result.Data.NgayTao.ToString("dd/MM/yyyy")
+                    TempData["SuccessMessage"] = result.Message;
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    foreach (var error in result.Errors)
+                    {
+                        foreach (var message in error.Value)
+                        {
+                            ModelState.AddModelError(error.Key, message);
                         }
-                    });
+                    }
                 }
-                return Json(new { success = false, message = result.Message, errors = result.Errors });
             }
 
-            if (result.IsSuccess)
+            ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text");
+            return View(model);
+        }
+
+        // GET: User/Permissions/{id}
+        public async Task<IActionResult> Permissions(int id)
+        {
+            var user = await _userService.GetUserByIdAsync(id);
+            if (user == null)
             {
-                return HandleSuccessResponse(result.Message);
+                return NotFound();
             }
 
-            // Handle validation errors
-            foreach (var error in result.Errors)
+            var permissions = await _userService.GetUserPermissionsAsync(id);
+            if (permissions == null)
             {
-                foreach (var message in error.Value)
+                permissions = new UserPermissionViewModel
                 {
-                    ModelState.AddModelError(error.Key, message);
+                    UserId = id,
+                    UserName = user.Ten,
+                    UserEmail = user.Email
+                };
+            }
+
+            ViewBag.PermissionOptions = UserPermissionViewModel.PermissionOptions;
+            return View(permissions);
+        }
+
+        // POST: User/Permissions/{id}
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Permissions(int id, UserPermissionViewModel model)
+        {
+            if (id != model.UserId)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                var success = await _userService.UpdateUserPermissionsAsync(model);
+                if (success)
+                {
+                    TempData["SuccessMessage"] = "Cập nhật quyền thành công!";
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Có lỗi xảy ra khi cập nhật quyền.");
                 }
             }
 
-            ViewBag.Roles = new SelectList(_userService.GetRoleOptions(), "Value", "Text", model.VaiTro);
+            ViewBag.PermissionOptions = UserPermissionViewModel.PermissionOptions;
             return View(model);
         }
 

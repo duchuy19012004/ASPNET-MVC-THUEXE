@@ -7,7 +7,6 @@ using System.Security.Claims;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin", "Staff")]
     public class QuanLyHoaDonController : Controller
     {
         private readonly BikeDbContext _context;
@@ -18,6 +17,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHoaDon - Danh sách hóa đơn
+        [PermissionAuthorize("CanViewHoaDon")]
         public async Task<IActionResult> Index(string searchString, DateTime? tuNgay, DateTime? denNgay, int page = 1, int pageSize = 10)
         {
             var query = _context.HoaDon
@@ -71,6 +71,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHoaDon/ChiTiet/5 - Xem chi tiết hóa đơn
+        [PermissionAuthorize("CanViewHoaDon")]
         public async Task<IActionResult> ChiTiet(int? id)
         {
             if (id == null)
@@ -96,6 +97,7 @@ namespace bike.Controllers
         // POST: QuanLyHoaDon/TaoHoaDon/5 - Tạo hóa đơn từ hợp đồng hoàn thành
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanCreateHoaDon")]
         public async Task<IActionResult> TaoHoaDon(int maHopDong, string? ghiChu)
         {
             try
@@ -150,6 +152,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHoaDon/DanhSachHopDongChuaCoHoaDon - Danh sách hợp đồng chưa có hóa đơn
+        [PermissionAuthorize("CanViewHoaDon")]
         public async Task<IActionResult> DanhSachHopDongChuaCoHoaDon()
         {
             var hopDongChuaCoHoaDon = await _context.HopDong
@@ -164,6 +167,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHoaDon/BaoCaoDoanhThu - Báo cáo doanh thu
+        [PermissionAuthorize("CanViewHoaDon")]
         public async Task<IActionResult> BaoCaoDoanhThu(DateTime? tuNgay, DateTime? denNgay)
         {
             var startDate = tuNgay ?? DateTime.Now.AddDays(-30).Date;
@@ -185,6 +189,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyHoaDon/InHoaDon/5 - Trang in hóa đơn riêng biệt
+        [PermissionAuthorize("CanViewHoaDon")]
         public async Task<IActionResult> InHoaDon(int? id)
         {
             if (id == null)

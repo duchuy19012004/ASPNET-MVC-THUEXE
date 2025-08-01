@@ -28,6 +28,7 @@ builder.Services.AddScoped<bike.Repository.IUserRepository, bike.Repository.User
 builder.Services.AddScoped<bike.Services.QuanLyUsers.IPasswordService, bike.Services.QuanLyUsers.PasswordService>();
 builder.Services.AddScoped<bike.Services.QuanLyUsers.IUserValidator, bike.Services.QuanLyUsers.UserValidator>();
 builder.Services.AddScoped<bike.Services.QuanLyUsers.IUserService, bike.Services.QuanLyUsers.UserService>();
+builder.Services.AddScoped<bike.Services.IPermissionService, bike.Services.PermissionService>();
 
 // Cấu hình Entity Framework với SQL Server - tối ưu performance
 builder.Services.AddDbContext<BikeDbContext>(options =>

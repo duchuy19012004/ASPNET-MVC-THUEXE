@@ -8,7 +8,6 @@ using System.Security.Claims;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin", "Staff")]
     public class ChiTietHopDongController : Controller
     {
         private readonly BikeDbContext _context;
@@ -20,6 +19,7 @@ namespace bike.Controllers
 
         // GET: ChiTietHopDong/ThemXe/5 - Form thêm xe vào hợp đồng
         [HttpGet]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> ThemXe(int? hopDongId)
         {
             if (hopDongId == null)
@@ -81,6 +81,7 @@ namespace bike.Controllers
         // POST: ChiTietHopDong/ThemXe
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> ThemXe(ChiTietHopDong chiTiet)
         {
             var hopDong = await _context.HopDong
@@ -158,6 +159,7 @@ namespace bike.Controllers
         // POST: ChiTietHopDong/XoaXe/5 - Xóa xe khỏi hợp đồng
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> XoaXe(int id)
         {
             var chiTiet = await _context.ChiTietHopDong
@@ -210,6 +212,7 @@ namespace bike.Controllers
 
         // GET: ChiTietHopDong/SuaXe/5 - Form sửa thông tin xe trong hợp đồng
         [HttpGet]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> SuaXe(int? id)
         {
             if (id == null)
@@ -240,6 +243,7 @@ namespace bike.Controllers
         // POST: ChiTietHopDong/SuaXe/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditHopDong")]
         public async Task<IActionResult> SuaXe(int id, ChiTietHopDong model)
         {
             if (id != model.MaChiTiet)
@@ -291,6 +295,7 @@ namespace bike.Controllers
         }
 
         // GET: ChiTietHopDong/DanhSachXe/5 - Xem danh sách xe trong hợp đồng
+        [PermissionAuthorize("CanViewHopDong")]
         public async Task<IActionResult> DanhSachXe(int? hopDongId)
         {
             if (hopDongId == null)
@@ -314,6 +319,7 @@ namespace bike.Controllers
 
         // GET: ChiTietHopDong/GetXeInfo/5 - API lấy thông tin xe
         [HttpGet]
+        [PermissionAuthorize("CanViewHopDong")]
         public async Task<IActionResult> GetXeInfo(int maXe)
         {
             var xe = await _context.Xe.FindAsync(maXe);

@@ -6,7 +6,6 @@ using bike.Attributes;
 
 namespace bike.Controllers
 {
-    [CustomAuthorize("Admin", "Staff")] 
     public class QuanLyBannerController : Controller
     {
         private readonly BikeDbContext _context;
@@ -19,6 +18,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyBanner
+        [PermissionAuthorize("CanViewBanner")]
         public async Task<IActionResult> Index()
         {
             var banners = await _context.Banner
@@ -29,6 +29,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyBanner/Create
+        [PermissionAuthorize("CanCreateBanner")]
         public IActionResult Create()
         {
             return View();
@@ -37,6 +38,7 @@ namespace bike.Controllers
         // POST: QuanLyBanner/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanCreateBanner")]
         public async Task<IActionResult> Create(Banner banner, IFormFile imageFile)
         {
             try
@@ -124,6 +126,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyBanner/Edit/5
+        [PermissionAuthorize("CanEditBanner")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -142,6 +145,7 @@ namespace bike.Controllers
         // POST: QuanLyBanner/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanEditBanner")]
         public async Task<IActionResult> Edit(int id, Banner banner, IFormFile? imageFile)
         {
             if (id != banner.MaBanner)
@@ -244,6 +248,7 @@ namespace bike.Controllers
         }
 
         // GET: QuanLyBanner/Delete/5
+        [PermissionAuthorize("CanDeleteBanner")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -264,6 +269,7 @@ namespace bike.Controllers
         // POST: QuanLyBanner/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanDeleteBanner")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var banner = await _context.Banner.FindAsync(id);

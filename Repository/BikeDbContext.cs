@@ -16,6 +16,8 @@ namespace bike.Repository
         public DbSet<Xe> Xe { get; set; }
         public DbSet<LoaiXe> LoaiXe { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Role> Roles { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<DatCho> DatCho { get; set; }
         public DbSet<HopDong> HopDong { get; set; }
         public DbSet<ChiTieu> ChiTieu { get; set; }
