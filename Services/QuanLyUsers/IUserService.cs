@@ -229,8 +229,8 @@ namespace bike.Services.QuanLyUsers
                 BannerPermission = GetPermissionLevel(permission.CanViewBanner, permission.CanCreateBanner, permission.CanEditBanner, permission.CanDeleteBanner),
                 ChiTieuPermission = GetPermissionLevel(permission.CanViewChiTieu, permission.CanCreateChiTieu, permission.CanEditChiTieu, permission.CanDeleteChiTieu),
                 ThietHaiPermission = GetPermissionLevel(permission.CanViewThietHai, permission.CanCreateThietHai, permission.CanEditThietHai, permission.CanDeleteThietHai),
-                BaoCaoPermission = GetPermissionLevel(permission.CanViewBaoCao, false, false, permission.CanExportBaoCao),
-                HinhAnhXePermission = GetPermissionLevel(permission.CanViewHinhAnhXe, permission.CanUploadHinhAnhXe, false, permission.CanDeleteHinhAnhXe)
+                BaoCaoPermission = GetBaoCaoPermissionLevel(permission.CanViewBaoCao, permission.CanViewThongKe, permission.CanExportBaoCao),
+                HinhAnhXePermission = GetPermissionLevel(permission.CanViewHinhAnhXe, permission.CanUploadHinhAnhXe, permission.CanEditHinhAnhXe, permission.CanDeleteHinhAnhXe)
             };
         }
 
@@ -281,13 +281,12 @@ namespace bike.Services.QuanLyUsers
                 UpdatePermissionFromLevel(permission, model.ThietHaiPermission,
                     "CanViewThietHai", "CanCreateThietHai", "CanEditThietHai", "CanDeleteThietHai");
 
-                // Cập nhật quyền báo cáo
-                UpdatePermissionFromLevel(permission, model.BaoCaoPermission,
-                    "CanViewBaoCao", "CanExportBaoCao", "CanViewThongKe", "CanExportBaoCao");
+                // Cập nhật quyền báo cáo - xử lý riêng vì có cấu trúc khác
+                UpdateBaoCaoPermission(permission, model.BaoCaoPermission);
 
                 // Cập nhật quyền hình ảnh xe
                 UpdatePermissionFromLevel(permission, model.HinhAnhXePermission,
-                    "CanViewHinhAnhXe", "CanUploadHinhAnhXe", "CanViewHinhAnhXe", "CanDeleteHinhAnhXe");
+                    "CanViewHinhAnhXe", "CanUploadHinhAnhXe", "CanEditHinhAnhXe", "CanDeleteHinhAnhXe");
 
                 await _userRepository.UpdateUserPermissionAsync(permission);
                 return true;
@@ -387,6 +386,7 @@ namespace bike.Services.QuanLyUsers
                 "CanViewDatCho" => permission.CanViewDatCho,
                 "CanViewHinhAnhXe" => permission.CanViewHinhAnhXe,
                 "CanUploadHinhAnhXe" => permission.CanUploadHinhAnhXe,
+                "CanEditHinhAnhXe" => permission.CanEditHinhAnhXe,
                 "CanDeleteHinhAnhXe" => permission.CanDeleteHinhAnhXe,
                 _ => false
             };
@@ -453,6 +453,52 @@ namespace bike.Services.QuanLyUsers
             {
                 property.SetValue(permission, value);
             }
+        }
+
+        private void UpdateBaoCaoPermission(UserPermission permission, string level)
+        {
+            switch (level)
+            {
+                case "None":
+                    permission.CanViewBaoCao = false;
+                    permission.CanViewThongKe = false;
+                    permission.CanExportBaoCao = false;
+                    break;
+                case "View":
+                    permission.CanViewBaoCao = true;
+                    permission.CanViewThongKe = false;
+                    permission.CanExportBaoCao = false;
+                    break;
+                case "Create":
+                    permission.CanViewBaoCao = true;
+                    permission.CanViewThongKe = true;
+                    permission.CanExportBaoCao = false;
+                    break;
+                case "Edit":
+                    permission.CanViewBaoCao = true;
+                    permission.CanViewThongKe = true;
+                    permission.CanExportBaoCao = false;
+                    break;
+                case "Delete":
+                    permission.CanViewBaoCao = true;
+                    permission.CanViewThongKe = false;
+                    permission.CanExportBaoCao = true;
+                    break;
+                case "All":
+                    permission.CanViewBaoCao = true;
+                    permission.CanViewThongKe = true;
+                    permission.CanExportBaoCao = true;
+                    break;
+            }
+        }
+
+        private string GetBaoCaoPermissionLevel(bool canView, bool canViewThongKe, bool canExport)
+        {
+            if (canView && canViewThongKe && canExport) return "All";
+            if (canView && canExport) return "Delete";
+            if (canView && canViewThongKe) return "Create";
+            if (canView) return "View";
+            return "None";
         }
     }
 

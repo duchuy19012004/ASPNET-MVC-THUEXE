@@ -94,6 +94,7 @@ namespace bike.Models
         public bool CanManageHinhAnhXe { get; set; } = false;
         public bool CanViewHinhAnhXe { get; set; } = true;
         public bool CanUploadHinhAnhXe { get; set; } = false;
+        public bool CanEditHinhAnhXe { get; set; } = false;
         public bool CanDeleteHinhAnhXe { get; set; } = false;
     }
 } 
