@@ -8,6 +8,7 @@
 @section Styles {
     <link rel="stylesheet" href="~/css/xe-index.css" />
     <link rel="stylesheet" href="~/css/responsive.css" />
+    <link rel="stylesheet" href="~/css/custom-modal.css" />
 }
 
 <div class="container-fluid">
@@ -157,6 +158,11 @@
                                 <span class="badge @badgeClass">@xe.TrangThai</span>
                             </td>
                             <td>
+                                <!-- View Details button (always available) -->
+                                <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết" onclick="showXeDetails(@xe.MaXe)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                
                                 @if (xe.TrangThai == "Đang thuê")
                                 {
                                     <!-- Edit button disabled -->
@@ -177,11 +183,11 @@
                                 else
                                 {
                                     <!-- Normal Edit/Delete buttons -->
-                                    <a asp-action="Edit" asp-route-id="@xe.MaXe" class="btn btn-warning btn-sm">
+                                    <a asp-action="Edit" asp-route-id="@xe.MaXe" class="btn btn-warning btn-sm" title="Sửa">
                                         <i class="bi bi-pencil"></i>
                                     </a>
                                     <a asp-action="Delete" asp-route-id="@xe.MaXe" class="btn btn-danger btn-sm"
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa xe này?');">
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa xe này?');" title="Xóa">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 }
@@ -194,6 +200,9 @@
     </div>
 </div>
 
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+
 @section Scripts {
     <script>
         // Optional: Thêm thông báo khi user cố click vào button disabled
@@ -204,6 +213,57 @@
                 e.stopPropagation();
                 return false;
             });
+            
+            // Close modal when clicking outside
+            $(document).on('click', '.custom-modal-overlay', function(e) {
+                if (e.target === this) {
+                    closeCustomModal();
+                }
+            });
+            
+            // Close modal with Escape key
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape' && $('.custom-modal-overlay').hasClass('show')) {
+                    closeCustomModal();
+                }
+            });
         });
+
+        // Function to show xe details modal
+        function showXeDetails(xeId) {
+            // Remove any existing modal
+            $('.custom-modal-overlay').remove();
+            
+            // Show loading
+            $('#modalContainer').html('<div class="custom-modal-overlay show" id="customXeDetailsModal"><div class="custom-modal"><div class="custom-modal-header"><h5 class="custom-modal-title">Đang tải...</h5><button type="button" class="custom-modal-close" onclick="closeCustomModal()"><i class="bi bi-x"></i></button></div><div class="custom-modal-body"><div class="custom-modal-loading"><i class="bi bi-hourglass-split"></i><br>Đang tải thông tin xe...</div></div></div></div>');
+
+            // Load modal content
+            $.ajax({
+                url: '@Url.Action("DetailsModal", "Xe")',
+                type: 'GET',
+                data: { id: xeId },
+                success: function(result) {
+                    $('#modalContainer').html(result);
+                    // Add show class after a small delay for animation
+                    setTimeout(function() {
+                        $('#customXeDetailsModal').addClass('show');
+                    }, 10);
+                },
+                error: function() {
+                    $('#modalContainer').html('<div class="custom-modal-overlay show" id="customXeDetailsModal"><div class="custom-modal"><div class="custom-modal-header"><h5 class="custom-modal-title">Lỗi</h5><button type="button" class="custom-modal-close" onclick="closeCustomModal()"><i class="bi bi-x"></i></button></div><div class="custom-modal-body"><div class="custom-modal-loading text-danger"><i class="bi bi-exclamation-triangle"></i><br>Có lỗi xảy ra khi tải thông tin xe</div></div></div></div>');
+                }
+            });
+        }
+
+        // Function to close custom modal
+        function closeCustomModal() {
+            const modal = document.getElementById('customXeDetailsModal');
+            if (modal) {
+                modal.classList.remove('show');
+                setTimeout(function() {
+                    modal.remove();
+                }, 300);
+            }
+        }
     </script>
 }

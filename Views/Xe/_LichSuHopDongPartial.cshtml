@@ -1,0 +1,137 @@
+@model IEnumerable<bike.Models.ChiTietHopDong>
+@{
+    var xe = ViewBag.Xe as bike.Models.Xe;
+}
+
+<!-- Thống kê -->
+<div class="stats-card">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stats-number">@Model.Count()</div>
+            <div>Tổng hợp đồng</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-number">@Model.Count(x => x.HopDong.NgayTraXeThucTe.HasValue)</div>
+            <div>Đã hoàn thành</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-number">@Model.Count(x => !x.HopDong.NgayTraXeThucTe.HasValue)</div>
+            <div>Đang thuê</div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-number">@Model.Sum(x => x.ThanhTienTinhToan).ToString("N0")đ</div>
+            <div>Tổng doanh thu</div>
+        </div>
+    </div>
+</div>
+
+<!-- Bảng danh sách -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between">
+        <h5>Danh sách hợp đồng (@Model.Count() kết quả)</h5>
+        <div>
+            <button class="btn btn-success btn-sm" onclick="exportToExcel()">
+                <i class="bi bi-file-excel"></i> Xuất Excel
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="printTable()">
+                <i class="bi bi-printer"></i> In
+            </button>
+        </div>
+    </div>
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="hopDongTable">
+                    <thead>
+                        <tr>
+                            <th>Mã HĐ</th>
+                            <th>Khách hàng</th>
+                            <th>Số điện thoại</th>
+                            <th>Ngày nhận xe</th>
+                            <th>Ngày trả xe</th>
+                            <th>Số ngày thuê</th>
+                            <th>Thành tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ct in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>#HD@(ct.HopDong.MaHopDong.ToString("D3"))</strong>
+                                </td>
+                                <td>
+                                    <strong>@ct.HopDong.HoTenKhach</strong>
+                                    @if (!string.IsNullOrEmpty(ct.HopDong.SoCCCD))
+                                    {
+                                        <br><small class="text-muted">CCCD: @ct.HopDong.SoCCCD</small>
+                                    }
+                                </td>
+                                <td>@ct.HopDong.SoDienThoai</td>
+                                <td>@ct.HopDong.NgayNhanXe.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>
+                                    @if (ct.HopDong.NgayTraXeThucTe.HasValue)
+                                    {
+                                        @ct.HopDong.NgayTraXeThucTe.Value.ToString("dd/MM/yyyy HH:mm")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Chưa trả</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (ct.HopDong.NgayTraXeThucTe.HasValue)
+                                    {
+                                        <span>@((ct.HopDong.NgayTraXeThucTe.Value - ct.HopDong.NgayNhanXe).Days + 1) ngày</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@((DateTime.Now - ct.HopDong.NgayNhanXe).Days + 1) ngày</span>
+                                        <span class="badge bg-warning text-dark">Đang thuê</span>
+                                    }
+                                </td>
+                                <td class="text-danger">
+                                    <strong>@ct.ThanhTienTinhToan.ToString("N0")đ</strong>
+                                </td>
+                                <td>
+                                    @if (ct.HopDong.NgayTraXeThucTe.HasValue)
+                                    {
+                                        <span class="badge bg-success">Đã hoàn thành</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Đang thuê</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("ChiTiet", "QuanLyHopDong", new { id = ct.HopDong.MaHopDong })" 
+                                       class="btn btn-info btn-sm" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @if (ct.HopDong.HoaDon != null)
+                                    {
+                                        <a href="@Url.Action("ChiTiet", "QuanLyHoaDon", new { id = ct.HopDong.HoaDon.MaHoaDon })" 
+                                           class="btn btn-success btn-sm" title="Xem hóa đơn">
+                                            <i class="bi bi-receipt"></i>
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                <h5 class="text-muted mt-3">Không có hợp đồng nào</h5>
+                <p class="text-muted">Không tìm thấy hợp đồng nào phù hợp với bộ lọc hiện tại.</p>
+            </div>
+        }
+    </div>
+</div> 

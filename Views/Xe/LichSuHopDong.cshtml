@@ -1,0 +1,332 @@
+@model IEnumerable<bike.Models.ChiTietHopDong>
+
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Lịch sử hợp đồng";
+    var xe = ViewBag.Xe as bike.Models.Xe;
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/xe-index.css" />
+    <link rel="stylesheet" href="~/css/responsive.css" />
+    <style>
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .date-range-inputs {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .time-filter-btn {
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .time-filter-btn.active {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        
+        /* Hiệu ứng mượt mà cho container */
+        #contentContainer {
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        /* Hiệu ứng cho button khi loading */
+        .time-filter-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* Spinner animation */
+        .spinner-border {
+            animation: spinner-border 0.75s linear infinite;
+        }
+        
+        /* Thông báo lỗi ngày */
+        .date-error-message {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Lịch sử hợp đồng</h1>
+            <p class="text-muted mb-0">
+                <strong>Xe:</strong> @xe.TenXe - @xe.BienSoXe 
+                <span class="badge bg-secondary ms-2">@xe.LoaiXe?.TenLoaiXe</span>
+            </p>
+        </div>
+        <a asp-action="Index" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Quay lại
+        </a>
+    </div>
+
+        <!-- Bộ lọc -->
+    <div class="filter-section">
+        <form method="get" class="row g-3">
+            <input type="hidden" name="id" value="@xe.MaXe" />
+            <input type="hidden" name="timeFilter" id="timeFilterInput" value="@ViewBag.TimeFilter" />
+            
+            <!-- Tìm kiếm -->
+            <div class="col-md-4">
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text" name="searchString" class="form-control" 
+                       placeholder="Tên hoặc số điện thoại khách hàng..." 
+                       value="@ViewBag.SearchString" />
+            </div>
+
+            <!-- Bộ lọc thời gian nhanh -->
+            <div class="col-md-8">
+                <label class="form-label">Bộ lọc thời gian</label>
+                <div>
+                    <button type="button" data-timefilter="" 
+                            class="btn btn-outline-secondary time-filter-btn @(string.IsNullOrEmpty(ViewBag.TimeFilter) ? "active" : "")">
+                        Tất cả
+                    </button>
+                    <button type="button" data-timefilter="week" 
+                            class="btn btn-outline-secondary time-filter-btn @(ViewBag.TimeFilter == "week" ? "active" : "")">
+                        Tuần này
+                    </button>
+                    <button type="button" data-timefilter="month" 
+                            class="btn btn-outline-secondary time-filter-btn @(ViewBag.TimeFilter == "month" ? "active" : "")">
+                        Tháng này
+                    </button>
+                    <button type="button" data-timefilter="year" 
+                            class="btn btn-outline-secondary time-filter-btn @(ViewBag.TimeFilter == "year" ? "active" : "")">
+                        Năm nay
+                    </button>
+                </div>
+            </div>
+
+            <!-- Khoảng thời gian tùy chỉnh -->
+            <div class="col-md-6">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" name="startDate" class="form-control" 
+                       value="@(ViewBag.StartDate?.ToString("yyyy-MM-dd"))" />
+                <small class="text-muted">Chọn ngày bắt đầu</small>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" name="endDate" class="form-control" 
+                       value="@(ViewBag.EndDate?.ToString("yyyy-MM-dd"))" />
+            </div>
+
+            <!-- Nút lọc -->
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Lọc
+                </button>
+                <a asp-action="LichSuHopDong" asp-route-id="@xe.MaXe" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Container cho nội dung động -->
+    <div id="contentContainer">
+        @Html.Partial("_LichSuHopDongPartial", Model)
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Hàm xuất dữ liệu ra file Excel
+        function exportToExcel() {
+            // Lấy bảng dữ liệu hợp đồng
+            const table = document.getElementById('hopDongTable');
+            const html = table.outerHTML;
+            
+            // Tạo URL để download file Excel
+            const url = 'data:application/vnd.ms-excel,' + encodeURIComponent(html);
+            const downloadLink = document.createElement("a");
+            document.body.appendChild(downloadLink);
+            downloadLink.href = url;
+            
+            // Đặt tên file với tên xe và ngày hiện tại
+            downloadLink.download = 'LichSuHopDong_@xe.TenXe.Replace(" ", "_")_' + new Date().toISOString().split('T')[0] + '.xls';
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+
+        // Hàm in bảng dữ liệu
+        function printTable() {
+            // Mở cửa sổ in mới
+            const printWindow = window.open('', '_blank');
+            const table = document.getElementById('hopDongTable');
+            
+            // Tạo nội dung HTML cho trang in
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Lịch sử hợp đồng - @xe.TenXe</title>
+                        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                        <style>
+                            body { font-family: Arial, sans-serif; }
+                            .table { font-size: 12px; }
+                            @@media print {
+                                .no-print { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h3>Lịch sử hợp đồng - @xe.TenXe (@xe.BienSoXe)</h3>
+                        <p>Ngày in: ${new Date().toLocaleDateString('vi-VN')}</p>
+                        ${table.outerHTML}
+                    </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Hàm lọc dữ liệu bằng AJAX (chỉ cho button lọc thời gian)
+        function filterData() {
+            // Thêm hiệu ứng fade out mượt mà
+            $('#contentContainer').fadeOut(200, function() {
+                // Hiển thị loading với hiệu ứng fade in
+                $('#contentContainer').html('<div class="text-center py-5"><div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"><span class="visually-hidden">Đang tải...</span></div><p class="mt-3 text-muted">Đang tải dữ liệu...</p></div>').fadeIn(200);
+                
+                // Lấy tất cả giá trị filter
+                var formData = {
+                    id: $('input[name="id"]').val(),
+                    searchString: $('input[name="searchString"]').val(),
+                    timeFilter: $('#timeFilterInput').val(),
+                    startDate: '', // Luôn rỗng khi dùng button lọc thời gian
+                    endDate: ''    // Luôn rỗng khi dùng button lọc thời gian
+                };
+                
+                // Gọi AJAX để lọc dữ liệu
+                $.ajax({
+                    url: '@Url.Action("LichSuHopDong", "Xe")',
+                    type: 'GET',
+                    data: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    success: function(response) {
+                        // Cập nhật URL mà không reload trang
+                        var newUrl = window.location.pathname + '?' + $.param(formData);
+                        window.history.pushState({}, '', newUrl);
+                        
+                        // Cập nhật nội dung với hiệu ứng fade
+                        $('#contentContainer').fadeOut(200, function() {
+                            $(this).html(response).fadeIn(300);
+                        });
+                    },
+                    error: function() {
+                        $('#contentContainer').fadeOut(200, function() {
+                            $(this).html('<div class="text-center py-5"><i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: #dc3545;"></i><p class="mt-2 text-danger">Có lỗi xảy ra khi tải dữ liệu</p></div>').fadeIn(200);
+                        });
+                    }
+                });
+            });
+        }
+
+        // Xử lý sự kiện khi trang đã tải xong
+        $(document).ready(function() {
+            
+            // Xử lý click vào các button lọc thời gian (real-time)
+            $('.time-filter-btn').on('click', function() {
+                // Thêm hiệu ứng loading cho button
+                var $btn = $(this);
+                var originalText = $btn.html();
+                $btn.html('<i class="bi bi-hourglass-split"></i> Đang tải...').prop('disabled', true);
+                
+                // Xóa class active khỏi tất cả các button
+                $('.time-filter-btn').removeClass('active');
+                // Thêm class active cho button được click
+                $btn.addClass('active');
+                
+                // Lấy giá trị lọc thời gian từ data attribute
+                var timeFilter = $btn.data('timefilter');
+                
+                // Cập nhật input hidden với giá trị lọc thời gian
+                $('#timeFilterInput').val(timeFilter);
+                
+                // Xóa khoảng thời gian tùy chỉnh khi dùng bộ lọc nhanh
+                $('input[name="startDate"]').val('');
+                $('input[name="endDate"]').val('');
+                
+                // Thêm delay nhỏ để tránh chớp chớp
+                setTimeout(function() {
+                    // Lọc dữ liệu bằng AJAX
+                    filterData();
+                    
+                    // Khôi phục button sau khi hoàn thành
+                    setTimeout(function() {
+                        $btn.html(originalText).prop('disabled', false);
+                    }, 500);
+                }, 100);
+            });
+            
+            // Xử lý khi thay đổi ngày từ/đến (khoảng thời gian tùy chỉnh)
+            $('input[name="startDate"], input[name="endDate"]').on('change', function() {
+                var startDate = $('input[name="startDate"]').val();
+                var endDate = $('input[name="endDate"]').val();
+                
+                // Xóa thông báo lỗi cũ nếu có
+                $('.date-error-message').remove();
+                
+                // Chỉ lọc khi đã chọn đầy đủ cả 2 ngày
+                if (startDate && endDate) {
+                    // Kiểm tra ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu
+                    if (new Date(endDate) < new Date(startDate)) {
+                        // Hiển thị thông báo lỗi
+                        $('input[name="endDate"]').after('<div class="date-error-message text-danger mt-1"><small><i class="bi bi-exclamation-triangle"></i> Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu</small></div>');
+                        return;
+                    }
+                    
+                    // Xóa bộ lọc thời gian nhanh khi dùng khoảng thời gian tùy chỉnh
+                    $('.time-filter-btn').removeClass('active');
+                    $('#timeFilterInput').val('');
+                    
+                    // Thêm hiệu ứng loading cho form
+                    var $submitBtn = $('button[type="submit"]');
+                    var originalText = $submitBtn.html();
+                    $submitBtn.html('<i class="bi bi-hourglass-split"></i> Đang lọc...').prop('disabled', true);
+                    
+                    // Thêm hiệu ứng fade out cho container
+                    $('#contentContainer').fadeOut(200, function() {
+                        // Submit form
+                        $('form').submit();
+                        
+                        // Khôi phục button sau 1 giây
+                        setTimeout(function() {
+                            $submitBtn.html(originalText).prop('disabled', false);
+                        }, 1000);
+                    });
+                }
+            });
+        });
+    </script>
+} 

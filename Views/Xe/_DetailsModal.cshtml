@@ -1,0 +1,137 @@
+@model bike.Models.Xe
+
+<div class="modal fade" id="xeDetailsModal" tabindex="-1" aria-labelledby="xeDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="xeDetailsModalLabel">
+                    <i class="bi bi-info-circle"></i> Chi tiết xe #XE@(Model.MaXe.ToString("D3"))
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Hình ảnh xe -->
+                    <div class="col-md-4">
+                        <div class="text-center mb-3">
+                            @if (!string.IsNullOrEmpty(Model.HinhAnhHienThi))
+                            {
+                                <img src="~/images/xe/@Model.HinhAnhHienThi" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;" alt="@Model.TenXe" />
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="bi bi-image" style="font-size: 48px; color: #ccc;"></i>
+                                </div>
+                            }
+                        </div>
+                        
+                        <!-- Trạng thái -->
+                        @{
+                            string badgeClass = Model.TrangThai switch
+                            {
+                                "Sẵn sàng" => "bg-success",
+                                "Đang thuê" => "bg-warning text-dark",
+                                "Bảo trì" => "bg-danger",
+                                _ => "bg-secondary"
+                            };
+                        }
+                        <div class="text-center">
+                            <span class="badge @badgeClass fs-6">@Model.TrangThai</span>
+                        </div>
+                    </div>
+
+                    <!-- Thông tin chi tiết -->
+                    <div class="col-md-8">
+                        <h6 class="fw-bold text-primary mb-3">@Model.TenXe</h6>
+                        
+                        <div class="row">
+                            <div class="col-6">
+                                <p><strong>Mã xe:</strong> #XE@(Model.MaXe.ToString("D3"))</p>
+                                <p><strong>Biển số:</strong> @Model.BienSoXe</p>
+                                <p><strong>Hãng xe:</strong> @Model.HangXe</p>
+                                <p><strong>Dòng xe:</strong> @Model.DongXe</p>
+                            </div>
+                            <div class="col-6">
+                                <p><strong>Loại xe:</strong> @Model.LoaiXe?.TenLoaiXe</p>
+                                <p><strong>Giá thuê:</strong> <span class="text-danger fw-bold">@Model.GiaThue.ToString("N0")đ/ngày</span></p>
+                                <p><strong>Giá trị xe:</strong> @Model.GiaTriXe.ToString("N0")đ</p>
+                                <p><strong>Tổng chi phí:</strong> <span class="text-danger fw-bold">@Model.ChiTieu.Sum(c => c.SoTien).ToString("N0")đ</span></p>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin bổ sung -->
+                        @if (Model.NgayGapSuCo.HasValue || !string.IsNullOrEmpty(Model.MoTaThietHai))
+                        {
+                            <hr />
+                            <h6 class="fw-bold text-warning">Thông tin sự cố</h6>
+                            @if (Model.NgayGapSuCo.HasValue)
+                            {
+                                <p><strong>Ngày gặp sự cố:</strong> @Model.NgayGapSuCo.Value.ToString("dd/MM/yyyy")</p>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.MoTaThietHai))
+                            {
+                                <p><strong>Mô tả thiệt hại:</strong> @Model.MoTaThietHai</p>
+                            }
+                            @if (Model.ChiPhiSuaChua > 0)
+                            {
+                                <p><strong>Chi phí sửa chữa:</strong> <span class="text-danger">@Model.ChiPhiSuaChua.ToString("N0")đ</span></p>
+                            }
+                        }
+
+                        <!-- Lịch sử hợp đồng -->
+                        @if (Model.ChiTietHopDong.Any())
+                        {
+                            <hr />
+                            <h6 class="fw-bold text-info">Lịch sử hợp đồng</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Mã HĐ</th>
+                                            <th>Ngày thuê</th>
+                                            <th>Ngày trả</th>
+                                            <th>Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                                                                 @foreach (var ct in Model.ChiTietHopDong.Take(5))
+                                         {
+                                             <tr>
+                                                 <td>#HD@(ct.HopDong.MaHopDong.ToString("D3"))</td>
+                                                 <td>@ct.HopDong.NgayNhanXe.ToString("dd/MM/yyyy")</td>
+                                                 <td>@(ct.HopDong.NgayTraXeThucTe?.ToString("dd/MM/yyyy") ?? "Chưa trả")</td>
+                                                 <td>
+                                                     @if (ct.HopDong.NgayTraXeThucTe.HasValue)
+                                                     {
+                                                         <span class="badge bg-success">Đã hoàn thành</span>
+                                                     }
+                                                     else
+                                                     {
+                                                         <span class="badge bg-warning text-dark">Đang thuê</span>
+                                                     }
+                                                 </td>
+                                             </tr>
+                                         }
+                                    </tbody>
+                                </table>
+                            </div>
+                            @if (Model.ChiTietHopDong.Count > 5)
+                            {
+                                <small class="text-muted">Hiển thị 5 hợp đồng gần nhất...</small>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a asp-action="Edit" asp-route-id="@Model.MaXe" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Sửa xe
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+</div> 

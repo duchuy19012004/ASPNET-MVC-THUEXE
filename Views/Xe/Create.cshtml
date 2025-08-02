@@ -99,7 +99,6 @@
                                 <span class="required">*</span>
                             </label>
                             <select asp-for="TrangThai" class="form-select" asp-items="ViewBag.TrangThaiList">
-                                <option value="">-- Chọn trạng thái --</option>
                             </select>
                             <span asp-validation-for="TrangThai" class="text-danger small"></span>
                         </div>
@@ -108,7 +107,7 @@
                         <div class="mb-4">
                             <label class="form-label">
                                 <i class="bi bi-image"></i> Hình ảnh chính
-                                <span class="required">*</span>
+                                <small class="text-muted">(Tùy chọn)</small>
                             </label>
                             <div class="image-preview-container" onclick="document.getElementById('hinhAnh').click()">
                                 <input type="file" name="hinhAnh" id="hinhAnh" accept="image/*" style="display:none" onchange="previewMainImage(event)" />
@@ -285,6 +284,10 @@
                 const $input = $(this);
                 const $error = $input.next('.text-danger');
 
+                // Reset validation state
+                $input.removeClass('is-valid is-invalid');
+                $error.text('');
+
                 if (bienSo.length > 0) {
                     timeout = setTimeout(function() {
                         $.ajax({
@@ -299,6 +302,10 @@
                                     $input.removeClass('is-valid').addClass('is-invalid');
                                     $error.text(result);
                                 }
+                            },
+                            error: function() {
+                                $input.removeClass('is-valid').addClass('is-invalid');
+                                $error.text('Có lỗi xảy ra khi kiểm tra biển số');
                             }
                         });
                     }, 500);
