@@ -5,461 +5,682 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-@* --- UI REDESIGN START --- *@
 <style>
-    /* Improved container and card style */
+    /* Simple and clean design */
     .create-container {
-        max-width: 900px;
-        margin: 40px auto;
-        padding: 0;
+        max-width: 1000px;
+        margin: 20px auto;
+        padding: 0 15px;
     }
-    .card-ui {
+    
+    .page-header {
         background: #fff;
-        border-radius: 14px;
-        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
-        margin-bottom: 32px;
-        padding: 32px 28px 24px 28px;
-        border: 1px solid #f0f0f0;
-    }
-    .card-ui .section-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #1a202c;
-        margin-bottom: 18px;
-        border-left: 4px solid #20c997;
-        padding-left: 12px;
-        background: #f8f9fa;
-        border-radius: 6px 0 0 6px;
-        padding-top: 6px;
-        padding-bottom: 6px;
-    }
-    .form-section {
-        margin-bottom: 0;
-    }
-    .form-label {
-        font-weight: 500;
-        color: #495057;
-    }
-    .form-control, .form-select {
-        border-radius: 6px;
-        border: 1px solid #ced4da;
-        font-size: 1rem;
-        margin-bottom: 10px;
-    }
-    .row {
-        margin-bottom: 0;
-    }
-    .mb-3 {
-        margin-bottom: 18px !important;
-    }
-    .summary-box {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-        padding: 24px 18px;
-        border-radius: 12px;
-        margin-top: 24px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    }
-    .total-amount {
-        font-size: 2rem;
-        font-weight: 700;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
         text-align: center;
-        margin-top: 10px;
     }
-    .btn-create {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        color: white;
-        border: none;
-        padding: 14px 0;
+    
+    .page-header h2 {
+        color: #333;
+        margin: 0;
+        font-size: 1.5rem;
+    }
+    
+    .page-header p {
+        color: #666;
+        margin: 5px 0 0 0;
+    }
+    
+    .form-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+    }
+    
+    .section-title {
         font-size: 1.1rem;
         font-weight: 600;
-        width: 100%;
-        margin-top: 18px;
-        border-radius: 8px;
-        transition: all 0.3s;
-        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.08);
+        color: #333;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #007bff;
     }
-    .btn-create:hover {
-        background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
-        color: #fff;
-        box-shadow: 0 6px 24px rgba(40, 167, 69, 0.18);
+    
+    .form-label {
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 5px;
     }
+    
+    .form-control, .form-select {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 8px 12px;
+        font-size: 14px;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        padding: 10px 20px;
+        font-weight: 500;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+    
     .btn-secondary {
-        border-radius: 8px;
-        margin-top: 10px;
+        background-color: #6c757d;
+        border-color: #6c757d;
+        padding: 10px 20px;
+        font-weight: 500;
     }
-    /* Section separation */
-    .section-space {
-        margin-bottom: 32px;
+    
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+        padding: 10px 20px;
+        font-weight: 500;
     }
-    /* Vehicle selection improvements */
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+    
+    /* Vehicle selection area */
     .vehicle-selection {
         background: #f8f9fa;
-        border: 1.5px dashed #b2dfdb;
-        border-radius: 10px;
-        padding: 18px 18px 10px 18px;
-        margin-bottom: 18px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 15px;
     }
+    
     .vehicle-filters {
         background: #fff;
         border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 12px 10px 8px 10px;
+        border-radius: 6px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .filter-row {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
         margin-bottom: 10px;
     }
-    .quick-filter-buttons {
-        margin-top: 8px;
-        gap: 6px;
+    
+    .filter-group {
+        flex: 1;
+        min-width: 150px;
     }
+    
+    .filter-group label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .quick-filter-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
     .btn-quick-filter {
-        padding: 3px 10px;
+        background: #fff;
+        border: 1px solid #ddd;
+        color: #666;
+        padding: 4px 12px;
         font-size: 12px;
         border-radius: 4px;
+        cursor: pointer;
     }
+    
+    .btn-quick-filter:hover, .btn-quick-filter.active {
+        background: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    
+    .vehicle-search-info {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 4px;
+        padding: 10px;
+        margin-bottom: 15px;
+        font-size: 13px;
+        color: #1976d2;
+    }
+    
     .vehicle-item {
         background: #fff;
         border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        padding: 10px 16px;
+        border-radius: 6px;
+        padding: 15px;
         margin-bottom: 10px;
         display: flex;
         align-items: center;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+        gap: 15px;
     }
+    
+    .vehicle-image {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 1px solid #e0e0e0;
+        flex-shrink: 0;
+    }
+    
+    .vehicle-image-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 6px;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+    
+    .vehicle-info-display {
+        flex: 1;
+    }
+    
     .vehicle-info-display h6 {
-        font-size: 1rem;
-        margin-bottom: 2px;
+        margin: 0 0 5px 0;
+        font-size: 14px;
+        font-weight: 600;
     }
-    .vehicle-price {
-        font-size: 1rem;
-        margin-right: 10px;
-    }
-    .btn-remove-vehicle {
-        padding: 6px 10px;
+    
+    .vehicle-info-display small {
+        color: #666;
         font-size: 12px;
-        border-radius: 5px;
     }
-    .selected-vehicles-summary {
-        background: #e3f2fd;
-        border-radius: 8px;
-        padding: 10px 16px;
-        margin-top: 10px;
+    
+    .vehicle-price {
+        font-weight: 600;
+        color: #28a745;
+        margin: 0 15px;
+        text-align: right;
+        min-width: 100px;
     }
+    
     .no-vehicles-selected {
-        padding: 30px 0;
-        font-size: 1rem;
+        text-align: center;
+        padding: 30px;
+        color: #666;
+        font-style: italic;
     }
-    /* Rental period section styling */
+    
+    .selected-vehicles-summary {
+        background: #e8f5e8;
+        border: 1px solid #c8e6c9;
+        border-radius: 6px;
+        padding: 15px;
+        margin-top: 15px;
+    }
+    
+    .selected-vehicles-summary h6 {
+        margin: 0 0 10px 0;
+        color: #2e7d32;
+    }
+    
+    /* Select2 custom styling for vehicle images */
+    .select2-results__option {
+        padding: 0 !important;
+    }
+    
+    .select2-vehicle-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        width: 100%;
+    }
+    
+    .select2-vehicle-option img {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        object-fit: cover;
+        border: 1px solid #e0e0e0;
+        flex-shrink: 0;
+    }
+    
+    .select2-vehicle-option .vehicle-option-image-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 16px;
+        flex-shrink: 0;
+    }
+    
+    .select2-vehicle-option .vehicle-option-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .select2-vehicle-option .vehicle-option-info .vehicle-name {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .select2-vehicle-option .vehicle-option-info .vehicle-details {
+        font-size: 12px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .select2-vehicle-option .vehicle-option-price {
+        font-weight: 600;
+        color: #28a745;
+        font-size: 12px;
+        text-align: right;
+        min-width: 80px;
+        flex-shrink: 0;
+    }
+    
+    /* Rental period section */
     .rental-period-section {
         background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 8px;
-        padding: 18px 18px 10px 18px;
-        margin-bottom: 10px;
-    }
-    .preset-buttons {
-        gap: 6px;
-    }
-    .btn-preset {
-        padding: 7px 14px;
-        font-size: 13px;
+        border: 1px solid #e0e0e0;
         border-radius: 6px;
+        padding: 20px;
+        margin-bottom: 15px;
     }
+    
+    .preset-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    
+    .btn-preset {
+        background: #fff;
+        border: 1px solid #ddd;
+        color: #666;
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    .btn-preset:hover, .btn-preset.active {
+        background: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    
+    /* Summary box */
+    .summary-box {
+        background: #f8f9fa;
+        border: 2px solid #007bff;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+    }
+    
+    .summary-box h4 {
+        text-align: center;
+        color: #333;
+        margin-bottom: 15px;
+    }
+    
+    .total-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        color: #28a745;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid #e0e0e0;
+    }
+    
+    /* Validation messages */
+    .validation-message {
+        font-size: 12px;
+        margin-top: 5px;
+        padding: 5px 8px;
+        border-radius: 4px;
+        border-left: 3px solid;
+    }
+    
+    .validation-message.text-info {
+        background-color: #e3f2fd;
+        border-left-color: #2196f3;
+        color: #1976d2;
+    }
+    
+    .validation-message.text-warning {
+        background-color: #fff3e0;
+        border-left-color: #ff9800;
+        color: #f57c00;
+    }
+    
+    .validation-message.text-danger {
+        background-color: #ffebee;
+        border-left-color: #f44336;
+        color: #d32f2f;
+    }
+    
+    .validation-message.text-success {
+        background-color: #e8f5e8;
+        border-left-color: #4caf50;
+        color: #2e7d32;
+    }
+    
     /* Currency preview */
     .currency-preview {
-        color: #17a2b8 !important;
-        font-size: 13px;
-        margin-top: 2px;
+        color: #666;
+        font-size: 12px;
+        margin-top: 5px;
     }
     
-    /* CCCD validation styling */
-    #cccdValidationMessage {
-        font-size: 13px;
-        margin-top: 4px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.3s ease;
-    }
-    
-    #cccdValidationMessage.text-info {
-        background-color: #e3f2fd;
-        border-left: 3px solid #2196f3;
-    }
-    
-    #cccdValidationMessage.text-warning {
-        background-color: #fff3e0;
-        border-left: 3px solid #ff9800;
-    }
-    
-    #cccdValidationMessage.text-danger {
-        background-color: #ffebee;
-        border-left: 3px solid #f44336;
-    }
-    
-    #cccdValidationMessage.text-success {
-        background-color: #ffebee;
-        border-left: 3px solid #f44336;
-    }
-    /* Responsive tweaks */
+    /* Responsive */
     @@media (max-width: 768px) {
         .create-container {
-            padding: 0 4px;
+            padding: 0 10px;
         }
-        .card-ui {
-            padding: 18px 6px 12px 6px;
+        
+        .form-card {
+            padding: 15px;
+        }
+        
+        .filter-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .vehicle-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        
+        .vehicle-price {
+            margin: 0;
+            text-align: left;
+            min-width: auto;
+        }
+        
+        .vehicle-image, .vehicle-image-placeholder {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .select2-vehicle-option {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        
+        .select2-vehicle-option img, .select2-vehicle-option .vehicle-option-image-placeholder {
+            width: 30px;
+            height: 30px;
+            font-size: 12px;
+        }
+        
+        .select2-vehicle-option .vehicle-option-price {
+            text-align: left;
+            min-width: auto;
         }
     }
-    #phoneValidationMessage {
-        font-size: 13px;
-        margin-top: 4px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: all 0.3s ease;
-    }
-    #phoneValidationMessage.text-info {
-        background-color: #e3f2fd;
-        border-left: 3px solid #2196f3;
-    }
-    #phoneValidationMessage.text-warning {
-        background-color: #fff3e0;
-        border-left: 3px solid #ff9800;
-    }
-    #phoneValidationMessage.text-danger {
-        background-color: #ffebee;
-        border-left: 3px solid #f44336;
-    }
-         #phoneValidationMessage.text-success {
-         background-color: #ffebee;
-         border-left: 3px solid #f44336;
-     }
-     
-     /* Customer name validation styling */
-     #nameValidationMessage {
-         font-size: 13px;
-         margin-top: 4px;
-         padding: 4px 8px;
-         border-radius: 4px;
-         transition: all 0.3s ease;
-     }
-     
-     #nameValidationMessage.text-info {
-         background-color: #e3f2fd;
-         border-left: 3px solid #2196f3;
-     }
-     
-     #nameValidationMessage.text-warning {
-         background-color: #fff3e0;
-         border-left: 3px solid #ff9800;
-     }
-     
-     #nameValidationMessage.text-danger {
-         background-color: #ffebee;
-         border-left: 3px solid #f44336;
-     }
-     
-     #nameValidationMessage.text-success {
-         background-color: #ffebee;
-         border-left: 3px solid #f44336;
-     }
 </style>
-@* --- UI REDESIGN END --- *@
 
 <div class="create-container">
-    <div class="card-ui section-space">
-        <div class="create-header" style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; border-radius: 10px 10px 0 0; padding: 24px 0 16px 0; text-align: center;">
-            <h2 style="font-size:2rem;"><i class="bi bi-file-earmark-plus"></i> Tạo Hợp Đồng Thuê Xe Mới</h2>
-            <p class="mb-0" style="font-size:1.1rem;">Nhập đầy đủ thông tin để tạo hợp đồng</p>
-        </div>
+    <div class="page-header">
+        <h2><i class="bi bi-file-earmark-plus"></i> Tạo Hợp Đồng Thuê Xe Mới</h2>
+        <p>Nhập đầy đủ thông tin để tạo hợp đồng</p>
     </div>
+    
     <form asp-action="Create" method="post" id="createContractForm">
         @Html.AntiForgeryToken()
-        <div class="card-ui section-space">
+        
+        <!-- Chọn xe thuê -->
+        <div class="form-card">
             <div class="section-title"><i class="bi bi-bicycle"></i> Chọn xe thuê</div>
-            <div class="form-section">
-                <div class="vehicle-selection">
-                    <div class="vehicle-filters">
-                        <div class="filter-row">
-                            <div class="filter-group">
-                                <label>Hãng xe</label>
-                                <select id="filterHang" class="form-select form-select-sm">
-                                    <option value="">Tất cả hãng</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Loại xe</label>
-                                <select id="filterLoai" class="form-select form-select-sm">
-                                    <option value="">Tất cả loại</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <label>Khoảng giá (đ/ngày)</label>
-                                <select id="filterGia" class="form-select form-select-sm">
-                                    <option value="">Tất cả giá</option>
-                                    <option value="0-100000">Dưới 100k</option>
-                                    <option value="100000-200000">100k - 200k</option>
-                                    <option value="200000-300000">200k - 300k</option>
-                                    <option value="300000-500000">300k - 500k</option>
-                                    <option value="500000-999999999">Trên 500k</option>
-                                </select>
-                            </div>
-                            <div class="filter-group">
-                                <button type="button" id="btnClearFilters" class="btn btn-outline-secondary btn-sm">
-                                    <i class="bi bi-arrow-clockwise"></i> Reset
-                                </button>
-                            </div>
-                        </div>
-                        <div class="quick-filter-buttons">
-                            <button type="button" class="btn-quick-filter" data-filter="honda">Honda</button>
-                            <button type="button" class="btn-quick-filter" data-filter="yamaha">Yamaha</button>
-                            <button type="button" class="btn-quick-filter" data-filter="suzuki">Suzuki</button>
-                            <button type="button" class="btn-quick-filter" data-filter="cheap">Giá rẻ (&lt;150k)</button>
-                            <button type="button" class="btn-quick-filter" data-filter="premium">Cao cấp (&gt;300k)</button>
-                            <button type="button" class="btn-quick-filter" data-filter="xe-may">Xe máy</button>
-                            <button type="button" class="btn-quick-filter" data-filter="xe-so">Xe số</button>
-                        </div>
-                    </div>
-                    <div class="vehicle-search-info">
-                        <i class="bi bi-info-circle"></i>
-                        <span id="searchInfo">Hiển thị <span id="availableCount">0</span> xe khả dụng. Sử dụng tìm kiếm hoặc bộ lọc để tìm xe nhanh hơn.</span>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-10">
-                            <select id="availableVehicles" class="form-select" style="width: 100%;">
-                                <option value="">-- Gõ để tìm kiếm xe (tên, biển số, hãng) --</option>
+            
+            <div class="vehicle-selection">
+                <div class="vehicle-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Hãng xe</label>
+                            <select id="filterHang" class="form-select form-select-sm">
+                                <option value="">Tất cả hãng</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
-                            <button type="button" id="btnAddVehicle" class="btn btn-add-vehicle w-100">
-                                <i class="bi bi-plus-circle"></i> Thêm
+                        <div class="filter-group">
+                            <label>Loại xe</label>
+                            <select id="filterLoai" class="form-select form-select-sm">
+                                <option value="">Tất cả loại</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Khoảng giá (đ/ngày)</label>
+                            <select id="filterGia" class="form-select form-select-sm">
+                                <option value="">Tất cả giá</option>
+                                <option value="0-100000">Dưới 100k</option>
+                                <option value="100000-200000">100k - 200k</option>
+                                <option value="200000-300000">200k - 300k</option>
+                                <option value="300000-500000">300k - 500k</option>
+                                <option value="500000-999999999">Trên 500k</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <button type="button" id="btnClearFilters" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-clockwise"></i> Reset
                             </button>
                         </div>
                     </div>
-                    <div id="selectedVehiclesList">
-                        <div class="no-vehicles-selected" id="noVehiclesMessage">
-                            <i class="bi bi-info-circle"></i> Chưa có xe nào được chọn
-                        </div>
+                    <div class="quick-filter-buttons">
+                        <button type="button" class="btn-quick-filter" data-filter="honda">Honda</button>
+                        <button type="button" class="btn-quick-filter" data-filter="yamaha">Yamaha</button>
+                        <button type="button" class="btn-quick-filter" data-filter="suzuki">Suzuki</button>
+                        <button type="button" class="btn-quick-filter" data-filter="cheap">Giá rẻ (&lt;150k)</button>
+                        <button type="button" class="btn-quick-filter" data-filter="premium">Cao cấp (&gt;300k)</button>
+                        <button type="button" class="btn-quick-filter" data-filter="xe-may">Xe máy</button>
+                        <button type="button" class="btn-quick-filter" data-filter="xe-so">Xe số</button>
                     </div>
-                    <div class="text-danger" id="vehicleSelectionError"></div>
                 </div>
-                <div class="selected-vehicles-summary" id="vehiclesSummary" style="display: none;">
-                    <h6><i class="bi bi-list-check"></i> Tóm tắt xe đã chọn:</h6>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Số lượng xe:</strong> <span id="totalVehicles">0</span>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Tổng giá thuê/ngày:</strong> <span id="totalDailyPrice" class="text-danger">0đ</span>
-                        </div>
+                
+                <div class="vehicle-search-info">
+                    <i class="bi bi-info-circle"></i>
+                    <span id="searchInfo">Hiển thị <span id="availableCount">0</span> xe khả dụng. Sử dụng tìm kiếm hoặc bộ lọc để tìm xe nhanh hơn.</span>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-10">
+                        <select id="availableVehicles" class="form-select">
+                            <option value="">-- Gõ để tìm kiếm xe (tên, biển số, hãng) --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="button" id="btnAddVehicle" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Thêm
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="selectedVehiclesList">
+                    <div class="no-vehicles-selected" id="noVehiclesMessage">
+                        <i class="bi bi-info-circle"></i> Chưa có xe nào được chọn
+                    </div>
+                </div>
+                
+                <div class="text-danger" id="vehicleSelectionError"></div>
+            </div>
+            
+            <div class="selected-vehicles-summary" id="vehiclesSummary" style="display: none;">
+                <h6><i class="bi bi-list-check"></i> Tóm tắt xe đã chọn:</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Số lượng xe:</strong> <span id="totalVehicles">0</span>
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Tổng giá thuê/ngày:</strong> <span id="totalDailyPrice" class="text-success">0đ</span>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card-ui section-space">
+        
+        <!-- Thông tin khách hàng -->
+        <div class="form-card">
             <div class="section-title"><i class="bi bi-person"></i> Thông tin khách hàng</div>
-            <div class="form-section">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="HoTenKhach" class="form-label">Họ tên khách <span class="text-danger">*</span></label>
-                            <input asp-for="HoTenKhach" class="form-control" id="HoTenKhach" placeholder="Nhập họ tên đầy đủ" />
-                            <div id="nameValidationMessage" class="form-text"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="SoDienThoai" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
-                            <input asp-for="SoDienThoai" class="form-control" id="SoDienThoai" placeholder="VD: 0901234567" maxlength="11" />
-                            <div id="phoneValidationMessage" class="form-text"></div>
-                        </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="HoTenKhach" class="form-label">Họ tên khách <span class="text-danger">*</span></label>
+                        <input asp-for="HoTenKhach" class="form-control" id="HoTenKhach" placeholder="Nhập họ tên đầy đủ" />
+                        <div id="nameValidationMessage" class="validation-message"></div>
                     </div>
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="SoCCCD" class="form-label">CCCD/CMND <span class="text-danger">*</span></label>
-                            <input asp-for="SoCCCD" class="form-control" id="SoCCCD" placeholder="Nhập số CCCD/CMND (12 số)" maxlength="12" />
-                            <div id="cccdValidationMessage" class="form-text"></div>
-                        </div>
-                        <div class="mb-3">
-                            <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
-                            <input asp-for="DiaChi" class="form-control" placeholder="Nhập địa chỉ (không bắt buộc)" />
-                        </div>
+                    <div class="mb-3">
+                        <label asp-for="SoDienThoai" class="form-label">Số điện thoại <span class="text-danger">*</span></label>
+                        <input asp-for="SoDienThoai" class="form-control" id="SoDienThoai" placeholder="VD: 0901234567" maxlength="11" />
+                        <div id="phoneValidationMessage" class="validation-message"></div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="SoCCCD" class="form-label">CCCD/CMND <span class="text-danger">*</span></label>
+                        <input asp-for="SoCCCD" class="form-control" id="SoCCCD" placeholder="Nhập số CCCD/CMND (12 số)" maxlength="12" />
+                        <div id="cccdValidationMessage" class="validation-message"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="DiaChi" class="form-label">Địa chỉ</label>
+                        <input asp-for="DiaChi" class="form-control" placeholder="Nhập địa chỉ (không bắt buộc)" />
                     </div>
                 </div>
             </div>
         </div>
-        <div class="card-ui section-space">
+        
+        <!-- Thời gian thuê -->
+        <div class="form-card">
             <div class="section-title"><i class="bi bi-calendar"></i> Thời gian thuê</div>
-            <div class="form-section">
-                <div class="rental-period-section mb-4">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Số ngày thuê</label>
-                            <div class="input-group">
-                                <input type="number" class="form-control" id="rentalDays" min="1" max="30" placeholder="Nhập số ngày" />
-                                <span class="input-group-text">ngày</span>
-                            </div>
-                            <small class="form-text text-muted">Nhập số ngày để tự động tính ngày trả xe</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Chọn nhanh</label>
-                            <div class="preset-buttons">
-                                <button type="button" class="btn btn-preset" onclick="setRentalDays(1)">1 ngày</button>
-                                <button type="button" class="btn btn-preset" onclick="setRentalDays(3)">3 ngày</button>
-                                <button type="button" class="btn btn-preset" onclick="setRentalDays(7)">1 tuần</button>
-                                <button type="button" class="btn btn-preset" onclick="setRentalDays(14)">2 tuần</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            
+            <div class="rental-period-section mb-4">
                 <div class="row">
                     <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="NgayNhanXe" class="form-label">Ngày nhận xe <span class="text-danger">*</span></label>
-                            <input asp-for="NgayNhanXe" type="date" class="form-control" id="NgayNhanXe" />
-                            <span asp-validation-for="NgayNhanXe" class="text-danger"></span>
+                        <label class="form-label">Số ngày thuê</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="rentalDays" min="1" max="30" placeholder="Nhập số ngày" />
+                            <span class="input-group-text">ngày</span>
                         </div>
+                        <small class="form-text text-muted">Nhập số ngày để tự động tính ngày trả xe</small>
                     </div>
                     <div class="col-md-6">
-                        <div class="mb-3">
-                            <label asp-for="NgayTraXeDuKien" class="form-label">Ngày trả xe dự kiến <span class="text-danger">*</span></label>
-                            <input asp-for="NgayTraXeDuKien" type="date" class="form-control" id="NgayTraXeDuKien" />
-                            <span asp-validation-for="NgayTraXeDuKien" class="text-danger"></span>
+                        <label class="form-label">Chọn nhanh</label>
+                        <div class="preset-buttons">
+                            <button type="button" class="btn-preset" onclick="setRentalDays(1)">1 ngày</button>
+                            <button type="button" class="btn-preset" onclick="setRentalDays(3)">3 ngày</button>
+                            <button type="button" class="btn-preset" onclick="setRentalDays(7)">1 tuần</button>
+                            <button type="button" class="btn-preset" onclick="setRentalDays(14)">2 tuần</button>
                         </div>
                     </div>
                 </div>
             </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="NgayNhanXe" class="form-label">Ngày nhận xe <span class="text-danger">*</span></label>
+                        <input asp-for="NgayNhanXe" type="date" class="form-control" id="NgayNhanXe" />
+                        <span asp-validation-for="NgayNhanXe" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label asp-for="NgayTraXeDuKien" class="form-label">Ngày trả xe dự kiến <span class="text-danger">*</span></label>
+                        <input asp-for="NgayTraXeDuKien" type="date" class="form-control" id="NgayTraXeDuKien" />
+                        <span asp-validation-for="NgayTraXeDuKien" class="text-danger"></span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-ui section-space">
+        
+        <!-- Thông tin tài chính -->
+        <div class="form-card">
             <div class="section-title"><i class="bi bi-cash-coin"></i> Thông tin tài chính</div>
-            <div class="form-section">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label class="form-label">Tổng giá thuê/ngày</label>
-                            <input type="text" class="form-control money-input" id="TotalDailyRateDisplay" readonly />
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="TienCoc" class="form-label">Tiền cọc</label>
-                            <input asp-for="TienCoc" class="form-control money-input" id="TienCoc" type="number" min="0" step="1000" value="0" placeholder="Ví dụ: 500000" />
-                            <span asp-validation-for="TienCoc" class="text-danger"></span>
-                            <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="mb-3">
-                            <label asp-for="PhuPhi" class="form-label">Phụ phí</label>
-                            <input asp-for="PhuPhi" class="form-control money-input" type="number" min="0" step="1000" value="0" id="PhuPhi" placeholder="Ví dụ: 100000" />
-                            <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
-                        </div>
+            
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Tổng giá thuê/ngày</label>
+                        <input type="text" class="form-control" id="TotalDailyRateDisplay" readonly />
                     </div>
                 </div>
-                <div class="mb-3">
-                    <label asp-for="GhiChu" class="form-label">Ghi chú</label>
-                    <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Ghi chú thêm nếu có..."></textarea>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="TienCoc" class="form-label">Tiền cọc</label>
+                        <input asp-for="TienCoc" class="form-control" id="TienCoc" type="number" min="0" step="1000" value="0" placeholder="Ví dụ: 500000" />
+                        <span asp-validation-for="TienCoc" class="text-danger"></span>
+                        <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label asp-for="PhuPhi" class="form-label">Phụ phí</label>
+                        <input asp-for="PhuPhi" class="form-control" type="number" min="0" step="1000" value="0" id="PhuPhi" placeholder="Ví dụ: 100000" />
+                        <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
+                    </div>
                 </div>
             </div>
+            
+            <div class="mb-3">
+                <label asp-for="GhiChu" class="form-label">Ghi chú</label>
+                <textarea asp-for="GhiChu" class="form-control" rows="3" placeholder="Ghi chú thêm nếu có..."></textarea>
+            </div>
         </div>
+        
+        <!-- Tổng kết -->
         <div class="summary-box">
-            <h4 class="text-center">Tổng kết hợp đồng</h4>
+            <h4>Tổng kết hợp đồng</h4>
             <div class="row mt-3">
                 <div class="col-6">
                     <p>Số xe thuê:</p>
@@ -481,10 +702,13 @@
                 Tổng cộng: <span id="tongTien">0</span>đ
             </div>
         </div>
+        
         <input type="hidden" asp-for="TongTien" id="TongTienInput" />
-        <button type="submit" class="btn btn-create">
+        
+        <button type="submit" class="btn btn-success w-100 mb-3">
             <i class="bi bi-check-circle"></i> Tạo Hợp Đồng
         </button>
+        
         <a asp-action="Index" class="btn btn-secondary w-100">
             <i class="bi bi-arrow-left"></i> Quay lại
         </a>
@@ -568,10 +792,47 @@
                     searching: function () {
                         return "Đang tìm kiếm...";
                     }
-                }
+                },
+                templateResult: formatVehicleOption,
+                templateSelection: formatVehicleSelection
             });
             
             populateVehicleSelect();
+        }
+        
+        function formatVehicleOption(vehicle) {
+            if (!vehicle.id) return vehicle.text;
+            
+            var vehicleData = allVehicles.find(v => v.maXe == vehicle.id);
+            if (!vehicleData) return vehicle.text;
+            
+            // Tạo hình ảnh cho option
+            var imageHtml = '';
+            if (vehicleData.hinhAnh && vehicleData.hinhAnh.trim() !== '') {
+                imageHtml = `<img src="/images/xe/${vehicleData.hinhAnh}" alt="${vehicleData.tenXe}" onerror="this.style.display='none'">`;
+            } else {
+                imageHtml = '<div class="vehicle-option-image-placeholder"><i class="bi bi-bicycle"></i></div>';
+            }
+            
+            return $(`
+                <div class="select2-vehicle-option">
+                    ${imageHtml}
+                    <div class="vehicle-option-info">
+                        <div class="vehicle-name">${vehicleData.tenXe} - ${vehicleData.bienSoXe}</div>
+                        <div class="vehicle-details">${vehicleData.hangXe} ${vehicleData.dongXe} - ${vehicleData.loaiXe || 'Chưa phân loại'}</div>
+                    </div>
+                    <div class="vehicle-option-price">${vehicleData.giaThue.toLocaleString('vi-VN')}đ/ngày</div>
+                </div>
+            `);
+        }
+        
+        function formatVehicleSelection(vehicle) {
+            if (!vehicle.id) return vehicle.text;
+            
+            var vehicleData = allVehicles.find(v => v.maXe == vehicle.id);
+            if (!vehicleData) return vehicle.text;
+            
+            return vehicleData.tenXe + ' - ' + vehicleData.bienSoXe;
         }
 
         function setupEventHandlers() {
@@ -663,7 +924,8 @@
                          dong: vehicle.dongXe,
                          gia: vehicle.giaThue,
                          loaiXe: vehicle.loaiXe,
-                         display: vehicle.display
+                         display: vehicle.display,
+                         hinhAnh: vehicle.hinhAnh || ''
                      };
 
                     selectedVehicles.push(vehicleObj);
@@ -868,7 +1130,7 @@
                 !selectedVehicles.some(selected => selected.id == vehicle.maXe)
             );
             
-            // Thêm options mới
+            // Thêm options mới với hình ảnh
             availableVehicles.forEach(vehicle => {
                 var option = new Option(vehicle.display, vehicle.maXe);
                 $select.append(option);
@@ -905,8 +1167,17 @@
 
                          var html = '';
              selectedVehicles.forEach(function(vehicle) {
+                 // Tạo hình ảnh xe
+                 var imageHtml = '';
+                 if (vehicle.hinhAnh && vehicle.hinhAnh.trim() !== '') {
+                     imageHtml = `<img src="/images/xe/${vehicle.hinhAnh}" alt="${vehicle.ten}" class="vehicle-image" onerror="this.parentElement.innerHTML='<div class=\'vehicle-image-placeholder\'><i class=\'bi bi-bicycle\'></i></div>'">`;
+                 } else {
+                     imageHtml = '<div class="vehicle-image-placeholder"><i class="bi bi-bicycle"></i></div>';
+                 }
+                 
                  html += `
                      <div class="vehicle-item">
+                         ${imageHtml}
                          <div class="vehicle-info-display">
                              <h6>${vehicle.ten} - ${vehicle.bien}</h6>
                              <small>${vehicle.hang} ${vehicle.dong} - <span class="text-primary">${vehicle.loaiXe || 'Chưa phân loại'}</span></small>
@@ -914,7 +1185,7 @@
                          <div class="vehicle-price">
                              ${vehicle.gia.toLocaleString('vi-VN')}đ/ngày
                          </div>
-                         <button type="button" class="btn btn-remove-vehicle" data-vehicle-id="${vehicle.id}">
+                         <button type="button" class="btn btn-danger btn-remove-vehicle" data-vehicle-id="${vehicle.id}">
                              <i class="bi bi-trash"></i> Xóa
                          </button>
                      </div>

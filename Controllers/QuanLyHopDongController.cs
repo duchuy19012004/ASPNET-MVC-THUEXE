@@ -780,17 +780,19 @@ namespace bike.Controllers
                 Console.WriteLine("Loading available vehicles from database...");
                 var xeList = await _context.Xe
                     .Include(x => x.LoaiXe)
+                    .Include(x => x.HinhAnhXes)
                     .Where(x => x.TrangThai == "Sẵn sàng")
                     .Select(x => new
                     {
-                        x.MaXe,
-                        x.TenXe,
-                        x.BienSoXe,
-                        x.HangXe,
-                        x.DongXe,
-                        x.GiaThue,
-                        LoaiXe = x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại",
-                        Display = x.TenXe + " - " + x.BienSoXe + " (" + (x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại") + ") - " + x.GiaThue.ToString("N0") + "đ/ngày"
+                        maXe = x.MaXe,
+                        tenXe = x.TenXe,
+                        bienSoXe = x.BienSoXe,
+                        hangXe = x.HangXe,
+                        dongXe = x.DongXe,
+                        giaThue = x.GiaThue,
+                        hinhAnh = x.HinhAnhHienThi,
+                        loaiXe = x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại",
+                        display = x.TenXe + " - " + x.BienSoXe + " (" + (x.LoaiXe != null ? x.LoaiXe.TenLoaiXe : "Chưa phân loại") + ") - " + x.GiaThue.ToString("N0") + "đ/ngày"
                     })
                     .ToListAsync();
                 
@@ -809,16 +811,18 @@ namespace bike.Controllers
         public async Task<IActionResult> GetXeInfo(int maXe)
         {
             var xe = await _context.Xe
+                .Include(x => x.HinhAnhXes)
                 .Where(x => x.MaXe == maXe)
                 .Select(x => new
                 {
-                    x.MaXe,
-                    x.TenXe,
-                    x.BienSoXe,
-                    x.HangXe,
-                    x.DongXe,
-                    x.GiaThue,
-                    x.TrangThai
+                    maXe = x.MaXe,
+                    tenXe = x.TenXe,
+                    bienSoXe = x.BienSoXe,
+                    hangXe = x.HangXe,
+                    dongXe = x.DongXe,
+                    giaThue = x.GiaThue,
+                    trangThai = x.TrangThai,
+                    hinhAnh = x.HinhAnhHienThi
                 })
                 .FirstOrDefaultAsync();
 
@@ -983,7 +987,6 @@ namespace bike.Controllers
             {
                 return NotFound();
             }
-
             return View(hopDong);
         }
     }
