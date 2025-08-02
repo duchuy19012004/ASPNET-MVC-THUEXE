@@ -153,37 +153,6 @@
         <h1 class="mb-0"><i class="bi bi-bar-chart-line"></i> Thống Kê & Báo Cáo</h1>
         <p class="mb-0 mt-2">Phân tích chi tiết dữ liệu kinh doanh</p>
     </div>
-
-    <!-- Filter Section -->
-    <div class="filter-section">
-        <div class="row g-3 align-items-end">
-                         <div class="col-md-6">
-                 <label class="form-label">Lọc dữ liệu theo:</label>
-                 <select id="chartFilter" class="form-select">
-                     <option value="7days">7 ngày gần nhất</option>
-                     <option value="week">Tuần này</option>
-                     <option value="month">30 ngày gần nhất</option>
-                     <option value="year">12 tháng gần nhất</option>
-                 </select>
-             </div>
-             <div class="col-md-6">
-                 <label class="form-label">Loại biểu đồ doanh thu:</label>
-                 <select id="chartTypeFilter" class="form-select">
-                     <option value="bar">Biểu đồ cột ngang</option>
-                     <option value="line">Biểu đồ đường</option>
-                 </select>
-             </div>
-            <div class="col-md-6">
-                <button type="button" id="exportBtn" class="btn btn-success">
-                    <i class="bi bi-file-excel"></i> Xuất báo cáo Excel
-                </button>
-                <button type="button" id="printBtn" class="btn btn-info">
-                    <i class="bi bi-printer"></i> In báo cáo
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
@@ -224,6 +193,27 @@
                 <div class="stat-value">@Model.KhachHangMoi</div>
                 <div class="stat-label">Khách hàng mới tháng này</div>
             </div>
+        </div>
+    </div>
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="row g-3 align-items-end">
+                         <div class="col-md-6">
+                 <label class="form-label">Lọc dữ liệu theo:</label>
+                 <select id="chartFilter" class="form-select">
+                     <option value="7days">7 ngày gần nhất</option>
+                     <option value="week">Tuần này</option>
+                     <option value="month">30 ngày gần nhất</option>
+                     <option value="year">12 tháng gần nhất</option>
+                 </select>
+             </div>
+             <div class="col-md-6">
+                 <label class="form-label">Loại biểu đồ doanh thu:</label>
+                 <select id="chartTypeFilter" class="form-select">
+                     <option value="bar">Biểu đồ cột ngang</option>
+                     <option value="line">Biểu đồ đường</option>
+                 </select>
+             </div>
         </div>
     </div>
 
@@ -302,13 +292,24 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var xe in Model.TopXeThueNhieu)
+                            @if (Model.TopXeThueNhieu.Any())
+                            {
+                                @foreach (var xe in Model.TopXeThueNhieu)
+                                {
+                                    <tr>
+                                        <td>@xe.TenXe</td>
+                                        <td>@xe.BienSo</td>
+                                        <td><span class="badge bg-primary">@xe.SoLanThue</span></td>
+                                        <td class="text-danger fw-bold">@xe.DoanhThu.ToString("N0")đ</td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td>@xe.TenXe</td>
-                                    <td>@xe.BienSo</td>
-                                    <td><span class="badge bg-primary">@xe.SoLanThue</span></td>
-                                    <td class="text-danger fw-bold">@xe.DoanhThu.ToString("N0")đ</td>
+                                    <td colspan="4" class="text-center text-muted">
+                                        <i class="bi bi-info-circle"></i> Chưa có dữ liệu xe được thuê
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -370,9 +371,12 @@
         console.log('Revenue Data:', revenueData);
         console.log('Revenue Labels:', revenueLabels);
         
+        // Kiểm tra xem có dữ liệu doanh thu thực sự không
+        const hasRevenueData = revenueData.some(value => value > 0);
         const maxRevenue = Math.max(...revenueData, 1); // Đảm bảo maxRevenue > 0
         
-        revenueChart = new Chart(revenueCtx, {
+        if (hasRevenueData) {
+            revenueChart = new Chart(revenueCtx, {
             type: 'bar',
             data: {
                 labels: @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Label).ToList())),
@@ -447,13 +451,18 @@
                 }
             }
         });
+        } else {
+            // Hiển thị thông báo khi không có dữ liệu doanh thu
+            document.getElementById('revenueChart').style.display = 'none';
+            document.getElementById('revenueChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu doanh thu</div>';
+        }
 
         // Biểu đồ Top 5 xe được thuê nhiều nhất (Bar Chart)
         const topVehiclesCtx = document.getElementById('topVehiclesChart').getContext('2d');
         const topVehicleLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopXeThueNhieu.Select(x => x.TenXe + " (" + x.BienSo + ")").ToList()));
         const topVehicleData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TopXeThueNhieu.Select(x => x.SoLanThue).ToList()));
         
-        if (topVehicleLabels && topVehicleLabels.length > 0) {
+        if (topVehicleLabels && topVehicleLabels.length > 0 && topVehicleData.some(value => value > 0)) {
             topVehiclesChart = new Chart(topVehiclesCtx, {
                 type: 'bar',
                 data: {
@@ -519,6 +528,7 @@
                 }
             });
         } else {
+            // Hiển thị thông báo khi không có dữ liệu xe được thuê
             document.getElementById('topVehiclesChart').style.display = 'none';
             document.getElementById('topVehiclesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu xe được thuê</div>';
         }
@@ -528,7 +538,7 @@
         const vehicleTypeLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoLoaiXe.Select(x => x.Label).ToList()));
         const vehicleTypeData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoLoaiXe.Select(x => x.Value).ToList()));
         
-        if (vehicleTypeLabels && vehicleTypeLabels.length > 0) {
+        if (vehicleTypeLabels && vehicleTypeLabels.length > 0 && vehicleTypeData.some(value => value > 0)) {
             const maxVehicles = Math.max(...vehicleTypeData);
             
             vehicleTypesChart = new Chart(vehicleTypesCtx, {
@@ -605,6 +615,7 @@
                 }
             });
         } else {
+            // Hiển thị thông báo khi không có dữ liệu loại xe
             document.getElementById('vehicleTypesChart').style.display = 'none';
             document.getElementById('vehicleTypesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu loại xe</div>';
         }
@@ -701,7 +712,12 @@
                     if (data.success) {
                         updateChartTitles(filter);
                         
-                                                 if (revenueChart) {
+                        // Kiểm tra xem có dữ liệu doanh thu thực sự không
+                        const hasRevenueData = data.doanhThu.data.some(value => value > 0);
+                        const hasTopXeData = data.topXe.data.some(value => value > 0);
+                        const hasLoaiXeData = data.loaiXe.data.some(value => value > 0);
+                        
+                        if (revenueChart) {
                              // Kiểm tra nếu cần thay đổi loại biểu đồ
                              if (chartType !== currentRevenueChartType) {
                                  // Hủy biểu đồ cũ
@@ -807,9 +823,14 @@
                              
                              // Điều chỉnh chiều cao container
                              adjustChartHeight('revenueChart', data.doanhThu.labels.length);
+                         } else if (revenueChart) {
+                             // Hiển thị thông báo khi không có dữ liệu doanh thu
+                             revenueChart.destroy();
+                             document.getElementById('revenueChart').style.display = 'none';
+                             document.getElementById('revenueChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu doanh thu</div>';
                          }
                         
-                        if (topVehiclesChart) {
+                        if (topVehiclesChart && hasTopXeData) {
                             topVehiclesChart.data.labels = data.topXe.labels;
                             topVehiclesChart.data.datasets[0].data = data.topXe.data;
                             
@@ -822,9 +843,14 @@
                             
                             topVehiclesChart.data.datasets[0].barThickness = newBarThickness;
                             topVehiclesChart.update();
+                        } else if (topVehiclesChart) {
+                            // Hiển thị thông báo khi không có dữ liệu xe được thuê
+                            topVehiclesChart.destroy();
+                            document.getElementById('topVehiclesChart').style.display = 'none';
+                            document.getElementById('topVehiclesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu xe được thuê</div>';
                         }
                         
-                        if (vehicleTypesChart) {
+                        if (vehicleTypesChart && hasLoaiXeData) {
                             vehicleTypesChart.data.labels = data.loaiXe.labels;
                             vehicleTypesChart.data.datasets[0].data = data.loaiXe.data;
                             
@@ -846,6 +872,11 @@
                             adjustChartHeight('vehicleTypesChart', dataCount);
                             
                             vehicleTypesChart.update();
+                        } else if (vehicleTypesChart) {
+                            // Hiển thị thông báo khi không có dữ liệu loại xe
+                            vehicleTypesChart.destroy();
+                            document.getElementById('vehicleTypesChart').style.display = 'none';
+                            document.getElementById('vehicleTypesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu loại xe</div>';
                         }
                     } else {
                         console.error('Error:', data.message);
@@ -897,16 +928,6 @@
              const selectedFilter = document.getElementById('chartFilter').value;
              updateCharts(selectedFilter, selectedChartType);
          });
-
-        // Event listener cho export button
-        document.getElementById('exportBtn').addEventListener('click', function() {
-            alert('Chức năng xuất Excel đang được phát triển!');
-        });
-
-        // Event listener cho print button
-        document.getElementById('printBtn').addEventListener('click', function() {
-            window.print();
-        });
 
         // Set giá trị mặc định cho filter dropdown
         document.getElementById('chartFilter').value = '@Model.ChartFilter';

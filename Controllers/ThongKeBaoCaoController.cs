@@ -57,24 +57,6 @@ namespace bike.Controllers
                     .SumAsync(ct => ct.SoTien);
 
                 var doanhThuNgay = Math.Max(0, doanhThuNgayGross + phiDenBuNgay - chiTieuNgay);
-
-                // Thêm dữ liệu mẫu cho tất cả các ngày để test
-                if (doanhThuNgay == 0)
-                {
-                    // Tạo dữ liệu mẫu ngẫu nhiên để test - đảm bảo mỗi ngày có giá trị khác nhau
-                    var random = new Random(period.StartDate.DayOfYear + period.StartDate.Month * 100);
-                    doanhThuNgay = random.Next(100000, 500000);
-                }
-                else
-                {
-                    // Nếu có dữ liệu thực nhưng quá nhỏ, tăng lên để dễ nhìn
-                    if (doanhThuNgay < 50000)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear + period.StartDate.Month * 100);
-                        doanhThuNgay = random.Next(100000, 500000);
-                    }
-                }
-
                 viewModel.BieuDoDoanhThu.Add(new BieuDoItem
                 {
                     Label = period.Label,
@@ -90,21 +72,7 @@ namespace bike.Controllers
                                d.NgayDat.Date <= period.EndDate)
                     .CountAsync();
 
-                // Thêm dữ liệu mẫu cho tất cả các ngày để test
-                if (donDatNgay == 0)
-                {
-                    var random = new Random(period.StartDate.DayOfYear);
-                    donDatNgay = random.Next(1, 10);
-                }
-                else
-                {
-                    // Nếu có dữ liệu thực nhưng quá nhỏ, tăng lên để dễ nhìn
-                    if (donDatNgay < 2)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear);
-                        donDatNgay = random.Next(1, 10);
-                    }
-                }
+
 
                 viewModel.BieuDoDonDat.Add(new BieuDoItem
                 {
@@ -122,21 +90,7 @@ namespace bike.Controllers
                                u.VaiTro == "User")
                     .CountAsync();
 
-                // Thêm dữ liệu mẫu cho tất cả các ngày để test
-                if (khachHangMoiNgay == 0)
-                {
-                    var random = new Random(period.StartDate.DayOfYear);
-                    khachHangMoiNgay = random.Next(0, 5);
-                }
-                else
-                {
-                    // Nếu có dữ liệu thực nhưng quá nhỏ, tăng lên để dễ nhìn
-                    if (khachHangMoiNgay < 1)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear);
-                        khachHangMoiNgay = random.Next(0, 5);
-                    }
-                }
+
 
                 viewModel.BieuDoKhachHangMoi.Add(new BieuDoItem
                 {
@@ -163,18 +117,7 @@ namespace bike.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // Thêm dữ liệu mẫu nếu không có dữ liệu thực
-            if (!topXe.Any())
-            {
-                topXe = new List<XeThueNhieuItem>
-                {
-                    new XeThueNhieuItem { TenXe = "Honda Wave Alpha", BienSo = "51A-12345", SoLanThue = 15, DoanhThu = 1500000 },
-                    new XeThueNhieuItem { TenXe = "Yamaha Exciter", BienSo = "51B-67890", SoLanThue = 12, DoanhThu = 1200000 },
-                    new XeThueNhieuItem { TenXe = "Honda Vision", BienSo = "51C-11111", SoLanThue = 10, DoanhThu = 1000000 },
-                    new XeThueNhieuItem { TenXe = "Yamaha Grande", BienSo = "51D-22222", SoLanThue = 8, DoanhThu = 800000 },
-                    new XeThueNhieuItem { TenXe = "Honda Air Blade", BienSo = "51E-33333", SoLanThue = 6, DoanhThu = 600000 }
-                };
-            }
+
 
             viewModel.TopXeThueNhieu = topXe;
 
@@ -190,18 +133,7 @@ namespace bike.Controllers
                 .OrderByDescending(x => x.Value)
                 .ToListAsync();
 
-            // Thêm dữ liệu mẫu nếu không có dữ liệu thực
-            if (!thongKeLoaiXe.Any())
-            {
-                thongKeLoaiXe = new List<BieuDoItem>
-                {
-                    new BieuDoItem { Label = "Xe số", Value = 25 },
-                    new BieuDoItem { Label = "Xe tay ga", Value = 20 },
-                    new BieuDoItem { Label = "Xe côn tay", Value = 15 },
-                    new BieuDoItem { Label = "Xe mô tô", Value = 10 },
-                    new BieuDoItem { Label = "Xe điện", Value = 5 }
-                };
-            }
+
 
             viewModel.BieuDoLoaiXe = thongKeLoaiXe;
 
@@ -299,17 +231,7 @@ namespace bike.Controllers
 
                     var doanhThu = Math.Max(0, doanhThuGross + phiDenBu - chiTieu);
 
-                    // Thêm dữ liệu mẫu cho tất cả các ngày để test
-                    if (doanhThu == 0)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear + period.StartDate.Month * 100);
-                        doanhThu = random.Next(100000, 500000);
-                    }
-                    else if (doanhThu < 50000)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear + period.StartDate.Month * 100);
-                        doanhThu = random.Next(100000, 500000);
-                    }
+
 
                     // Đơn đặt
                     var donDat = await _context.DatCho
@@ -317,17 +239,7 @@ namespace bike.Controllers
                                    d.NgayDat.Date <= period.EndDate)
                         .CountAsync();
 
-                    // Thêm dữ liệu mẫu cho đơn đặt
-                    if (donDat == 0)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear);
-                        donDat = random.Next(1, 10);
-                    }
-                    else if (donDat < 2)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear);
-                        donDat = random.Next(1, 10);
-                    }
+
 
                     // Khách hàng mới
                     var khachHangMoi = await _context.Users
@@ -336,17 +248,7 @@ namespace bike.Controllers
                                    u.VaiTro == "User")
                         .CountAsync();
 
-                    // Thêm dữ liệu mẫu cho khách hàng mới
-                    if (khachHangMoi == 0)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear);
-                        khachHangMoi = random.Next(0, 5);
-                    }
-                    else if (khachHangMoi < 1)
-                    {
-                        var random = new Random(period.StartDate.DayOfYear);
-                        khachHangMoi = random.Next(0, 5);
-                    }
+
 
                     doanhThuData.Add(doanhThu);
                     donDatData.Add(donDat);
