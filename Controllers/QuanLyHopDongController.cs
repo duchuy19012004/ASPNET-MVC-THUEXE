@@ -7,6 +7,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using bike.Attributes;
 using bike.Services;
+using System.IO;
 namespace bike.Controllers
 {
     public class QuanLyHopDongController : Controller
@@ -35,6 +36,18 @@ namespace bike.Controllers
             }
 
             int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            // Đảm bảo page không vượt quá tổng số trang
+            if (page > totalPages && totalPages > 0)
+            {
+                page = totalPages;
+            }
+            if (page < 1)
+            {
+                page = 1;
+            }
+
             var hopDongs = await query
                 .OrderByDescending(h => h.NgayTao)
                 .Skip((page - 1) * pageSize)
@@ -106,6 +119,16 @@ namespace bike.Controllers
                 int totalItems = await query.CountAsync();
                 int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
 
+                // Đảm bảo page không vượt quá tổng số trang
+                if (page > totalPages && totalPages > 0)
+                {
+                    page = totalPages;
+                }
+                if (page < 1)
+                {
+                    page = 1;
+                }
+
                 // Phân trang
                 var hopDongs = await query
                     .OrderByDescending(h => h.NgayTao)
@@ -117,103 +140,11 @@ namespace bike.Controllers
                 var html = "";
                 foreach (var item in hopDongs)
                 {
-                    html += "<tr data-phone=\"" + item.SoDienThoai + "\">";
-                    html += "<td><strong>HD" + item.MaHopDong.ToString("D6") + "</strong></td>";
-                    
-                    html += "<td>";
-                    html += item.HoTenKhach + "<br/>";
-                    html += "<small class=\"text-muted phone-number\">" + item.SoDienThoai + "</small>";
-                    html += "</td>";
-                    
-                    html += "<td>";
-                    if (item.ChiTietHopDong?.Any() == true)
-                    {
-                        var xe = item.ChiTietHopDong.First();
-                        html += xe.Xe?.TenXe + "<br/>";
-                        html += "<small class=\"text-muted\">" + xe.Xe?.BienSoXe + "</small>";
-                        
-                        if (item.ChiTietHopDong.Count > 1)
-                        {
-                            html += "<small class=\"text-primary\">(+" + (item.ChiTietHopDong.Count - 1) + " xe khác)</small>";
-                        }
-                    }
-                    else
-                    {
-                        html += "<span class=\"text-muted\">Chưa có xe</span>";
-                    }
-                    html += "</td>";
-                    
-                    html += "<td>" + item.NgayNhanXe.ToString("dd/MM/yyyy") + "</td>";
-                    
-                    html += "<td>";
-                    if (item.NgayTraXeThucTe.HasValue)
-                    {
-                        html += item.NgayTraXeThucTe.Value.ToString("dd/MM/yyyy");
-                    }
-                    else
-                    {
-                        html += item.NgayTraXeDuKien.ToString("dd/MM/yyyy");
-                        html += "<small class=\"text-muted\">(dự kiến)</small>";
-                    }
-                    html += "</td>";
-                    
-                    html += "<td class=\"text-danger fw-bold\">" + item.TongTien.ToString("N0") + "đ</td>";
-                    
-                    string statusClass = item.TrangThai switch
-                    {
-                        "Đang thuê" => "status-active",
-                        "Hoàn thành" => "status-completed",
-                        "Hủy" => "status-cancelled",
-                        _ => ""
-                    };
-                    html += "<td><span class=\"status-badge " + statusClass + "\">" + item.TrangThai + "</span></td>";
-                    
-                    // Cột hóa đơn
-                    html += "<td>";
-                    if (item.HoaDon != null)
-                    {
-                        html += "<a href=\"/QuanLyHoaDon/ChiTiet/" + item.HoaDon.MaHoaDon + "\" class=\"badge bg-success text-decoration-none\" title=\"Xem hóa đơn\">";
-                        html += "<i class=\"bi bi-check-circle\"></i> HD" + item.HoaDon.MaHoaDon.ToString("D6");
-                        html += "</a>";
-                    }
-                    else if (item.TrangThai == "Hoàn thành")
-                    {
-                        html += "<span class=\"badge bg-warning\">";
-                        html += "<i class=\"bi bi-exclamation-triangle\"></i> Chưa có";
-                        html += "</span>";
-                    }
-                    else
-                    {
-                        html += "<span class=\"badge bg-secondary\">-</span>";
-                    }
-                    html += "</td>";
-                    
-                    // Cột thao tác
-                    html += "<td>";
-                    html += "<a href=\"/QuanLyHopDong/ChiTiet/" + item.MaHopDong + "\" class=\"btn btn-sm btn-info\" title=\"Chi tiết\">";
-                    html += "<i class=\"bi bi-eye\"></i>";
-                    html += "</a>";
-                    
-                    if (item.TrangThai == "Đang thuê")
-                    {
-                        html += "<a href=\"/QuanLyHopDong/TraXe/" + item.MaHopDong + "\" class=\"btn btn-sm btn-success\" title=\"Trả xe\">";
-                        html += "<i class=\"bi bi-check-circle\"></i>";
-                        html += "</a>";
-                    }
-                    
-                    if (item.TrangThai == "Hoàn thành" && item.HoaDon == null)
-                    {
-                        html += "<button class=\"btn btn-sm btn-warning\" onclick=\"taoHoaDonTuIndex(" + item.MaHopDong + ", '" + item.HoTenKhach + "')\" title=\"Tạo hóa đơn thủ công (trường hợp đặc biệt)\">";
-                        html += "<i class=\"bi bi-receipt\"></i>";
-                        html += "</button>";
-                    }
-                    html += "</td>";
-                    
-                    html += "</tr>";
+                    html += GenerateHopDongRowHtml(item);
                 }
 
                 // Tạo HTML cho phân trang
-                var paginationHtml = GeneratePaginationHtml(page, totalPages, totalItems, pageSize);
+                var paginationHtml = GeneratePaginationHtml(page, totalPages, totalItems, pageSize, false);
 
                 return Json(new { 
                     success = true, 
@@ -235,17 +166,125 @@ namespace bike.Controllers
             }
         }
 
+        // AJAX: Lọc theo khoảng thời gian và tìm kiếm theo số điện thoại
+        [HttpGet]
+        [PermissionAuthorize("CanViewHopDong")]
+        public async Task<IActionResult> FilterByDateRangeAndPhone(DateTime? tuNgay, DateTime? denNgay, string trangThai = "", string phoneNumber = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                var query = _context.HopDong
+                    .Include(h => h.ChiTietHopDong)
+                    .ThenInclude(ct => ct.Xe)
+                    .Include(h => h.DatCho)
+                    .Include(h => h.HoaDon)
+                    .AsQueryable();
+
+                // Lọc theo trạng thái nếu có
+                if (!string.IsNullOrEmpty(trangThai))
+                {
+                    query = query.Where(h => h.TrangThai == trangThai);
+                }
+
+                // Lọc theo khoảng thời gian nếu có
+                if (tuNgay.HasValue && denNgay.HasValue)
+                {
+                    // Lọc theo ngày tạo hợp đồng
+                    query = query.Where(h => h.NgayTao.Date >= tuNgay.Value.Date && h.NgayTao.Date <= denNgay.Value.Date);
+                }
+                else if (tuNgay.HasValue)
+                {
+                    query = query.Where(h => h.NgayTao.Date >= tuNgay.Value.Date);
+                }
+                else if (denNgay.HasValue)
+                {
+                    query = query.Where(h => h.NgayTao.Date <= denNgay.Value.Date);
+                }
+
+                // Lọc theo số điện thoại nếu có
+                if (!string.IsNullOrEmpty(phoneNumber))
+                {
+                    query = query.Where(h => h.SoDienThoai.Contains(phoneNumber));
+                }
+
+                // Đếm tổng số bản ghi
+                int totalItems = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                // Đảm bảo page không vượt quá tổng số trang
+                if (page > totalPages && totalPages > 0)
+                {
+                    page = totalPages;
+                }
+                if (page < 1)
+                {
+                    page = 1;
+                }
+
+                // Phân trang
+                var hopDongs = await query
+                    .OrderByDescending(h => h.NgayTao)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Tạo HTML cho bảng
+                var html = "";
+                foreach (var item in hopDongs)
+                {
+                    html += GenerateHopDongRowHtml(item);
+                }
+
+                // Tạo phân trang
+                string paginationHtml = "";
+                if (totalPages > 1)
+                {
+                    paginationHtml = GeneratePaginationHtml(page, totalPages, totalItems, pageSize, true);
+                }
+
+                // Tạo thông báo
+                string message = $"Tìm thấy {totalItems} hợp đồng";
+                if (!string.IsNullOrEmpty(phoneNumber))
+                {
+                    message += $" với số điện thoại '{phoneNumber}'";
+                }
+                if (tuNgay.HasValue || denNgay.HasValue)
+                {
+                    message += " trong khoảng thời gian đã chọn";
+                }
+                if (!string.IsNullOrEmpty(trangThai))
+                {
+                    message += $" với trạng thái '{trangThai}'";
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    html = html,
+                    count = totalItems,
+                    pagination = paginationHtml,
+                    message = message
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
         // Helper method để tạo HTML phân trang
-        private string GeneratePaginationHtml(int currentPage, int totalPages, int totalItems, int pageSize)
+        private string GeneratePaginationHtml(int currentPage, int totalPages, int totalItems, int pageSize, bool isSearch = false)
         {
             if (totalPages <= 1) return "";
 
             var html = "<nav aria-label=\"Phân trang hợp đồng\"><ul class=\"pagination justify-content-center mb-0\">";
             
+            string pageFunction = isSearch ? "changeSearchPage" : "changePage";
+            
             // Nút Previous
             if (currentPage > 1)
             {
-                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"changePage(" + (currentPage - 1) + ")\">";
+                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"" + pageFunction + "(" + (currentPage - 1) + ")\">";
                 html += "<i class=\"bi bi-chevron-left\"></i></a></li>";
             }
             else
@@ -259,7 +298,7 @@ namespace bike.Controllers
 
             if (startPage > 1)
             {
-                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"changePage(1)\">1</a></li>";
+                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"" + pageFunction + "(1)\">1</a></li>";
                 if (startPage > 2)
                 {
                     html += "<li class=\"page-item disabled\"><span class=\"page-link\">...</span></li>";
@@ -274,7 +313,7 @@ namespace bike.Controllers
                 }
                 else
                 {
-                    html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"changePage(" + i + ")\">" + i + "</a></li>";
+                    html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"" + pageFunction + "(" + i + ")\">" + i + "</a></li>";
                 }
             }
 
@@ -284,13 +323,13 @@ namespace bike.Controllers
                 {
                     html += "<li class=\"page-item disabled\"><span class=\"page-link\">...</span></li>";
                 }
-                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"changePage(" + totalPages + ")\">" + totalPages + "</a></li>";
+                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"" + pageFunction + "(" + totalPages + ")\">" + totalPages + "</a></li>";
             }
 
             // Nút Next
             if (currentPage < totalPages)
             {
-                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"changePage(" + (currentPage + 1) + ")\">";
+                html += "<li class=\"page-item\"><a class=\"page-link\" href=\"#\" onclick=\"" + pageFunction + "(" + (currentPage + 1) + ")\">";
                 html += "<i class=\"bi bi-chevron-right\"></i></a></li>";
             }
             else
@@ -922,6 +961,77 @@ namespace bike.Controllers
             {
                 try
                 {
+                    // Xử lý upload file
+                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "hopdong");
+                    if (!Directory.Exists(uploadPath))
+                    {
+                        Directory.CreateDirectory(uploadPath);
+                    }
+
+                    // Xử lý CCCD mặt trước
+                    if (Request.Form.Files["cccdMatTruoc"] != null)
+                    {
+                        var file = Request.Form.Files["cccdMatTruoc"];
+                        if (file.Length > 0 && file.Length <= 5 * 1024 * 1024) // 5MB limit
+                        {
+                            var fileName = $"cccd_truoc_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+                            hopDong.CccdMatTruoc = fileName;
+                        }
+                    }
+
+                    // Xử lý CCCD mặt sau
+                    if (Request.Form.Files["cccdMatSau"] != null)
+                    {
+                        var file = Request.Form.Files["cccdMatSau"];
+                        if (file.Length > 0 && file.Length <= 5 * 1024 * 1024) // 5MB limit
+                        {
+                            var fileName = $"cccd_sau_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+                            hopDong.CccdMatSau = fileName;
+                        }
+                    }
+
+                    // Xử lý bằng lái xe
+                    if (Request.Form.Files["bangLaiXe"] != null)
+                    {
+                        var file = Request.Form.Files["bangLaiXe"];
+                        if (file.Length > 0 && file.Length <= 5 * 1024 * 1024) // 5MB limit
+                        {
+                            var fileName = $"bang_lai_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+                            hopDong.BangLaiXe = fileName;
+                        }
+                    }
+
+                    // Xử lý giấy tờ khác
+                    if (Request.Form.Files["giayToKhac"] != null)
+                    {
+                        var file = Request.Form.Files["giayToKhac"];
+                        if (file.Length > 0 && file.Length <= 5 * 1024 * 1024) // 5MB limit
+                        {
+                            var fileName = $"giay_to_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                            var filePath = Path.Combine(uploadPath, fileName);
+                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            {
+                                await file.CopyToAsync(stream);
+                            }
+                            hopDong.GiayToKhac = fileName;
+                        }
+                    }
+
                     // Set thông tin tự động
                     hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                     hopDong.NgayTao = DateTime.Now;
@@ -1275,6 +1385,201 @@ namespace bike.Controllers
                 return NotFound();
             }
             return View(hopDong);
+        }
+
+        // AJAX: Tìm kiếm hợp đồng theo số điện thoại
+        [HttpGet]
+        [PermissionAuthorize("CanViewHopDong")]
+        public async Task<IActionResult> SearchByPhone(string phoneNumber, int page = 1, int pageSize = 12)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(phoneNumber))
+                {
+                    return Json(new { success = false, message = "Vui lòng nhập số điện thoại để tìm kiếm" });
+                }
+
+                var query = _context.HopDong
+                    .Include(h => h.ChiTietHopDong)
+                    .ThenInclude(ct => ct.Xe)
+                    .Include(h => h.DatCho)
+                    .Include(h => h.HoaDon)
+                    .Where(h => h.SoDienThoai.Contains(phoneNumber))
+                    .AsQueryable();
+
+                int totalItems = await query.CountAsync();
+                
+                // Đảm bảo page không vượt quá tổng số trang
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+                if (page > totalPages && totalPages > 0)
+                {
+                    page = totalPages;
+                }
+                if (page < 1)
+                {
+                    page = 1;
+                }
+                
+                var hopDongs = await query
+                    .OrderByDescending(h => h.NgayTao)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Tạo HTML cho bảng
+                string html = "";
+                foreach (var hopDong in hopDongs)
+                {
+                    html += GenerateHopDongRowHtml(hopDong);
+                }
+
+                // Tạo phân trang
+                string paginationHtml = "";
+                if (totalPages > 1)
+                {
+                    paginationHtml = GeneratePaginationHtml(page, totalPages, totalItems, pageSize, true);
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    html = html,
+                    count = totalItems,
+                    pagination = paginationHtml,
+                    message = $"Tìm thấy {totalItems} hợp đồng với số điện thoại '{phoneNumber}'"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        [HttpGet]
+        [PermissionAuthorize("CanViewHopDong")]
+        public async Task<IActionResult> FilterByStatus(string trangThai = "", int page = 1, int pageSize = 10)
+        {
+            try
+            {
+                // Validate page parameter
+                if (page < 1) page = 1;
+
+                var query = _context.HopDong
+                    .Include(h => h.ChiTietHopDong)
+                        .ThenInclude(ct => ct.Xe)
+                    .Include(h => h.HoaDon)
+                    .AsQueryable();
+
+                // Lọc theo trạng thái nếu có
+                if (!string.IsNullOrEmpty(trangThai))
+                {
+                    query = query.Where(h => h.TrangThai == trangThai);
+                }
+
+                // Đếm tổng số bản ghi
+                int totalItems = await query.CountAsync();
+                int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+                // Validate page parameter again after calculating totalPages
+                if (page > totalPages && totalPages > 0) page = totalPages;
+                if (page < 1) page = 1;
+
+                var hopDongs = await query
+                    .OrderByDescending(h => h.NgayTao)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                // Tạo HTML cho bảng
+                string html = "";
+                foreach (var hopDong in hopDongs)
+                {
+                    html += GenerateHopDongRowHtml(hopDong);
+                }
+
+                // Tạo phân trang
+                string paginationHtml = "";
+                if (totalPages > 1)
+                {
+                    paginationHtml = GeneratePaginationHtml(page, totalPages, totalItems, pageSize, true);
+                }
+
+                string statusText = string.IsNullOrEmpty(trangThai) ? "tất cả trạng thái" : $"trạng thái '{trangThai}'";
+                return Json(new
+                {
+                    success = true,
+                    html = html,
+                    count = totalItems,
+                    pagination = paginationHtml,
+                    message = $"Tìm thấy {totalItems} hợp đồng với {statusText}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
+
+        // Helper method để tạo HTML cho một dòng hợp đồng
+        private string GenerateHopDongRowHtml(HopDong hopDong)
+        {
+            string trangThaiClass = hopDong.TrangThai switch
+            {
+                "Đang thuê" => "badge bg-warning",
+                "Hoàn thành" => "badge bg-success",
+                "Đã hủy" => "badge bg-danger",
+                _ => "badge bg-secondary"
+            };
+
+            string xeInfo = "";
+            if (hopDong.ChiTietHopDong?.Any() == true)
+            {
+                var xe = hopDong.ChiTietHopDong.First();
+                xeInfo = $"{xe.Xe?.TenXe}<br><small class=\"text-muted\">{xe.Xe?.BienSoXe}</small>";
+                if (hopDong.ChiTietHopDong.Count > 1)
+                {
+                    xeInfo += $"<br><small class=\"text-primary\">(+{hopDong.ChiTietHopDong.Count - 1} xe khác)</small>";
+                }
+            }
+            else
+            {
+                xeInfo = "<span class=\"text-muted\">Chưa có xe</span>";
+            }
+
+            string hoaDonInfo = hopDong.HoaDon != null 
+                ? $"<span class=\"badge bg-success\">Đã có hóa đơn</span>" 
+                : "<span class=\"badge bg-secondary\">Chưa có hóa đơn</span>";
+
+            return $@"
+                <tr data-phone=""{hopDong.SoDienThoai}"">
+                    <td><strong>HD{hopDong.MaHopDong.ToString("D6")}</strong></td>
+                    <td>
+                        {hopDong.HoTenKhach}<br />
+                        <small class=""text-muted phone-number"">{hopDong.SoDienThoai}</small>
+                    </td>
+                    <td>{xeInfo}</td>
+                    <td>{hopDong.NgayNhanXe:dd/MM/yyyy}</td>
+                    <td>{hopDong.NgayTraXeDuKien:dd/MM/yyyy}</td>
+                    <td><strong>{hopDong.TongTien:N0} VNĐ</strong></td>
+                    <td><span class=""{trangThaiClass}"">{hopDong.TrangThai}</span></td>
+                    <td>{hoaDonInfo}</td>
+                    <td>
+                        <div class=""btn-group btn-group-sm"" role=""group"">
+                            <a href=""/QuanLyHopDong/ChiTiet/{hopDong.MaHopDong}"" class=""btn btn-outline-primary"" title=""Chi tiết"">
+                                <i class=""bi bi-eye""></i>
+                            </a>
+                            {(hopDong.TrangThai == "Đang thuê" ? $@"
+                            <a href=""/QuanLyHopDong/TraXe/{hopDong.MaHopDong}"" class=""btn btn-outline-success"" title=""Trả xe"">
+                                <i class=""bi bi-check-circle""></i>
+                            </a>" : "")}
+                            {(hopDong.HoaDon == null ? $@"
+                            <button type=""button"" class=""btn btn-outline-info"" title=""Tạo hóa đơn"" 
+                                    onclick=""taoHoaDonTuIndex({hopDong.MaHopDong}, '{hopDong.HoTenKhach}')"">
+                                <i class=""bi bi-receipt""></i>
+                            </button>" : "")}
+                        </div>
+                    </td>
+                </tr>";
         }
     }
 }

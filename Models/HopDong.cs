@@ -88,6 +88,23 @@ namespace bike.Models
         [ForeignKey("MaNguoiTao")]
         public User? NguoiTao { get; set; }
 
+        // File upload properties for documents
+        [Display(Name = "CCCD mặt trước")]
+        [StringLength(255)]
+        public string? CccdMatTruoc { get; set; }
+
+        [Display(Name = "CCCD mặt sau")]
+        [StringLength(255)]
+        public string? CccdMatSau { get; set; }
+
+        [Display(Name = "Bằng lái xe")]
+        [StringLength(255)]
+        public string? BangLaiXe { get; set; }
+
+        [Display(Name = "Giấy tờ khác")]
+        [StringLength(255)]
+        public string? GiayToKhac { get; set; }
+
         // Navigation property cho chi tiết xe trong hợp đồng (quan hệ n-n)
         public virtual ICollection<ChiTietHopDong> ChiTietHopDong { get; set; } = new List<ChiTietHopDong>();
 

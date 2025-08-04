@@ -330,6 +330,83 @@
         }
     }
 
+    /* Document cards */
+    .document-card {
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        transition: all 0.2s;
+    }
+
+    .document-card:hover {
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .document-header {
+        background: var(--primary);
+        color: var(--white);
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .document-body {
+        padding: 1rem;
+    }
+
+    .document-preview {
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .document-image {
+        max-width: 100%;
+        max-height: 200px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .document-image:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .document-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: center;
+    }
+
+    .document-actions .btn {
+        flex: 1;
+        max-width: 120px;
+    }
+
+    /* Document preview modal */
+    .document-modal .modal-dialog {
+        max-width: 90%;
+        max-height: 90vh;
+    }
+
+    .document-modal .modal-body {
+        text-align: center;
+        padding: 0;
+    }
+
+    .document-modal img {
+        max-width: 100%;
+        max-height: 70vh;
+        object-fit: contain;
+    }
+
     /* Print styles */
     @@media print {
         .no-print {
@@ -341,7 +418,6 @@
         }
     }
 </style>
-
 <div class="detail-container">
     <div class="contract-card">
         <!-- Header -->
@@ -393,6 +469,127 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Giấy tờ đính kèm -->
+            @{
+                var hasDocuments = !string.IsNullOrEmpty(Model.CccdMatTruoc) || 
+                                   !string.IsNullOrEmpty(Model.CccdMatSau) || 
+                                   !string.IsNullOrEmpty(Model.BangLaiXe) || 
+                                   !string.IsNullOrEmpty(Model.GiayToKhac);
+            }
+            
+            @if (hasDocuments)
+            {
+                <div class="section-divider"></div>
+                
+                <div class="info-section">
+                    <h3 class="section-title">
+                        <i class="bi bi-file-earmark-text"></i> Giấy tờ đính kèm
+                    </h3>
+                    
+                    <div class="row">
+                        @if (!string.IsNullOrEmpty(Model.CccdMatTruoc))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="document-card">
+                                    <div class="document-header">
+                                        <i class="bi bi-card-image"></i> CCCD/CMND - Mặt trước
+                                    </div>
+                                    <div class="document-body">
+                                        <div class="document-preview">
+                                            <img src="~/uploads/hopdong/@Model.CccdMatTruoc" alt="CCCD mặt trước" 
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.CccdMatTruoc', 'CCCD/CMND - Mặt trước')" />
+                                        </div>
+                                        <div class="document-actions">
+                                            <a href="~/uploads/hopdong/@Model.CccdMatTruoc" target="_blank" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                            <a href="~/uploads/hopdong/@Model.CccdMatTruoc" download class="btn btn-secondary btn-sm">
+                                                <i class="bi bi-download"></i> Tải về
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(Model.CccdMatSau))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="document-card">
+                                    <div class="document-header">
+                                        <i class="bi bi-card-image"></i> CCCD/CMND - Mặt sau
+                                    </div>
+                                    <div class="document-body">
+                                        <div class="document-preview">
+                                            <img src="~/uploads/hopdong/@Model.CccdMatSau" alt="CCCD mặt sau" 
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.CccdMatSau', 'CCCD/CMND - Mặt sau')" />
+                                        </div>
+                                        <div class="document-actions">
+                                            <a href="~/uploads/hopdong/@Model.CccdMatSau" target="_blank" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                            <a href="~/uploads/hopdong/@Model.CccdMatSau" download class="btn btn-secondary btn-sm">
+                                                <i class="bi bi-download"></i> Tải về
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(Model.BangLaiXe))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="document-card">
+                                    <div class="document-header">
+                                        <i class="bi bi-card-image"></i> Bằng lái xe
+                                    </div>
+                                    <div class="document-body">
+                                        <div class="document-preview">
+                                            <img src="~/uploads/hopdong/@Model.BangLaiXe" alt="Bằng lái xe" 
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.BangLaiXe', 'Bằng lái xe')" />
+                                        </div>
+                                        <div class="document-actions">
+                                            <a href="~/uploads/hopdong/@Model.BangLaiXe" target="_blank" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                            <a href="~/uploads/hopdong/@Model.BangLaiXe" download class="btn btn-secondary btn-sm">
+                                                <i class="bi bi-download"></i> Tải về
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (!string.IsNullOrEmpty(Model.GiayToKhac))
+                        {
+                            <div class="col-md-6 mb-3">
+                                <div class="document-card">
+                                    <div class="document-header">
+                                        <i class="bi bi-file-earmark"></i> Giấy tờ khác
+                                    </div>
+                                    <div class="document-body">
+                                        <div class="document-preview">
+                                            <img src="~/uploads/hopdong/@Model.GiayToKhac" alt="Giấy tờ khác" 
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.GiayToKhac', 'Giấy tờ khác')" />
+                                        </div>
+                                        <div class="document-actions">
+                                            <a href="~/uploads/hopdong/@Model.GiayToKhac" target="_blank" class="btn btn-primary btn-sm">
+                                                <i class="bi bi-eye"></i> Xem
+                                            </a>
+                                            <a href="~/uploads/hopdong/@Model.GiayToKhac" download class="btn btn-secondary btn-sm">
+                                                <i class="bi bi-download"></i> Tải về
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
 
             <div class="section-divider"></div>
 
@@ -733,6 +930,27 @@
     </div>
 </div>
 
+<!-- Modal xem giấy tờ -->
+<div class="modal fade document-modal" id="documentPreviewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="documentModalTitle">Xem giấy tờ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <img id="documentModalImage" src="" alt="Document preview" />
+            </div>
+            <div class="modal-footer">
+                <a id="documentModalDownload" href="" download class="btn btn-primary">
+                    <i class="bi bi-download"></i> Tải về
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Print formatting
@@ -848,6 +1066,22 @@
                     console.error('Error loading payment info:', error);
                 }
             });
+        }
+
+        // Function xem giấy tờ
+        function previewDocument(imageSrc, title) {
+            // Cập nhật modal title
+            document.getElementById('documentModalTitle').textContent = title;
+            
+            // Cập nhật image src
+            document.getElementById('documentModalImage').src = imageSrc;
+            
+            // Cập nhật download link
+            document.getElementById('documentModalDownload').href = imageSrc;
+            
+            // Hiển thị modal
+            var modal = new bootstrap.Modal(document.getElementById('documentPreviewModal'));
+            modal.show();
         }
 
         // Load thông tin khi trang load

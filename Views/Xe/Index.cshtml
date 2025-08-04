@@ -127,16 +127,8 @@
 
     <!-- Bảng danh sách -->
     <div class="card">
-        <div class="card-header d-flex justify-content-between">
+        <div class="card-header">
             <h5>Danh sách xe</h5>
-            <div>
-                <button class="btn btn-success btn-sm">
-                    <i class="bi bi-file-excel"></i> Xuất Excel
-                </button>
-                <button class="btn btn-primary btn-sm">
-                    <i class="bi bi-printer"></i> In
-                </button>
-            </div>
         </div>
         <div class="card-body" id="xeTableContainer">
             @Html.Partial("_XeTablePartial", Model)

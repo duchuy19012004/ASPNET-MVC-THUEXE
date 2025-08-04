@@ -264,9 +264,7 @@
     }
     
     .select2-results__option:hover {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
-        transform: translateX(3px);
-        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+        background: #f8f9fa !important;
     }
     
     .select2-results__option--highlighted {
@@ -311,9 +309,7 @@
     }
     
     .select2-results__option:hover .select2-vehicle-option img {
-        border-color: #007bff;
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        transform: scale(1.02);
     }
     
     .select2-vehicle-option .vehicle-option-image-placeholder {
@@ -333,10 +329,7 @@
     }
     
     .select2-results__option:hover .select2-vehicle-option .vehicle-option-image-placeholder {
-        border-color: #007bff;
-        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+        transform: scale(1.02);
     }
     
     .select2-vehicle-option .vehicle-option-info {
@@ -355,8 +348,7 @@
     }
     
     .select2-results__option:hover .select2-vehicle-option .vehicle-option-info .vehicle-name {
-        color: #007bff;
-        transform: translateX(2px);
+        color: #333;
     }
     
     .select2-vehicle-option .vehicle-option-info .vehicle-details {
@@ -369,8 +361,7 @@
     }
     
     .select2-results__option:hover .select2-vehicle-option .vehicle-option-info .vehicle-details {
-        color: #495057;
-        transform: translateX(2px);
+        color: #666;
     }
     
     .select2-vehicle-option .vehicle-option-price {
@@ -387,9 +378,7 @@
     }
     
     .select2-results__option:hover .select2-vehicle-option .vehicle-option-price {
-        background: rgba(40, 167, 69, 0.2);
-        transform: scale(1.05);
-        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
+        background: rgba(40, 167, 69, 0.15);
     }
     
     /* Rental period section */
@@ -419,8 +408,8 @@
     }
     
     .btn-preset:hover, .btn-preset.active {
-        background: #007bff;
-        border-color: #007bff;
+        background: #6c757d;
+        border-color: #6c757d;
         color: white;
     }
     
@@ -613,6 +602,148 @@
         margin-top: 2px;
     }
     
+    /* File upload styling */
+    .file-upload-container {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .file-upload-container:hover {
+        border-color: #dee2e6;
+        background: #f8f9fa;
+    }
+    
+    .file-upload-container input[type="file"] {
+        display: none;
+    }
+    
+    .file-upload-label {
+        cursor: pointer;
+        display: block;
+        padding: 15px;
+        border-radius: 6px;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .file-upload-label:hover {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+    }
+    
+    .file-upload-icon {
+        font-size: 2rem;
+        color: #6c757d;
+        margin-bottom: 10px;
+    }
+    
+    .file-upload-text {
+        color: #495057;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    .file-upload-hint {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+    
+    .file-preview {
+        margin-top: 10px;
+        padding: 15px;
+        background: #e8f5e8;
+        border: 1px solid #c8e6c9;
+        border-radius: 8px;
+        display: none;
+        position: relative;
+    }
+    
+    .file-preview.show {
+        display: block;
+    }
+    
+    .file-preview-content {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .file-preview-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+    
+    .file-preview-info {
+        flex: 1;
+    }
+    
+    .file-preview-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 2px;
+    }
+    
+    .file-preview-size {
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .file-preview-actions {
+        display: flex;
+        gap: 5px;
+        margin-top: 8px;
+    }
+    
+    .btn-preview {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-preview-view {
+        background: #007bff;
+        color: white;
+    }
+    
+    .btn-preview-view:hover {
+        background: #0056b3;
+    }
+    
+    .btn-preview-delete {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-preview-delete:hover {
+        background: #c82333;
+    }
+    
+    .file-preview-icon {
+        font-size: 1.2rem;
+        color: #28a745;
+        margin-right: 8px;
+    }
+    
+    .file-preview-pdf {
+        background: #fff3cd;
+        border-color: #ffeaa7;
+    }
+    
+    .file-preview-pdf .file-preview-icon {
+        color: #856404;
+    }
+    
     .select2-vehicle-option .vehicle-status .badge {
         font-size: 0.7em;
         padding: 0.2em 0.5em;
@@ -780,6 +911,135 @@
             </div>
         </div>
         
+        <!-- Upload giấy tờ -->
+        <div class="form-card">
+            <div class="section-title"><i class="bi bi-file-earmark-arrow-up"></i> Upload giấy tờ (không bắt buộc)</div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="file-upload-container">
+                            <label for="cccdMatTruoc" class="file-upload-label">
+                                <div class="file-upload-icon">
+                                    <i class="bi bi-card-image"></i>
+                                </div>
+                                <div class="file-upload-text">CCCD mặt trước</div>
+                                <div class="file-upload-hint">Click để chọn file (JPG, PNG, PDF - tối đa 5MB)</div>
+                            </label>
+                            <input type="file" class="form-control" id="cccdMatTruoc" name="cccdMatTruoc" accept="image/*,.pdf" />
+                            <div class="file-preview" id="cccdMatTruocPreview">
+                                <div class="file-preview-content">
+                                    <div class="file-preview-info">
+                                        <div class="file-preview-name"></div>
+                                        <div class="file-preview-size"></div>
+                                    </div>
+                                </div>
+                                <div class="file-preview-actions">
+                                    <button type="button" class="btn-preview btn-preview-view" onclick="previewFile('cccdMatTruoc')">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </button>
+                                    <button type="button" class="btn-preview btn-preview-delete" onclick="deleteFile('cccdMatTruoc')">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="file-upload-container">
+                            <label for="bangLaiXe" class="file-upload-label">
+                                <div class="file-upload-icon">
+                                    <i class="bi bi-card-text"></i>
+                                </div>
+                                <div class="file-upload-text">Bằng lái xe</div>
+                                <div class="file-upload-hint">Click để chọn file (JPG, PNG, PDF - tối đa 5MB)</div>
+                            </label>
+                            <input type="file" class="form-control" id="bangLaiXe" name="bangLaiXe" accept="image/*,.pdf" />
+                            <div class="file-preview" id="bangLaiXePreview">
+                                <div class="file-preview-content">
+                                    <div class="file-preview-info">
+                                        <div class="file-preview-name"></div>
+                                        <div class="file-preview-size"></div>
+                                    </div>
+                                </div>
+                                <div class="file-preview-actions">
+                                    <button type="button" class="btn-preview btn-preview-view" onclick="previewFile('bangLaiXe')">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </button>
+                                    <button type="button" class="btn-preview btn-preview-delete" onclick="deleteFile('bangLaiXe')">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <div class="file-upload-container">
+                            <label for="cccdMatSau" class="file-upload-label">
+                                <div class="file-upload-icon">
+                                    <i class="bi bi-card-image"></i>
+                                </div>
+                                <div class="file-upload-text">CCCD mặt sau</div>
+                                <div class="file-upload-hint">Click để chọn file (JPG, PNG, PDF - tối đa 5MB)</div>
+                            </label>
+                            <input type="file" class="form-control" id="cccdMatSau" name="cccdMatSau" accept="image/*,.pdf" />
+                            <div class="file-preview" id="cccdMatSauPreview">
+                                <div class="file-preview-content">
+                                    <div class="file-preview-info">
+                                        <div class="file-preview-name"></div>
+                                        <div class="file-preview-size"></div>
+                                    </div>
+                                </div>
+                                <div class="file-preview-actions">
+                                    <button type="button" class="btn-preview btn-preview-view" onclick="previewFile('cccdMatSau')">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </button>
+                                    <button type="button" class="btn-preview btn-preview-delete" onclick="deleteFile('cccdMatSau')">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="file-upload-container">
+                            <label for="giayToKhac" class="file-upload-label">
+                                <div class="file-upload-icon">
+                                    <i class="bi bi-file-earmark"></i>
+                                </div>
+                                <div class="file-upload-text">Giấy tờ khác (nếu có)</div>
+                                <div class="file-upload-hint">Click để chọn file (JPG, PNG, PDF - tối đa 5MB)</div>
+                            </label>
+                            <input type="file" class="form-control" id="giayToKhac" name="giayToKhac" accept="image/*,.pdf" />
+                            <div class="file-preview" id="giayToKhacPreview">
+                                <div class="file-preview-content">
+                                    <div class="file-preview-info">
+                                        <div class="file-preview-name"></div>
+                                        <div class="file-preview-size"></div>
+                                    </div>
+                                </div>
+                                <div class="file-preview-actions">
+                                    <button type="button" class="btn-preview btn-preview-view" onclick="previewFile('giayToKhac')">
+                                        <i class="bi bi-eye"></i> Xem
+                                    </button>
+                                    <button type="button" class="btn-preview btn-preview-delete" onclick="deleteFile('giayToKhac')">
+                                        <i class="bi bi-trash"></i> Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                <strong>Lưu ý:</strong> Tất cả các giấy tờ trên đều không bắt buộc. Bạn có thể để trống khi tạo hợp đồng.
+            </div>
+        </div>
+        
         <!-- Thời gian thuê -->
         <div class="form-card">
             <div class="section-title"><i class="bi bi-calendar"></i> Thời gian thuê</div>
@@ -905,6 +1165,170 @@
     <!-- Pass vehicle data to JavaScript -->
     <script>
         window.XeList = @Html.Raw(Json.Serialize(ViewBag.XeList ?? new List<object>()));
+    </script>
+    
+    <!-- File upload preview functionality -->
+    <script>
+        $(document).ready(function() {
+            // File upload preview functionality
+            function handleFileUpload(inputId, previewId) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(previewId);
+                
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validate file size (5MB limit)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('File quá lớn! Vui lòng chọn file nhỏ hơn 5MB.');
+                            input.value = '';
+                            preview.classList.remove('show');
+                            return;
+                        }
+                        
+                        // Validate file type
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
+                        if (!allowedTypes.includes(file.type)) {
+                            alert('Chỉ chấp nhận file JPG, PNG hoặc PDF!');
+                            input.value = '';
+                            preview.classList.remove('show');
+                            return;
+                        }
+                        
+                        // Update preview content
+                        const previewContent = preview.querySelector('.file-preview-content');
+                        const previewInfo = preview.querySelector('.file-preview-info');
+                        const previewName = preview.querySelector('.file-preview-name');
+                        const previewSize = preview.querySelector('.file-preview-size');
+                        
+                        // Clear any existing image
+                        const existingImage = previewContent.querySelector('.file-preview-image');
+                        if (existingImage) {
+                            existingImage.remove();
+                        }
+                        
+                        // Add image preview if it's an image file
+                        if (file.type.startsWith('image/')) {
+                            const img = document.createElement('img');
+                            img.className = 'file-preview-image';
+                            img.src = URL.createObjectURL(file);
+                            previewContent.insertBefore(img, previewInfo);
+                        }
+                        
+                        // Update file info
+                        previewName.textContent = file.name;
+                        previewSize.textContent = `${(file.size / 1024 / 1024).toFixed(2)} MB`;
+                        
+                        // Add PDF class if it's a PDF
+                        if (file.type === 'application/pdf') {
+                            preview.classList.add('file-preview-pdf');
+                        } else {
+                            preview.classList.remove('file-preview-pdf');
+                        }
+                        
+                        preview.classList.add('show');
+                    } else {
+                        preview.classList.remove('show');
+                    }
+                });
+            }
+            
+            // Initialize file upload previews
+            handleFileUpload('cccdMatTruoc', 'cccdMatTruocPreview');
+            handleFileUpload('cccdMatSau', 'cccdMatSauPreview');
+            handleFileUpload('bangLaiXe', 'bangLaiXePreview');
+            handleFileUpload('giayToKhac', 'giayToKhacPreview');
+        });
+        
+        // Function to preview file in a modal
+        function previewFile(inputId) {
+            const input = document.getElementById(inputId);
+            const file = input.files[0];
+            
+            if (!file) {
+                alert('Không có file để xem!');
+                return;
+            }
+            
+            // Create modal for preview
+            const modal = document.createElement('div');
+            modal.className = 'modal fade';
+            modal.id = 'filePreviewModal';
+            modal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Xem trước: ${file.name}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            ${file.type.startsWith('image/') 
+                                ? `<img src="${URL.createObjectURL(file)}" class="img-fluid" style="max-height: 500px;" />`
+                                : `<div class="alert alert-info">
+                                    <i class="bi bi-file-pdf"></i>
+                                    <strong>File PDF:</strong> ${file.name}
+                                    <br><small>Không thể xem trước file PDF. Vui lòng tải về để xem.</small>
+                                   </div>`
+                            }
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                            <a href="${URL.createObjectURL(file)}" download="${file.name}" class="btn btn-primary">
+                                <i class="bi bi-download"></i> Tải về
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('filePreviewModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            // Add modal to body and show
+            document.body.appendChild(modal);
+            const bootstrapModal = new bootstrap.Modal(modal);
+            bootstrapModal.show();
+            
+            // Clean up modal when hidden
+            modal.addEventListener('hidden.bs.modal', function() {
+                modal.remove();
+            });
+        }
+        
+        // Function to delete file
+        function deleteFile(inputId) {
+            if (confirm('Bạn có chắc chắn muốn xóa file này?')) {
+                const input = document.getElementById(inputId);
+                const preview = document.getElementById(inputId + 'Preview');
+                
+                // Clear the file input
+                input.value = '';
+                
+                // Hide the preview
+                preview.classList.remove('show');
+                
+                // Clear preview content
+                const previewContent = preview.querySelector('.file-preview-content');
+                const previewName = preview.querySelector('.file-preview-name');
+                const previewSize = preview.querySelector('.file-preview-size');
+                
+                // Remove image if exists
+                const existingImage = previewContent.querySelector('.file-preview-image');
+                if (existingImage) {
+                    existingImage.remove();
+                }
+                
+                // Clear text content
+                previewName.textContent = '';
+                previewSize.textContent = '';
+                
+                // Remove PDF class
+                preview.classList.remove('file-preview-pdf');
+            }
+        }
     </script>
     
     <!-- External JavaScript file -->

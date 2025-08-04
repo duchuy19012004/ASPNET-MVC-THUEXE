@@ -164,6 +164,119 @@ namespace bike.Controllers
             return Json(result);
         }
 
+        // Action để lấy dữ liệu gốc (không ảnh hưởng đến thống kê)
+        [HttpGet]
+        public async Task<IActionResult> GetOriginalData()
+        {
+            try
+            {
+                // Lấy danh sách chi tiêu gốc
+                var danhSachChiTieu = await _context.ChiTieu
+                    .Include(c => c.Xe)
+                    .OrderByDescending(c => c.NgayChi)
+                    .Take(100) // Giới hạn 100 bản ghi gần nhất
+                    .ToListAsync();
+
+                // Tạo HTML cho các dòng trong bảng
+                var rows = danhSachChiTieu.Select(item => 
+                {
+                    var xeBadge = item.Xe != null ? $"<span class=\"badge bg-secondary\">{item.Xe.BienSoXe}</span>" : "";
+                    return $@"
+                    <tr>
+                        <td>{item.NoiDung}</td>
+                        <td class=""text-danger fw-bold"">{item.SoTien.ToString("N0")}đ</td>
+                        <td>{item.NgayChi.ToString("dd/MM/yyyy")}</td>
+                        <td>{xeBadge}</td>
+                        <td>{item.GhiChu ?? ""}</td>
+                        <td class=""text-center"">
+                            <a href=""/QuanLyChiTieu/Edit/{item.Id}"" class=""btn btn-warning btn-sm"" title=""Sửa"">
+                                <i class=""bi bi-pencil-square""></i>
+                            </a>
+                            <button type=""button"" class=""btn btn-info btn-sm"" title=""Chi tiết"" onclick=""showChiTietModal({item.Id})"">
+                                <i class=""bi bi-eye""></i>
+                            </button>
+                            <button type=""button"" class=""btn btn-danger btn-sm"" title=""Xóa"" onclick=""showDeleteModal({item.Id})"">
+                                <i class=""bi bi-trash""></i>
+                            </button>
+                        </td>
+                    </tr>";
+                }).ToArray();
+
+                var result = new
+                {
+                    rows = rows,
+                    soLuong = danhSachChiTieu.Count
+                };
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra khi tải dữ liệu: " + ex.Message });
+            }
+        }
+
+        // Action để tìm kiếm theo nội dung chi tiêu
+        [HttpPost]
+        public async Task<IActionResult> SearchByContent(string searchTerm)
+        {
+            if (string.IsNullOrWhiteSpace(searchTerm))
+            {
+                return Json(new { success = false, message = "Vui lòng nhập từ khóa tìm kiếm" });
+            }
+
+            try
+            {
+                // Tìm kiếm theo nội dung chi tiêu (không phân biệt hoa thường)
+                var searchResults = await _context.ChiTieu
+                    .Include(c => c.Xe)
+                    .Where(c => c.NoiDung.Contains(searchTerm))
+                    .OrderByDescending(c => c.NgayChi)
+                    .ToListAsync();
+
+                // Tính tổng tiền của kết quả tìm kiếm
+                decimal tongTien = searchResults.Sum(c => c.SoTien);
+
+                // Tạo HTML cho các dòng trong bảng
+                var rows = searchResults.Select(item => 
+                {
+                    var xeBadge = item.Xe != null ? $"<span class=\"badge bg-secondary\">{item.Xe.BienSoXe}</span>" : "";
+                    return $@"
+                    <tr>
+                        <td>{item.NoiDung}</td>
+                        <td class=""text-danger fw-bold"">{item.SoTien.ToString("N0")}đ</td>
+                        <td>{item.NgayChi.ToString("dd/MM/yyyy")}</td>
+                        <td>{xeBadge}</td>
+                        <td>{item.GhiChu ?? ""}</td>
+                        <td class=""text-center"">
+                            <a href=""/QuanLyChiTieu/Edit/{item.Id}"" class=""btn btn-warning btn-sm"" title=""Sửa"">
+                                <i class=""bi bi-pencil-square""></i>
+                            </a>
+                            <button type=""button"" class=""btn btn-info btn-sm"" title=""Chi tiết"" onclick=""showChiTietModal({item.Id})"">
+                                <i class=""bi bi-eye""></i>
+                            </button>
+                            <button type=""button"" class=""btn btn-danger btn-sm"" title=""Xóa"" onclick=""showDeleteModal({item.Id})"">
+                                <i class=""bi bi-trash""></i>
+                            </button>
+                        </td>
+                    </tr>";
+                }).ToArray();
+
+                var result = new
+                {
+                    rows = rows,
+                    tongChi = tongTien,
+                    soLuong = searchResults.Count
+                };
+
+                return Json(new { success = true, data = result });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra khi tìm kiếm: " + ex.Message });
+            }
+        }
+
         // Action để lọc dữ liệu theo ngày bằng AJAX
         public async Task<IActionResult> FilterByDate(string startDate, string endDate)
         {

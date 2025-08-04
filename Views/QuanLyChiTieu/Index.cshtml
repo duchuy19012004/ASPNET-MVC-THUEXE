@@ -1,5 +1,4 @@
 ﻿@model IEnumerable<bike.Models.ChiTieu>
-
 @{
     ViewData["Title"] = "Quản lý chi tiêu";
     Layout = "~/Views/Shared/_AdminLayout.cshtml"; 
@@ -27,7 +26,6 @@
             </a>
         </div>
     </div>
-
     <!-- Filter Section -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">
@@ -66,7 +64,6 @@
             </div>
         </div>
     </div>
-
     <div class="row">
         <div class="col-xl-4 col-md-6 mb-4">
             <div class="card border-left-danger shadow h-100 py-2">
@@ -76,7 +73,7 @@
                             <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
                                 Tổng chi hôm nay
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="tongChiHomNayValue">@(((decimal)ViewData["TongChiHomNay"]).ToString("N0"))đ</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="tongChiHomNayValue" data-original-value="@ViewData["TongChiHomNay"]">@(((decimal)ViewData["TongChiHomNay"]).ToString("N0"))đ</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-calendar-day fs-2 text-gray-300"></i>
@@ -93,7 +90,7 @@
                             <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                                 Tổng chi tháng này
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="tongChiThangNayValue">@(((decimal)ViewData["TongChiThangNay"]).ToString("N0"))đ</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="tongChiThangNayValue" data-original-value="@ViewData["TongChiThangNay"]">@(((decimal)ViewData["TongChiThangNay"]).ToString("N0"))đ</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-calendar-month fs-2 text-gray-300"></i>
@@ -110,10 +107,40 @@
                             <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
                                 Tổng số khoản chi
                             </div>
-                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="tongSoKhoanChiValue">@Model.Count()</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="tongSoKhoanChiValue" data-original-value="@Model.Count()">@Model.Count()</div>
                         </div>
                         <div class="col-auto">
                             <i class="bi bi-receipt-cutoff fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Search Section -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold" style="color: #764ba2;">
+                <i class="bi bi-search me-2"></i>Tìm kiếm theo nội dung chi tiêu
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Nhập nội dung chi tiêu cần tìm..." />
+                        <button class="btn btn-primary" type="button" onclick="performSearch()">
+                            <i class="bi bi-search me-2"></i>Tìm kiếm
+                        </button>
+                        <button class="btn btn-secondary" type="button" id="clearSearchBtn" onclick="clearSearch()" style="display: none;">
+                            <i class="bi bi-x-circle me-2"></i>Xóa tìm kiếm
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-center h-100">
+                        <div class="text-muted">
+                            <small id="searchStatus">Nhập từ khóa để tìm kiếm</small>
                         </div>
                     </div>
                 </div>
@@ -777,6 +804,25 @@
             document.getElementById('tongSoKhoanChiValue').textContent = data.soLuong;
         }
 
+        // Update only table content (for search)
+        function updateTableOnly(data) {
+            const tbody = document.getElementById('chiTieuTableBody');
+            
+            if (data.rows && data.rows.length > 0) {
+                tbody.innerHTML = data.rows.join('');
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-search fs-1"></i>
+                                <p class="mt-2">Không tìm thấy kết quả nào</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
         // Update filter status
         function updateFilterStatus(startDate, endDate) {
             const statusElement = document.getElementById('filterStatus');
@@ -826,9 +872,148 @@
             });
         }
 
+        // Store original statistics
+        let originalStats = {
+            tongChiHomNay: 0,
+            tongChiThangNay: 0,
+            tongSoKhoanChi: 0
+        };
+
         // Initialize auto-filter when page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Store original statistics from data attributes
+            originalStats.tongChiHomNay = parseFloat(document.getElementById('tongChiHomNayValue').getAttribute('data-original-value'));
+            originalStats.tongChiThangNay = parseFloat(document.getElementById('tongChiThangNayValue').getAttribute('data-original-value'));
+            originalStats.tongSoKhoanChi = parseInt(document.getElementById('tongSoKhoanChiValue').getAttribute('data-original-value'));
+            
             setupAutoFilter();
+            setupSearch();
         });
+
+        // Search functions
+        let searchTimeout = null;
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            
+            // Add event listener for real-time search
+            searchInput.addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    if (this.value.trim()) {
+                        performSearch();
+                    } else {
+                        clearSearch();
+                    }
+                }, 500); // Debounce 500ms
+            });
+
+            // Add event listener for Enter key
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+        }
+
+        // Perform search
+        function performSearch() {
+            const searchTerm = document.getElementById('searchInput').value.trim();
+            
+            if (!searchTerm) {
+                clearSearch();
+                return;
+            }
+
+            // Show loading
+            showSearchLoading();
+
+            // Make AJAX request
+            fetch('/QuanLyChiTieu/SearchByContent', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    searchTerm: searchTerm
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateTableOnly(data.data);
+                    updateSearchStatus(searchTerm, data.data.soLuong);
+                    // Show clear search button
+                    document.getElementById('clearSearchBtn').style.display = 'inline-block';
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                    hideSearchLoading();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tìm kiếm');
+                hideSearchLoading();
+            });
+        }
+
+        // Clear search
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchStatus').textContent = 'Nhập từ khóa để tìm kiếm';
+            
+            // Hide clear search button
+            document.getElementById('clearSearchBtn').style.display = 'none';
+            
+            // Show loading
+            showSearchLoading();
+            
+            // Fetch original data without affecting statistics
+            fetch('/QuanLyChiTieu/GetOriginalData', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateTableOnly(data.data);
+                    // Restore original statistics
+                    document.getElementById('tongChiHomNayValue').textContent = originalStats.tongChiHomNay.toLocaleString('vi-VN') + 'đ';
+                    document.getElementById('tongChiThangNayValue').textContent = originalStats.tongChiThangNay.toLocaleString('vi-VN') + 'đ';
+                    document.getElementById('tongSoKhoanChiValue').textContent = originalStats.tongSoKhoanChi;
+                } else {
+                    alert('Có lỗi xảy ra: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Có lỗi xảy ra khi tải lại dữ liệu');
+            });
+        }
+
+        // Show search loading state
+        function showSearchLoading() {
+            const tbody = document.getElementById('chiTieuTableBody');
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4">
+                        <div class="loading-spinner">
+                            <div class="spinner"></div>
+                            <p>Đang tìm kiếm...</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+        // Hide search loading state
+        function hideSearchLoading() {
+            // This will be handled by the updateTableAndStats function
+        }
+
+        // Update search status
+        function updateSearchStatus(searchTerm, resultCount) {
+            const statusElement = document.getElementById('searchStatus');
+            statusElement.textContent = `Tìm thấy ${resultCount} kết quả cho "${searchTerm}"`;
+        }
     </script>
 }

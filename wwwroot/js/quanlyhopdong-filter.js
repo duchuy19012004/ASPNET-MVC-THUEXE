@@ -16,15 +16,16 @@ $(document).ready(function () {
   let isFiltering = false;
   let currentPage = 1;
 
-  // Khởi tạo giá trị mặc định cho date inputs
-  const today = new Date();
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  tuNgayInput.val(firstDayOfMonth.toISOString().split("T")[0]);
-  denNgayInput.val(today.toISOString().split("T")[0]);
-
   // Xử lý sự kiện lọc theo khoảng thời gian
   btnFilter.on("click", function () {
-    performDateFilter();
+    currentPage = 1; // Reset về trang 1 khi lọc
+
+    // Kiểm tra xem có search hay không
+    if (searchInput.val()) {
+      performDateFilterWithSearch(searchInput.val());
+    } else {
+      performDateFilter();
+    }
   });
 
   // Xử lý sự kiện làm mới
@@ -36,22 +37,41 @@ $(document).ready(function () {
   tuNgayInput.on("change", function () {
     if (tuNgayInput.val() && denNgayInput.val()) {
       currentPage = 1; // Reset về trang 1 khi thay đổi ngày
-      performDateFilter();
+
+      // Kiểm tra xem có search hay không
+      if (searchInput.val()) {
+        performDateFilterWithSearch(searchInput.val());
+      } else {
+        performDateFilter();
+      }
     }
   });
 
   denNgayInput.on("change", function () {
     if (tuNgayInput.val() && denNgayInput.val()) {
       currentPage = 1; // Reset về trang 1 khi thay đổi ngày
-      performDateFilter();
+
+      // Kiểm tra xem có search hay không
+      if (searchInput.val()) {
+        performDateFilterWithSearch(searchInput.val());
+      } else {
+        performDateFilter();
+      }
     }
   });
 
   // Xử lý sự kiện khi thay đổi trạng thái
   trangThaiFilter.on("change", function () {
-    if (tuNgayInput.val() || denNgayInput.val()) {
-      currentPage = 1; // Reset về trang 1 khi thay đổi trạng thái
+    currentPage = 1; // Reset về trang 1 khi thay đổi trạng thái
+
+    // Kiểm tra xem có search hay không
+    if (searchInput.val()) {
+      performDateFilterWithSearch(searchInput.val());
+    } else if (tuNgayInput.val() || denNgayInput.val()) {
       performDateFilter();
+    } else {
+      // Nếu chỉ có trạng thái, thực hiện lọc theo trạng thái
+      performStatusFilter();
     }
   });
 
@@ -114,10 +134,169 @@ $(document).ready(function () {
             } else {
               ajaxPaginationContainer.hide();
             }
+          } else {
+            contractTable.hide();
+            $("#noResults").show();
+            originalPaginationContainer.hide();
+            ajaxPaginationContainer.hide();
+          }
+        } else {
+          showFilterMessage(response.message, "danger");
+          contractTable.hide();
+          $("#noResults").show();
+          originalPaginationContainer.hide();
+          ajaxPaginationContainer.hide();
+        }
+      },
+      error: function (xhr, status, error) {
+        showFilterMessage("Có lỗi xảy ra khi lọc dữ liệu: " + error, "danger");
+        contractTable.hide();
+        $("#noResults").show();
+      },
+      complete: function () {
+        isFiltering = false;
+        btnFilter
+          .prop("disabled", false)
+          .html('<i class="bi bi-funnel"></i> Lọc');
+        $("#tableLoading").hide();
+      },
+    });
+  }
 
-            // Highlight các dòng nếu có tìm kiếm
-            if (searchInput.val()) {
-              performSearch(searchInput.val());
+  // Hàm lọc theo trạng thái
+  function performStatusFilter() {
+    if (isFiltering) return;
+
+    const trangThai = trangThaiFilter.val();
+
+    isFiltering = true;
+    btnFilter
+      .prop("disabled", true)
+      .html(
+        '<span class="spinner-border spinner-border-sm"></span> Đang lọc...'
+      );
+
+    // Hiển thị loading
+    $("#tableLoading").show();
+    contractTable.hide();
+    $("#noResults").hide();
+
+    $.ajax({
+      url: "/QuanLyHopDong/FilterByStatus",
+      type: "GET",
+      data: {
+        trangThai: trangThai,
+        page: currentPage,
+        pageSize: 10,
+      },
+      success: function (response) {
+        if (response.success) {
+          // Cập nhật bảng
+          contractTable.find("tbody").html(response.html);
+
+          // Hiển thị thông báo
+          showFilterMessage(response.message, "info");
+
+          // Hiển thị bảng hoặc thông báo không có kết quả
+          if (response.count > 0) {
+            contractTable.show();
+            $("#noResults").hide();
+
+            // Ẩn phân trang gốc và hiển thị phân trang AJAX
+            originalPaginationContainer.hide();
+            if (response.pagination) {
+              ajaxPaginationContainer.html(response.pagination).show();
+            } else {
+              ajaxPaginationContainer.hide();
+            }
+          } else {
+            contractTable.hide();
+            $("#noResults").show();
+            originalPaginationContainer.hide();
+            ajaxPaginationContainer.hide();
+          }
+        } else {
+          showFilterMessage(response.message, "danger");
+          contractTable.hide();
+          $("#noResults").show();
+          originalPaginationContainer.hide();
+          ajaxPaginationContainer.hide();
+        }
+      },
+      error: function (xhr, status, error) {
+        showFilterMessage("Có lỗi xảy ra khi lọc dữ liệu: " + error, "danger");
+        contractTable.hide();
+        $("#noResults").show();
+      },
+      complete: function () {
+        isFiltering = false;
+        btnFilter
+          .prop("disabled", false)
+          .html('<i class="bi bi-funnel"></i> Lọc');
+        $("#tableLoading").hide();
+      },
+    });
+  }
+
+  // Hàm lọc theo khoảng thời gian kết hợp với tìm kiếm
+  function performDateFilterWithSearch(searchValue) {
+    if (isFiltering) return;
+
+    const tuNgay = tuNgayInput.val();
+    const denNgay = denNgayInput.val();
+    const trangThai = trangThaiFilter.val();
+
+    // Kiểm tra validation
+    if (tuNgay && denNgay && new Date(tuNgay) > new Date(denNgay)) {
+      showFilterMessage(
+        "Ngày bắt đầu không thể lớn hơn ngày kết thúc",
+        "warning"
+      );
+      return;
+    }
+
+    isFiltering = true;
+    btnFilter
+      .prop("disabled", true)
+      .html(
+        '<span class="spinner-border spinner-border-sm"></span> Đang lọc...'
+      );
+
+    // Hiển thị loading
+    $("#tableLoading").show();
+    contractTable.hide();
+    $("#noResults").hide();
+
+    $.ajax({
+      url: "/QuanLyHopDong/FilterByDateRangeAndPhone",
+      type: "GET",
+      data: {
+        tuNgay: tuNgay,
+        denNgay: denNgay,
+        trangThai: trangThai,
+        phoneNumber: searchValue,
+        page: currentPage,
+        pageSize: 10,
+      },
+      success: function (response) {
+        if (response.success) {
+          // Cập nhật bảng
+          contractTable.find("tbody").html(response.html);
+
+          // Hiển thị thông báo
+          showFilterMessage(response.message, "info");
+
+          // Hiển thị bảng hoặc thông báo không có kết quả
+          if (response.count > 0) {
+            contractTable.show();
+            $("#noResults").hide();
+
+            // Ẩn phân trang gốc và hiển thị phân trang AJAX
+            originalPaginationContainer.hide();
+            if (response.pagination) {
+              ajaxPaginationContainer.html(response.pagination).show();
+            } else {
+              ajaxPaginationContainer.hide();
             }
           } else {
             contractTable.hide();
@@ -150,8 +329,8 @@ $(document).ready(function () {
 
   // Hàm làm mới bộ lọc
   function resetFilter() {
-    tuNgayInput.val(firstDayOfMonth.toISOString().split("T")[0]);
-    denNgayInput.val(today.toISOString().split("T")[0]);
+    tuNgayInput.val("");
+    denNgayInput.val("");
     trangThaiFilter.val("");
     searchInput.val("");
     clearButton.hide();
@@ -216,7 +395,13 @@ $(document).ready(function () {
 
     // Reset về trang 1 và tự động lọc
     currentPage = 1;
-    performDateFilter();
+
+    // Kiểm tra xem có search hay không
+    if (searchInput.val()) {
+      performDateFilterWithSearch(searchInput.val());
+    } else {
+      performDateFilter();
+    }
   }
 
   // Show/hide clear button
@@ -233,6 +418,8 @@ $(document).ready(function () {
 
     // Set new timeout for search
     searchTimeout = setTimeout(function () {
+      // Reset về trang 1 khi bắt đầu tìm kiếm mới
+      currentPage = 1;
       performSearch(value);
     }, 300); // 300ms delay
   });
@@ -241,44 +428,86 @@ $(document).ready(function () {
   clearButton.on("click", function () {
     searchInput.val("");
     clearButton.hide();
+    currentPage = 1; // Reset về trang 1 khi clear search
     performSearch("");
     searchInput.focus();
   });
 
   // Perform search function
   function performSearch(searchValue) {
-    const rows = contractTable.find("tbody tr");
-    let hasResults = false;
-
-    if (searchValue === "") {
-      // Show all rows
-      rows.show().removeClass("highlight-row");
-      contractTable.show();
-      noResults.hide();
+    // Nếu có filter theo ngày đang hoạt động, kết hợp với tìm kiếm
+    if (tuNgayInput.val() || denNgayInput.val()) {
+      // Sử dụng filter theo ngày + tìm kiếm
+      currentPage = 1;
+      performDateFilterWithSearch(searchValue);
       return;
     }
 
-    // Search logic
-    rows.each(function () {
-      const row = $(this);
-      const phone = row.data("phone");
-
-      if (phone && phone.toString().includes(searchValue)) {
-        row.show().addClass("highlight-row");
-        hasResults = true;
-      } else {
-        row.hide().removeClass("highlight-row");
-      }
-    });
-
-    // Show/hide no results message
-    if (hasResults) {
-      contractTable.show();
-      noResults.hide();
-    } else {
-      contractTable.hide();
-      noResults.show();
+    // Nếu không có filter theo ngày, thực hiện tìm kiếm riêng
+    if (searchValue === "") {
+      // Reset về dữ liệu gốc
+      location.reload();
+      return;
     }
+    // Hiển thị loading
+    $("#tableLoading").show();
+    contractTable.hide();
+    $("#noResults").hide();
+
+    $.ajax({
+      url: "/QuanLyHopDong/SearchByPhone",
+      type: "GET",
+      data: {
+        phoneNumber: searchValue,
+        page: currentPage,
+        pageSize: 12,
+      },
+      success: function (response) {
+        if (response.success) {
+          // Cập nhật bảng
+          contractTable.find("tbody").html(response.html);
+
+          // Hiển thị thông báo
+          showFilterMessage(
+            `Tìm thấy ${response.count} hợp đồng với số điện thoại "${searchValue}"`,
+            "info"
+          );
+
+          // Hiển thị bảng hoặc thông báo không có kết quả
+          if (response.count > 0) {
+            contractTable.show();
+            $("#noResults").hide();
+
+            // Ẩn phân trang gốc và hiển thị phân trang AJAX
+            originalPaginationContainer.hide();
+            if (response.pagination) {
+              ajaxPaginationContainer.html(response.pagination).show();
+            } else {
+              ajaxPaginationContainer.hide();
+            }
+          } else {
+            contractTable.hide();
+            $("#noResults").show();
+            originalPaginationContainer.hide();
+            ajaxPaginationContainer.hide();
+          }
+        } else {
+          showFilterMessage(response.message, "danger");
+          contractTable.hide();
+          $("#noResults").show();
+          originalPaginationContainer.hide();
+          ajaxPaginationContainer.hide();
+        }
+      },
+      error: function (xhr, status, error) {
+        showFilterMessage("Có lỗi xảy ra khi tìm kiếm: " + error, "danger");
+        contractTable.hide();
+        $("#noResults").show();
+      },
+      complete: function () {
+        $("#tableLoading").hide();
+      },
+    });
   }
 
   // Format phone number input (optional)
@@ -414,7 +643,37 @@ $(document).ready(function () {
   // Hàm chuyển trang
   window.changePage = function (page) {
     currentPage = page;
-    performDateFilter();
+
+    // Kiểm tra xem có đang search hay không
+    if (searchInput.val()) {
+      // Nếu có search, sử dụng performDateFilterWithSearch
+      performDateFilterWithSearch(searchInput.val());
+    } else {
+      // Nếu không có search, sử dụng performDateFilter
+      performDateFilter();
+    }
+
+    // Scroll to top of table
+    $("html, body").animate(
+      {
+        scrollTop: contractTable.offset().top - 100,
+      },
+      500
+    );
+  };
+
+  // Hàm chuyển trang cho tìm kiếm
+  window.changeSearchPage = function (page) {
+    currentPage = page;
+
+    // Kiểm tra xem có filter theo ngày hay không
+    if (tuNgayInput.val() || denNgayInput.val()) {
+      // Nếu có filter theo ngày, sử dụng performDateFilterWithSearch
+      performDateFilterWithSearch(searchInput.val());
+    } else {
+      // Nếu không có filter theo ngày, sử dụng performSearch
+      performSearch(searchInput.val());
+    }
 
     // Scroll to top of table
     $("html, body").animate(

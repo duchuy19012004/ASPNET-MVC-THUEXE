@@ -3,35 +3,559 @@
     ViewData["Title"] = "Danh sách loại xe";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-<h2>@ViewData["Title"]</h2>
-<p>
-    <a asp-action="Create" class="btn btn-primary">Thêm mới</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Mã loại xe</th>
-            <th>Tên loại xe</th>
-            <th>Ngày tạo</th>
-            <th>Ngày cập nhật</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.MaLoaiXe</td>
-                <td>@item.TenLoaiXe</td>
-                <td>@item.NgayTao.ToString("dd/MM/yyyy")</td>
-                <td>@(item.NgayCapNhat?.ToString("dd/MM/yyyy"))</td>
 
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.MaLoaiXe">Sửa</a> |
-                    <a asp-action="Delete" asp-route-id="@item.MaLoaiXe">Xóa</a>
-                </td>
-            </tr>
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+    }
+
+    .title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .btn-add {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+
+    .btn-add:hover {
+        background: #0056b3;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        background: #f8f9fa;
+        padding: 15px 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #495057;
+        border-bottom: 2px solid #dee2e6;
+        font-size: 14px;
+    }
+
+    .table td {
+        padding: 15px 12px;
+        border-bottom: 1px solid #e9ecef;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-edit, .btn-delete {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-edit {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-edit:hover {
+        background: #218838;
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+    }
+
+    /* Modal Styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #6c757d;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-close:hover {
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+
+    .validation-error {
+        color: #dc3545;
+        font-size: 12px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .modal-footer {
+        padding: 20px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+        background: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: #0056b3;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover {
+        background: #545b62;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    .btn-success {
+        background: #28a745;
+        color: white;
+    }
+
+    .btn-success:hover {
+        background: #218838;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<div class="container">
+    @Html.AntiForgeryToken()
+    <div class="header">
+        <h1 class="title">@ViewData["Title"]</h1>
+        <button class="btn-add" onclick="openCreateModal()">Thêm mới</button>
+    </div>
+
+    <div id="alert-container"></div>
+
+    <div class="table-container">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Mã loại xe</th>
+                    <th>Tên loại xe</th>
+                    <th>Ngày tạo</th>
+                    <th>Ngày cập nhật</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.MaLoaiXe</td>
+                        <td>@item.TenLoaiXe</td>
+                        <td>@item.NgayTao.ToString("dd/MM/yyyy")</td>
+                        <td>@(item.NgayCapNhat?.ToString("dd/MM/yyyy") ?? "-")</td>
+                        <td>
+                            <div class="actions">
+                                <button class="btn-edit" onclick="openEditModal(@item.MaLoaiXe, '@item.TenLoaiXe')">Sửa</button>
+                                <button class="btn-delete" onclick="openDeleteModal(@item.MaLoaiXe, '@item.TenLoaiXe')">Xóa</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div id="createModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Thêm loại xe mới</h3>
+            <button class="modal-close" onclick="closeModal('createModal')">&times;</button>
+        </div>
+        <form id="createForm">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="createTenLoaiXe">Tên loại xe</label>
+                    <input type="text" id="createTenLoaiXe" name="TenLoaiXe" class="form-input" required />
+                    <span id="createTenLoaiXeError" class="validation-error"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('createModal')">Hủy</button>
+                <button type="submit" class="btn btn-success">Lưu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Sửa loại xe</h3>
+            <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+        </div>
+        <form id="editForm">
+            <div class="modal-body">
+                <input type="hidden" id="editMaLoaiXe" name="MaLoaiXe" />
+                <div class="form-group">
+                    <label class="form-label" for="editTenLoaiXe">Tên loại xe</label>
+                    <input type="text" id="editTenLoaiXe" name="TenLoaiXe" class="form-input" required />
+                    <span id="editTenLoaiXeError" class="validation-error"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editModal')">Hủy</button>
+                <button type="submit" class="btn btn-primary">Cập nhật</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Xóa loại xe</h3>
+            <button class="modal-close" onclick="closeModal('deleteModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p id="deleteConfirmText"></p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('deleteModal')">Hủy</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete()">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentDeleteId = null;
+
+    function openCreateModal() {
+        document.getElementById('createModal').style.display = 'flex';
+        document.getElementById('createForm').reset();
+    }
+
+    function openEditModal(id, tenLoaiXe) {
+        document.getElementById('editMaLoaiXe').value = id;
+        document.getElementById('editTenLoaiXe').value = tenLoaiXe;
+        document.getElementById('editModal').style.display = 'flex';
+    }
+
+    function openDeleteModal(id, tenLoaiXe) {
+        currentDeleteId = id;
+        document.getElementById('deleteConfirmText').textContent = `Bạn có chắc chắn muốn xóa loại xe "${tenLoaiXe}"?`;
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+        clearValidationErrors(modalId.replace('Modal', ''));
+    }
+
+    function clearValidationErrors(type) {
+        const errorElements = document.querySelectorAll(`#${type}TenLoaiXeError`);
+        errorElements.forEach(el => el.textContent = '');
+    }
+
+    function showAlert(message, type) {
+        const alertContainer = document.getElementById('alert-container');
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type}`;
+        alertDiv.textContent = message;
+        alertContainer.appendChild(alertDiv);
+
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+
+    // Create form submission
+    document.getElementById('createForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = {
+            TenLoaiXe: formData.get('TenLoaiXe')
+        };
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch('/LoaiXe/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            console.log('Create response:', result); // Debug log
+            
+            if (result.success) {
+                closeModal('createModal');
+                showAlert(result.message || 'Thêm loại xe thành công!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                if (result.errors) {
+                    console.log('Validation errors:', result.errors); // Debug log
+                    // Hiển thị lỗi validation
+                    Object.keys(result.errors).forEach(key => {
+                        const errorElement = document.getElementById(`create${key}Error`);
+                        if (errorElement) {
+                            errorElement.textContent = result.errors[key][0];
+                        }
+                    });
+                } else {
+                    showAlert(result.message || 'Có lỗi xảy ra khi thêm loại xe!', 'danger');
+                }
+            }
+        } catch (error) {
+            showAlert('Có lỗi xảy ra khi thêm loại xe!', 'danger');
         }
-    </tbody>
-</table>
+    });
 
+    // Edit form submission
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const data = {
+            MaLoaiXe: parseInt(formData.get('MaLoaiXe')),
+            TenLoaiXe: formData.get('TenLoaiXe')
+        };
+        console.log('Edit data being sent:', data); // Debug log
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch(`/LoaiXe/Edit/${data.MaLoaiXe}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            console.log('Edit response:', result); // Debug log
+            
+            if (result.success) {
+                closeModal('editModal');
+                showAlert(result.message || 'Cập nhật loại xe thành công!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                if (result.errors) {
+                    console.log('Edit validation errors:', result.errors); // Debug log
+                    // Hiển thị lỗi validation
+                    Object.keys(result.errors).forEach(key => {
+                        const errorElement = document.getElementById(`edit${key}Error`);
+                        if (errorElement) {
+                            errorElement.textContent = result.errors[key][0];
+                        }
+                    });
+                } else {
+                    showAlert(result.message || 'Có lỗi xảy ra khi cập nhật loại xe!', 'danger');
+                }
+            }
+        } catch (error) {
+            showAlert('Có lỗi xảy ra khi cập nhật loại xe!', 'danger');
+        }
+    });
+
+    // Delete confirmation
+    async function confirmDelete() {
+        if (!currentDeleteId) return;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch(`/LoaiXe/Delete/${currentDeleteId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                closeModal('deleteModal');
+                showAlert(result.message || 'Xóa loại xe thành công!', 'success');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                closeModal('deleteModal');
+                showAlert(result.message || 'Có lỗi xảy ra khi xóa loại xe!', 'danger');
+            }
+        } catch (error) {
+            closeModal('deleteModal');
+            showAlert('Có lỗi xảy ra khi xóa loại xe!', 'danger');
+        }
+    }
+
+    // Close modal when clicking outside
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.style.display = 'none';
+            }
+        });
+    });
+</script>
