@@ -32,7 +32,7 @@ namespace bike.Models
         [Required(ErrorMessage = "Trạng thái là bắt buộc")]
         [Display(Name = "Trạng thái")]
         [StringLength(20)]
-        public string? TrangThai { get; set; } // Sẵn sàng, Đang thuê, Bảo trì, Hư hỏng, Mất
+        public string? TrangThai { get; set; } // Sẵn sàng, Đang thuê, Bảo trì, Hư hỏng, Mất, Đã xóa
 
         [Display(Name = "Giá thuê/ngày")]
         [Range(0, double.MaxValue, ErrorMessage = "Giá thuê phải lớn hơn 0")]

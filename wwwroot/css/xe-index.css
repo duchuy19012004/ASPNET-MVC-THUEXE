@@ -92,3 +92,46 @@
     box-shadow: 0 0 0 0 rgba(255, 107, 107, 0);
   }
 }
+
+/* Styling cho xe đã xóa */
+.vehicle-deleted {
+  opacity: 0.6;
+  background-color: #f8f9fa;
+}
+
+.vehicle-deleted td {
+  color: #6c757d;
+}
+
+.vehicle-deleted .badge {
+  background-color: #6c757d !important;
+  color: white !important;
+}
+
+/* Nút khôi phục */
+.btn-restore {
+  background-color: #28a745;
+  border-color: #28a745;
+  color: white;
+}
+
+.btn-restore:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  color: white;
+}
+
+/* Thông báo xe đã xóa */
+.deleted-notice {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  color: #856404;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 15px;
+}
+
+.deleted-notice i {
+  color: #f39c12;
+  margin-right: 5px;
+}

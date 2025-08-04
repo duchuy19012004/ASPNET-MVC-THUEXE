@@ -86,9 +86,20 @@
             <a href="@Url.Action("LichSuHopDong", "Xe", new { id = Model.MaXe })" class="custom-modal-btn custom-modal-btn-primary">
                 <i class="bi bi-clock-history"></i> Xem lịch sử hợp đồng
             </a>
-            <a href="@Url.Action("Edit", "Xe", new { id = Model.MaXe })" class="custom-modal-btn custom-modal-btn-warning">
-                <i class="bi bi-pencil"></i> Sửa xe
-            </a>
+            @if (Model.TrangThai == "Đang thuê")
+            {
+                <!-- Nút sửa xe bị vô hiệu hóa khi xe đang thuê -->
+                <button type="button" class="custom-modal-btn custom-modal-btn-warning" disabled style="opacity: 0.6; cursor: not-allowed;" title="Không thể sửa xe đang cho thuê">
+                    <i class="bi bi-pencil"></i> Sửa xe
+                </button>
+            }
+            else
+            {
+                <!-- Nút sửa xe bình thường -->
+                <a href="@Url.Action("Edit", "Xe", new { id = Model.MaXe })" class="custom-modal-btn custom-modal-btn-warning">
+                    <i class="bi bi-pencil"></i> Sửa xe
+                </a>
+            }
             <button type="button" class="custom-modal-btn custom-modal-btn-secondary" onclick="closeCustomModal()">
                 <i class="bi bi-x-circle"></i> Đóng
             </button>

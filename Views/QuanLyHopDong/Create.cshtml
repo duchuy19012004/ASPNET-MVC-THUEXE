@@ -4,7 +4,6 @@
     ViewData["Title"] = "Tạo Hợp Đồng Mới";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
-
 <style>
     /* Simple and clean design */
     .create-container {
@@ -389,6 +388,11 @@
         padding: 5px 8px;
         border-radius: 4px;
         border-left: 3px solid;
+        display: none; /* Ẩn mặc định */
+    }
+    
+    .validation-message:not(:empty) {
+        display: block; /* Chỉ hiển thị khi có nội dung */
     }
     
     .validation-message.text-info {
@@ -421,6 +425,8 @@
         font-size: 12px;
         margin-top: 5px;
     }
+    
+
     
     /* Responsive */
     @@media (max-width: 768px) {
@@ -470,22 +476,73 @@
             text-align: left;
             min-width: auto;
         }
+        
+
+    }
+    
+    /* Badge styles for vehicle status */
+    .badge {
+        display: inline-block;
+        padding: 0.25em 0.6em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.375rem;
+    }
+    
+    .badge-success {
+        color: #fff;
+        background-color: #28a745;
+    }
+    
+    .badge-primary {
+        color: #fff;
+        background-color: #007bff;
+    }
+    
+    .badge-warning {
+        color: #212529;
+        background-color: #ffc107;
+    }
+    
+    .badge-danger {
+        color: #fff;
+        background-color: #dc3545;
+    }
+    
+    .badge-dark {
+        color: #fff;
+        background-color: #343a40;
+    }
+    
+    .badge-secondary {
+        color: #fff;
+        background-color: #6c757d;
+    }
+    
+    .vehicle-status {
+        margin-top: 2px;
+    }
+    
+    .select2-vehicle-option .vehicle-status .badge {
+        font-size: 0.7em;
+        padding: 0.2em 0.5em;
     }
 </style>
-
 <div class="create-container">
     <div class="page-header">
         <h2><i class="bi bi-file-earmark-plus"></i> Tạo Hợp Đồng Thuê Xe Mới</h2>
         <p>Nhập đầy đủ thông tin để tạo hợp đồng</p>
     </div>
-    
-    <form asp-action="Create" method="post" id="createContractForm">
+    <form asp-action="Create" method="post" id="createContractForm" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
-        
+         
         <!-- Chọn xe thuê -->
         <div class="form-card">
             <div class="section-title"><i class="bi bi-bicycle"></i> Chọn xe thuê</div>
-            
             <div class="vehicle-selection">
                 <div class="vehicle-filters">
                     <div class="filter-row">
@@ -660,14 +717,12 @@
                         <label asp-for="TienCoc" class="form-label">Tiền cọc</label>
                         <input asp-for="TienCoc" class="form-control" id="TienCoc" type="number" min="0" step="1000" value="0" placeholder="Ví dụ: 500000" />
                         <span asp-validation-for="TienCoc" class="text-danger"></span>
-                        <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                     </div>
                 </div>
                 <div class="col-md-4">
                     <div class="mb-3">
                         <label asp-for="PhuPhi" class="form-label">Phụ phí</label>
                         <input asp-for="PhuPhi" class="form-control" type="number" min="0" step="1000" value="0" id="PhuPhi" placeholder="Ví dụ: 100000" />
-                        <small class="form-text text-muted">Nhập số nguyên không có dấu phẩy</small>
                     </div>
                 </div>
             </div>
@@ -692,14 +747,14 @@
                 <div class="col-6 text-end">
                     <p><span id="soXeThue">0</span> xe</p>
                     <p><span id="soNgayThue">0</span> ngày</p>
-                    <p><span id="tienThue">0</span>đ</p>
-                    <p><span id="tienCocDisplay">0</span>đ</p>
-                    <p><span id="phuPhiDisplay">0</span>đ</p>
+                    <p><span id="tienThue">0</span></p>
+                    <p><span id="tienCocDisplay">0</span></p>
+                    <p><span id="phuPhiDisplay">0</span></p>
                 </div>
             </div>
             <hr />
             <div class="total-amount">
-                Tổng cộng: <span id="tongTien">0</span>đ
+                Tổng cộng: <span id="tongTien">0</span>
             </div>
         </div>
         
@@ -723,671 +778,12 @@
     <!-- Select2 CSS và JS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    
+    <!-- Pass vehicle data to JavaScript -->
     <script>
-        var selectedVehicles = [];
-        var totalDailyRate = 0;
-        var allVehicles = @Html.Raw(Json.Serialize(ViewBag.XeList ?? new List<object>()));
-        var filteredVehicles = [];
-
-        $(document).ready(function() {
-            // Initialize
-            initializeData();
-            initializeSelect2();
-            setupEventHandlers();
-            
-            // Set tiền cọc mặc định = 0
-            $('#TienCoc').val(0);
-            
-            // Add live preview for currency formatting
-            setupCurrencyPreview();
-        });
-
-        function setupCurrencyPreview() {
-            // Tiền cọc preview
-            const tienCocInput = document.getElementById('TienCoc');
-            const tienCocPreview = document.createElement('small');
-            tienCocPreview.className = 'form-text text-info currency-preview';
-            tienCocInput.parentNode.appendChild(tienCocPreview);
-
-            tienCocInput.addEventListener('input', function(e) {
-                const value = parseInt(e.target.value);
-                if (value && !isNaN(value) && value > 0) {
-                    tienCocPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + ' VNĐ';
-                } else {
-                    tienCocPreview.innerHTML = '';
-                }
-            });
-
-            // Phụ phí preview
-            const phuPhiInput = document.getElementById('PhuPhi');
-            const phuPhiPreview = document.createElement('small');
-            phuPhiPreview.className = 'form-text text-info currency-preview';
-            phuPhiInput.parentNode.appendChild(phuPhiPreview);
-
-            phuPhiInput.addEventListener('input', function(e) {
-                const value = parseInt(e.target.value);
-                if (value && !isNaN(value) && value > 0) {
-                    phuPhiPreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + ' VNĐ';
-                } else {
-                    phuPhiPreview.innerHTML = '';
-                }
-            });
-        }
-
-        function initializeData() {
-            filteredVehicles = [...allVehicles];
-            updateFilterOptions();
-            updateSearchInfo();
-        }
-
-        function initializeSelect2() {
-            $('#availableVehicles').select2({
-                placeholder: 'Gõ để tìm kiếm xe (tên, biển số, hãng)',
-                allowClear: true,
-                language: {
-                    noResults: function () {
-                        return "Không tìm thấy xe nào";
-                    },
-                    searching: function () {
-                        return "Đang tìm kiếm...";
-                    }
-                },
-                templateResult: formatVehicleOption,
-                templateSelection: formatVehicleSelection
-            });
-            
-            populateVehicleSelect();
-        }
-        
-        function formatVehicleOption(vehicle) {
-            if (!vehicle.id) return vehicle.text;
-            
-            var vehicleData = allVehicles.find(v => v.maXe == vehicle.id);
-            if (!vehicleData) return vehicle.text;
-            
-            // Tạo hình ảnh cho option
-            var imageHtml = '';
-            if (vehicleData.hinhAnh && vehicleData.hinhAnh.trim() !== '') {
-                imageHtml = `<img src="/images/xe/${vehicleData.hinhAnh}" alt="${vehicleData.tenXe}" onerror="this.style.display='none'">`;
-            } else {
-                imageHtml = '<div class="vehicle-option-image-placeholder"><i class="bi bi-bicycle"></i></div>';
-            }
-            
-            return $(`
-                <div class="select2-vehicle-option">
-                    ${imageHtml}
-                    <div class="vehicle-option-info">
-                        <div class="vehicle-name">${vehicleData.tenXe} - ${vehicleData.bienSoXe}</div>
-                        <div class="vehicle-details">${vehicleData.hangXe} ${vehicleData.dongXe} - ${vehicleData.loaiXe || 'Chưa phân loại'}</div>
-                    </div>
-                    <div class="vehicle-option-price">${vehicleData.giaThue.toLocaleString('vi-VN')}đ/ngày</div>
-                </div>
-            `);
-        }
-        
-        function formatVehicleSelection(vehicle) {
-            if (!vehicle.id) return vehicle.text;
-            
-            var vehicleData = allVehicles.find(v => v.maXe == vehicle.id);
-            if (!vehicleData) return vehicle.text;
-            
-            return vehicleData.tenXe + ' - ' + vehicleData.bienSoXe;
-        }
-
-        function setupEventHandlers() {
-            // Customer name validation
-            $('#HoTenKhach').on('input', function() {
-                clearTimeout(window.nameTimeout);
-                window.nameTimeout = setTimeout(function() {
-                    validateName();
-                }, 300);
-            });
-            
-            // CCCD/CMND validation
-            $('#SoCCCD').on('input', function() {
-                clearTimeout(window.cccdTimeout);
-                window.cccdTimeout = setTimeout(function() {
-                    validateCCCD();
-                }, 300);
-            });
-            
-            // Xử lý paste cho CCCD
-            $('#SoCCCD').on('paste', function(e) {
-                setTimeout(function() {
-                    validateCCCD();
-                }, 100);
-            });
-
-            // Validate Số điện thoại theo thời gian thực
-            $('#SoDienThoai').on('input', function() {
-                clearTimeout(window.phoneTimeout);
-                window.phoneTimeout = setTimeout(function() {
-                    validatePhone();
-                }, 300);
-            });
-            
-            // Xử lý paste cho số điện thoại
-            $('#SoDienThoai').on('paste', function(e) {
-                setTimeout(function() {
-                    validatePhone();
-                }, 100);
-            });
-
-            // Rental period handlers
-            $('#rentalDays').on('input', function() {
-                var days = parseInt($(this).val());
-                if (days && days > 0) {
-                    calculateFromDays(days);
-                    updatePresetButtons();
-                }
-            });
-
-            // Khi thay đổi ngày nhận xe, cập nhật lại ngày trả xe dựa trên số ngày
-            $('#NgayNhanXe').on('change', function() {
-                var days = parseInt($('#rentalDays').val());
-                if (days && days > 0) {
-                    calculateFromDays(days);
-                }
-                calculateTotal();
-            });
-
-            // Khi thay đổi ngày trả xe, cập nhật lại số ngày thuê
-            $('#NgayTraXeDuKien').on('change', function() {
-                updateRentalDaysFromDates();
-                calculateTotal();
-            });
-
-            // Thêm xe vào danh sách
-            $('#btnAddVehicle').on('click', function() {
-                var vehicleId = $('#availableVehicles').val();
-                
-                if (!vehicleId) {
-                    alert('Vui lòng chọn xe!');
-                    return;
-                }
-
-                // Kiểm tra xe đã được chọn chưa
-                if (selectedVehicles.some(v => v.id == vehicleId)) {
-                    alert('Xe này đã được chọn!');
-                    return;
-                }
-
-                                 // Tìm thông tin xe
-                 var vehicle = allVehicles.find(v => v.maXe == vehicleId);
-                 if (vehicle) {
-                     var vehicleObj = {
-                         id: vehicle.maXe,
-                         ten: vehicle.tenXe,
-                         bien: vehicle.bienSoXe,
-                         hang: vehicle.hangXe,
-                         dong: vehicle.dongXe,
-                         gia: vehicle.giaThue,
-                         loaiXe: vehicle.loaiXe,
-                         display: vehicle.display,
-                         hinhAnh: vehicle.hinhAnh || ''
-                     };
-
-                    selectedVehicles.push(vehicleObj);
-                    updateVehiclesList();
-                    updateSummary();
-                    calculateTotal();
-
-                    // Reset selection và refresh dropdown
-                    $('#availableVehicles').val(null).trigger('change');
-                    populateVehicleSelect(); // Refresh để loại bỏ xe đã chọn
-                }
-            });
-
-            // Xóa xe khỏi danh sách
-            $(document).on('click', '.btn-remove-vehicle', function() {
-                var vehicleId = $(this).data('vehicle-id');
-                selectedVehicles = selectedVehicles.filter(v => v.id != vehicleId);
-                updateVehiclesList();
-                updateSummary();
-                calculateTotal();
-                populateVehicleSelect(); // Refresh để thêm lại xe vào dropdown
-            });
-
-            // Filter handlers
-            $('#filterHang, #filterLoai, #filterGia').on('change', function() {
-                applyFilters();
-            });
-
-            $('#btnClearFilters').on('click', function() {
-                $('#filterHang, #filterLoai, #filterGia').val('');
-                $('.btn-quick-filter').removeClass('active');
-                applyFilters();
-            });
-
-            // Quick filter buttons
-            $('.btn-quick-filter').on('click', function() {
-                $('.btn-quick-filter').removeClass('active');
-                $(this).addClass('active');
-                
-                var filter = $(this).data('filter');
-                applyQuickFilter(filter);
-            });
-
-
-
-            // Khi thay đổi tiền cọc, phụ phí
-            $('#TienCoc, #PhuPhi').on('input', function() {
-                calculateTotal();
-            });
-
-            // Validate form submit
-            $('#createContractForm').on('submit', function(e) {
-                // Validate xe đã chọn
-                if (selectedVehicles.length === 0) {
-                    e.preventDefault();
-                    $('#vehicleSelectionError').text('Vui lòng chọn ít nhất một xe!');
-                    $('html, body').animate({
-                        scrollTop: $('#vehicleSelectionError').offset().top - 100
-                    }, 500);
-                    return false;
-                } else {
-                    $('#vehicleSelectionError').text('');
-                }
-
-                // Validate Customer name
-                if (!validateName()) {
-                    e.preventDefault();
-                    $('html, body').animate({
-                        scrollTop: $('#HoTenKhach').offset().top - 100
-                    }, 500);
-                    return false;
-                }
-
-                // Validate CCCD/CMND
-                if (!validateCCCD()) {
-                    e.preventDefault();
-                    $('html, body').animate({
-                        scrollTop: $('#SoCCCD').offset().top - 100
-                    }, 500);
-                    return false;
-                }
-
-                // Validate Số điện thoại
-                if (!validatePhone()) {
-                    e.preventDefault();
-                    $('html, body').animate({
-                        scrollTop: $('#SoDienThoai').offset().top - 100
-                    }, 500);
-                    return false;
-                }
-
-                // Xóa các input hidden cũ nếu có
-                $('input[name^="danhSachXe["]').remove();
-
-                // Thêm danh sách xe vào form
-                selectedVehicles.forEach(function(vehicle, index) {
-                    $('<input>').attr({
-                        type: 'hidden',
-                        name: 'danhSachXe[' + index + ']',
-                        value: vehicle.id
-                    }).appendTo('#createContractForm');
-                });
-
-                // Debug: Log form data
-                console.log('Form data being submitted:');
-                console.log('Selected vehicles:', selectedVehicles);
-                console.log('Form validation:', $(this).valid());
-
-                if (!$(this).valid()) {
-                    console.log('Form validation failed');
-                    return false;
-                }
-
-                var confirmed = confirm('Bạn có chắc chắn muốn tạo hợp đồng này với ' + selectedVehicles.length + ' xe?');
-                if (confirmed) {
-                    console.log('Form submission confirmed');
-                }
-                return confirmed;
-            });
-        }
-
-                 function updateFilterOptions() {
-             // Cập nhật filter hãng xe
-             var hangs = [...new Set(allVehicles.map(v => v.hangXe).filter(h => h))];
-             var $filterHang = $('#filterHang');
-             $filterHang.empty().append('<option value="">Tất cả hãng</option>');
-             hangs.forEach(hang => {
-                 $filterHang.append(`<option value="${hang}">${hang}</option>`);
-             });
-
-             // Cập nhật filter loại xe
-             var loaiXes = [...new Set(allVehicles.map(v => v.loaiXe).filter(l => l))];
-             var $filterLoai = $('#filterLoai');
-             $filterLoai.empty().append('<option value="">Tất cả loại</option>');
-             loaiXes.forEach(loai => {
-                 $filterLoai.append(`<option value="${loai}">${loai}</option>`);
-             });
-         }
-
-                 function applyFilters() {
-             filteredVehicles = allVehicles.filter(vehicle => {
-                 // Filter theo hãng
-                 var hangFilter = $('#filterHang').val();
-                 if (hangFilter && vehicle.hangXe !== hangFilter) return false;
-
-                 // Filter theo loại xe
-                 var loaiFilter = $('#filterLoai').val();
-                 if (loaiFilter && vehicle.loaiXe !== loaiFilter) return false;
-
-                 // Filter theo giá
-                 var giaFilter = $('#filterGia').val();
-                 if (giaFilter) {
-                     var [min, max] = giaFilter.split('-').map(Number);
-                     if (vehicle.giaThue < min || vehicle.giaThue > max) return false;
-                 }
-
-                 return true;
-             });
-
-             populateVehicleSelect();
-             updateSearchInfo();
-         }
-
-                 function applyQuickFilter(filter) {
-             $('#filterHang, #filterLoai, #filterGia').val('');
-             
-             switch(filter) {
-                 case 'honda':
-                     $('#filterHang').val('Honda');
-                     break;
-                 case 'yamaha':
-                     $('#filterHang').val('Yamaha');
-                     break;
-                 case 'suzuki':
-                     $('#filterHang').val('Suzuki');
-                     break;
-                 case 'cheap':
-                     $('#filterGia').val('0-150000');
-                     break;
-                 case 'premium':
-                     $('#filterGia').val('300000-999999999');
-                     break;
-                 case 'xe-may':
-                     $('#filterLoai').val('Xe máy');
-                     break;
-                 case 'xe-so':
-                     $('#filterLoai').val('Xe số');
-                     break;
-             }
-             
-             applyFilters();
-         }
-
-        function populateVehicleSelect() {
-            var $select = $('#availableVehicles');
-            
-            // Xóa tất cả options trừ placeholder
-            $select.find('option:not(:first)').remove();
-            
-            // Lọc xe chưa được chọn
-            var availableVehicles = filteredVehicles.filter(vehicle => 
-                !selectedVehicles.some(selected => selected.id == vehicle.maXe)
-            );
-            
-            // Thêm options mới với hình ảnh
-            availableVehicles.forEach(vehicle => {
-                var option = new Option(vehicle.display, vehicle.maXe);
-                $select.append(option);
-            });
-            
-            // Refresh Select2
-            $select.trigger('change');
-        }
-
-        function updateSearchInfo() {
-            var availableCount = filteredVehicles.filter(vehicle => 
-                !selectedVehicles.some(selected => selected.id == vehicle.maXe)
-            ).length;
-            
-            $('#availableCount').text(availableCount);
-            
-            if (availableCount === 0 && filteredVehicles.length === 0) {
-                $('#searchInfo').html('<i class="bi bi-exclamation-triangle"></i> Không có xe nào khớp với bộ lọc. Vui lòng thử lại.');
-            } else if (availableCount === 0) {
-                $('#searchInfo').html('<i class="bi bi-check-circle"></i> Tất cả xe đã được chọn trong danh sách lọc.');
-            } else {
-                $('#searchInfo').html(`Hiển thị <span id="availableCount">${availableCount}</span> xe khả dụng. Sử dụng tìm kiếm hoặc bộ lọc để tìm xe nhanh hơn.`);
-            }
-        }
-
-        function updateVehiclesList() {
-            var container = $('#selectedVehiclesList');
-            
-            if (selectedVehicles.length === 0) {
-                container.html('<div class="no-vehicles-selected" id="noVehiclesMessage"><i class="bi bi-info-circle"></i> Chưa có xe nào được chọn</div>');
-                $('#vehiclesSummary').hide();
-                return;
-            }
-
-                         var html = '';
-             selectedVehicles.forEach(function(vehicle) {
-                 // Tạo hình ảnh xe
-                 var imageHtml = '';
-                 if (vehicle.hinhAnh && vehicle.hinhAnh.trim() !== '') {
-                     imageHtml = `<img src="/images/xe/${vehicle.hinhAnh}" alt="${vehicle.ten}" class="vehicle-image" onerror="this.parentElement.innerHTML='<div class=\'vehicle-image-placeholder\'><i class=\'bi bi-bicycle\'></i></div>'">`;
-                 } else {
-                     imageHtml = '<div class="vehicle-image-placeholder"><i class="bi bi-bicycle"></i></div>';
-                 }
-                 
-                 html += `
-                     <div class="vehicle-item">
-                         ${imageHtml}
-                         <div class="vehicle-info-display">
-                             <h6>${vehicle.ten} - ${vehicle.bien}</h6>
-                             <small>${vehicle.hang} ${vehicle.dong} - <span class="text-primary">${vehicle.loaiXe || 'Chưa phân loại'}</span></small>
-                         </div>
-                         <div class="vehicle-price">
-                             ${vehicle.gia.toLocaleString('vi-VN')}đ/ngày
-                         </div>
-                         <button type="button" class="btn btn-danger btn-remove-vehicle" data-vehicle-id="${vehicle.id}">
-                             <i class="bi bi-trash"></i> Xóa
-                         </button>
-                     </div>
-                 `;
-             });
-
-            container.html(html);
-            $('#vehiclesSummary').show();
-            updateSearchInfo(); // Cập nhật số lượng xe available
-        }
-
-        function updateSummary() {
-            totalDailyRate = selectedVehicles.reduce((sum, vehicle) => sum + vehicle.gia, 0);
-            
-            $('#totalVehicles').text(selectedVehicles.length);
-            $('#totalDailyPrice').text(totalDailyRate.toLocaleString('vi-VN') + 'đ');
-            $('#TotalDailyRateDisplay').val(totalDailyRate.toLocaleString('vi-VN') + 'đ');
-        }
-
-        function calculateTotal() {
-            var ngayNhan = new Date($('#NgayNhanXe').val());
-            var ngayTra = new Date($('#NgayTraXeDuKien').val());
-            var tienCoc = parseFloat($('#TienCoc').val()) || 0;
-            var phuPhi = parseFloat($('#PhuPhi').val()) || 0;
-
-            if (ngayNhan && ngayTra && ngayTra > ngayNhan && totalDailyRate > 0) {
-                var soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
-                var tienThue = soNgay * totalDailyRate;
-                var tongTien = tienThue + tienCoc + phuPhi;
-
-                // Cập nhật hiển thị với định dạng VN
-                $('#soXeThue').text(selectedVehicles.length);
-                $('#soNgayThue').text(soNgay);
-                $('#tienThue').text(tienThue.toLocaleString('vi-VN') + 'đ');
-                $('#tienCocDisplay').text(tienCoc.toLocaleString('vi-VN') + 'đ');
-                $('#phuPhiDisplay').text(phuPhi.toLocaleString('vi-VN') + 'đ');
-                $('#tongTien').text(tongTien.toLocaleString('vi-VN') + 'đ');
-                $('#TongTienInput').val(tongTien);
-            } else {
-                // Reset về 0 với định dạng
-                $('#soXeThue').text(selectedVehicles.length);
-                $('#soNgayThue').text('0');
-                $('#tienThue').text('0đ');
-                $('#tienCocDisplay').text('0đ');
-                $('#phuPhiDisplay').text('0đ');
-                $('#tongTien').text('0đ');
-                $('#TongTienInput').val(0);
-            }
-        }
-
-        // Rental period functions
-        function calculateFromDays(days) {
-            var ngayNhan = $('#NgayNhanXe').val();
-            if (!ngayNhan) {
-                var today = new Date();
-                ngayNhan = today.toISOString().split('T')[0];
-                $('#NgayNhanXe').val(ngayNhan);
-            }
-
-            var startDate = new Date(ngayNhan);
-            var endDate = new Date(startDate);
-            endDate.setDate(startDate.getDate() + days - 1);
-
-            var endDateStr = endDate.toISOString().split('T')[0];
-            $('#NgayTraXeDuKien').val(endDateStr);
-        }
-
-        function setRentalDays(days) {
-            $('#rentalDays').val(days);
-            calculateFromDays(days);
-            updatePresetButtons();
-        }
-
-        function updatePresetButtons() {
-            var currentDays = parseInt($('#rentalDays').val());
-            $('.btn-preset').removeClass('active');
-            
-            if (currentDays) {
-                $('.btn-preset').each(function() {
-                    var buttonDays = parseInt($(this).attr('onclick').match(/\d+/)[0]);
-                    if (buttonDays === currentDays) {
-                        $(this).addClass('active');
-                    }
-                });
-            }
-        }
-
-        function updateRentalDaysFromDates() {
-            var ngayNhan = new Date($('#NgayNhanXe').val());
-            var ngayTra = new Date($('#NgayTraXeDuKien').val());
-            
-            if (ngayNhan && ngayTra && ngayTra >= ngayNhan) {
-                var days = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
-                $('#rentalDays').val(days);
-                updatePresetButtons();
-            }
-        }
-
-        // Customer name validation function
-        function validateName() {
-            var nameValue = $('#HoTenKhach').val().trim();
-            var validationMessage = $('#nameValidationMessage');
-            
-            // Kiểm tra độ dài
-            if (nameValue.length === 0) {
-                validationMessage.html('<i class="bi bi-info-circle"></i> Vui lòng nhập họ tên khách hàng');
-                validationMessage.removeClass('text-danger text-success text-warning').addClass('text-info');
-                return false;
-            } else if (nameValue.length < 3) {
-                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Họ tên phải có ít nhất 3 ký tự');
-                validationMessage.removeClass('text-success text-info text-danger').addClass('text-warning');
-                return false;
-            } else if (nameValue.length > 100) {
-                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Họ tên không được vượt quá 100 ký tự');
-                validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
-                return false;
-            } else {
-                // Kiểm tra format: phải có ít nhất 2 từ (họ và tên)
-                var words = nameValue.split(' ').filter(word => word.length > 0);
-                if (words.length < 2) {
-                    validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Vui lòng nhập đầy đủ họ và tên');
-                    validationMessage.removeClass('text-success text-info text-warning').addClass('text-warning');
-                    return false;
-                }
-                
-                validationMessage.html('<i class="bi bi-check-circle"></i> Họ tên hợp lệ');
-                validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
-                return true;
-            }
-        }
-
-        // CCCD/CMND validation function
-        function validateCCCD() {
-            var cccdValue = $('#SoCCCD').val();
-            var validationMessage = $('#cccdValidationMessage');
-            
-            // Loại bỏ tất cả ký tự không phải số
-            var numericOnly = cccdValue.replace(/[^0-9]/g, '');
-            
-            // Cập nhật giá trị input nếu có ký tự không phải số
-            if (cccdValue !== numericOnly) {
-                $('#SoCCCD').val(numericOnly);
-                cccdValue = numericOnly;
-            }
-            
-            // Kiểm tra độ dài
-            if (cccdValue.length === 0) {
-                validationMessage.html('<i class="bi bi-info-circle"></i> Vui lòng nhập số CCCD/CMND');
-                validationMessage.removeClass('text-danger text-success text-warning').addClass('text-info');
-                return false;
-            } else if (cccdValue.length < 12) {
-                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> CCCD/CMND phải có đúng 12 số (còn thiếu <strong>' + (12 - cccdValue.length) + '</strong> số)');
-                validationMessage.removeClass('text-success text-info text-danger').addClass('text-warning');
-                return false;
-            } else if (cccdValue.length > 12) {
-                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> CCCD/CMND chỉ được nhập tối đa 12 số');
-                validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
-                return false;
-            } else {
-                // Kiểm tra thêm: CCCD không được bắt đầu bằng 000000
-                if (cccdValue.startsWith('000000')) {
-                    validationMessage.html('<i class="bi bi-exclamation-triangle"></i> CCCD/CMND không hợp lệ (số không được bắt đầu bằng 000000)');
-                    validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
-                    return false;
-                }
-                
-                validationMessage.html('<i class="bi bi-check-circle"></i> CCCD/CMND hợp lệ');
-                validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
-                return true;
-            }
-        }
-
-        // Validate Số điện thoại theo thời gian thực
-        function validatePhone() {
-            var phoneValue = $('#SoDienThoai').val();
-            var validationMessage = $('#phoneValidationMessage');
-            
-            // Loại bỏ ký tự không phải số
-            var numericOnly = phoneValue.replace(/[^0-9]/g, '');
-            if (phoneValue !== numericOnly) {
-                $('#SoDienThoai').val(numericOnly);
-                phoneValue = numericOnly;
-            }
-            
-            // Kiểm tra độ dài
-            if (phoneValue.length === 0) {
-                validationMessage.html('<i class="bi bi-info-circle"></i> Vui lòng nhập số điện thoại');
-                validationMessage.removeClass('text-danger text-success text-warning').addClass('text-info');
-                return false;
-            } else if (phoneValue.length < 10) {
-                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Số điện thoại phải có từ 10 đến 11 số (thiếu <strong>' + (10 - phoneValue.length) + '</strong> số)');
-                validationMessage.removeClass('text-success text-info text-danger').addClass('text-warning');
-                return false;
-            } else if (phoneValue.length > 11) {
-                validationMessage.html('<i class="bi bi-exclamation-triangle"></i> Số điện thoại chỉ được nhập tối đa 11 số');
-                validationMessage.removeClass('text-success text-info text-warning').addClass('text-danger');
-                return false;
-            } else {
-                validationMessage.html('<i class="bi bi-check-circle"></i> Số điện thoại hợp lệ');
-                validationMessage.removeClass('text-warning text-info text-danger').addClass('text-success');
-                return true;
-            }
-        }
+        window.XeList = @Html.Raw(Json.Serialize(ViewBag.XeList ?? new List<object>()));
     </script>
+    
+    <!-- External JavaScript file -->
+    <script src="~/js/quanlyhopdong-create.js"></script>
 }

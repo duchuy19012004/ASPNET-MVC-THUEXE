@@ -18,49 +18,20 @@ namespace bike.Controllers
 
         // GET: Xe
         [PermissionAuthorize("CanViewXe")]
-        public async Task<IActionResult> Index(string searchString, int? loaiXe, string hangXe, string trangThai)
+        public async Task<IActionResult> Index(string searchString, int? loaiXe, string hangXe, bool? showDeleted = false)
         {
             // Lấy danh sách xe với filtering
-            var query = _context.Xe
-                .Include(x => x.LoaiXe)
-                .Include(x => x.ChiTieu)
-                .Include(x => x.HinhAnhXes)
-                .AsQueryable();
+            var xeList = await GetFilteredXeList(searchString, loaiXe, hangXe, showDeleted);
 
-            // Tìm kiếm theo tên xe hoặc biển số
-            if (!string.IsNullOrEmpty(searchString))
-            {
-                query = query.Where(x => x.TenXe.Contains(searchString) || x.BienSoXe.Contains(searchString));
-            }
-
-            // Lọc theo loại xe
-            if (loaiXe.HasValue)
-            {
-                query = query.Where(x => x.MaLoaiXe == loaiXe.Value);
-            }
-
-            // Lọc theo hãng xe
-            if (!string.IsNullOrEmpty(hangXe))
-            {
-                query = query.Where(x => x.HangXe == hangXe);
-            }
-
-            // Lọc theo trạng thái
-            if (!string.IsNullOrEmpty(trangThai))
-            {
-                query = query.Where(x => x.TrangThai == trangThai);
-            }
-
-            var xeList = await query.ToListAsync();
-
-            // Set ViewBag cho thống kê
-            ViewBag.TongSoXe = await _context.Xe.CountAsync();
+            // Set ViewBag cho thống kê (chỉ tính xe chưa xóa)
+            ViewBag.TongSoXe = await _context.Xe.CountAsync(x => x.TrangThai != "Đã xóa");
             ViewBag.XeSanSang = await _context.Xe.CountAsync(x => x.TrangThai == "Sẵn sàng");
             ViewBag.DangChoThue = await _context.Xe.CountAsync(x => x.TrangThai == "Đang thuê");
             ViewBag.BaoTri = await _context.Xe.CountAsync(x => x.TrangThai == "Bảo trì");
+            ViewBag.ShowDeleted = showDeleted;
 
-            // Set ViewBag cho dropdown filters
-            ViewBag.LoaiXeList = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.LoaiXe, "MaLoaiXe", "TenLoaiXe");
+            // Set ViewBag cho dropdown filters với giá trị được chọn
+            ViewBag.LoaiXeList = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(_context.LoaiXe, "MaLoaiXe", "TenLoaiXe", loaiXe);
             
             // Tạo danh sách hãng xe từ dữ liệu hiện có
             var hangXeList = await _context.Xe
@@ -68,11 +39,65 @@ namespace bike.Controllers
                 .Select(x => x.HangXe)
                 .Distinct()
                 .ToListAsync();
-            ViewBag.HangXeList = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(hangXeList);
-            
-            ViewBag.TrangThaiList = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(new[] { "Sẵn sàng", "Đang thuê", "Bảo trì" });
+            ViewBag.HangXeList = new Microsoft.AspNetCore.Mvc.Rendering.SelectList(hangXeList, hangXe);
+
+            // Lưu giá trị filter vào ViewBag để JavaScript có thể khôi phục
+            ViewBag.CurrentSearchString = searchString;
+            ViewBag.CurrentLoaiXe = loaiXe;
+            ViewBag.CurrentHangXe = hangXe;
 
             return View(xeList);
+        }
+
+        // Helper method để lọc xe
+        private async Task<List<Xe>> GetFilteredXeList(string searchString, int? loaiXe, string hangXe, bool? showDeleted = false)
+        {
+            var query = _context.Xe
+                .Include(x => x.LoaiXe)
+                .Include(x => x.ChiTieu)
+                .Include(x => x.HinhAnhXes)
+                .AsQueryable();
+
+            // Lọc theo trạng thái xe
+            if (showDeleted.HasValue && showDeleted.Value)
+            {
+                // Chỉ hiển thị xe đã xóa
+                query = query.Where(x => x.TrangThai == "Đã xóa");
+            }
+            else
+            {
+                // Hiển thị xe hoạt động (không bao gồm xe đã xóa)
+                query = query.Where(x => x.TrangThai != "Đã xóa");
+            }
+
+            // Debug: Log trước khi filter
+            System.Diagnostics.Debug.WriteLine($"Initial query count: {await query.CountAsync()}");
+
+            // Tìm kiếm theo tên xe hoặc biển số
+            if (!string.IsNullOrEmpty(searchString))
+            {
+                query = query.Where(x => x.TenXe.Contains(searchString) || x.BienSoXe.Contains(searchString));
+                System.Diagnostics.Debug.WriteLine($"After search filter: {await query.CountAsync()}");
+            }
+
+            // Lọc theo loại xe
+            if (loaiXe.HasValue)
+            {
+                query = query.Where(x => x.MaLoaiXe == loaiXe.Value);
+                System.Diagnostics.Debug.WriteLine($"After loaiXe filter: {await query.CountAsync()}");
+            }
+
+            // Lọc theo hãng xe
+            if (!string.IsNullOrEmpty(hangXe))
+            {
+                query = query.Where(x => x.HangXe == hangXe);
+                System.Diagnostics.Debug.WriteLine($"After hangXe filter: {await query.CountAsync()}");
+            }
+
+            var result = await query.ToListAsync();
+            System.Diagnostics.Debug.WriteLine($"Final result count: {result.Count}");
+            
+            return result;
         }
 
         // GET: Xe/Create
@@ -283,6 +308,11 @@ namespace bike.Controllers
                 return NotFound();
             }
 
+            // Kiểm tra xem xe có lịch sử hợp đồng không
+            var hasContracts = await _context.ChiTietHopDong
+                .AnyAsync(ct => ct.MaXe == id);
+            ViewBag.HasContracts = hasContracts;
+
             return View(xe);
         }
 
@@ -295,7 +325,11 @@ namespace bike.Controllers
             var xe = await _context.Xe.FindAsync(id);
             if (xe != null)
             {
-                _context.Xe.Remove(xe);
+                // Soft delete - chỉ thay đổi trạng thái thành "Đã xóa"
+                xe.TrangThai = "Đã xóa";
+                _context.Xe.Update(xe);
+                
+                TempData["Success"] = $"Đã xóa xe {xe.TenXe} (Biển số: {xe.BienSoXe}). Dữ liệu thống kê vẫn được giữ lại.";
             }
 
             await _context.SaveChangesAsync();
@@ -305,6 +339,25 @@ namespace bike.Controllers
         private bool XeExists(int id)
         {
             return _context.Xe.Any(e => e.MaXe == id);
+        }
+
+        // POST: Xe/Restore/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [PermissionAuthorize("CanDeleteXe")]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var xe = await _context.Xe.FindAsync(id);
+            if (xe != null && xe.TrangThai == "Đã xóa")
+            {
+                xe.TrangThai = "Sẵn sàng"; // Khôi phục về trạng thái sẵn sàng
+                _context.Xe.Update(xe);
+                await _context.SaveChangesAsync();
+                
+                TempData["Success"] = $"Đã khôi phục xe {xe.TenXe} (Biển số: {xe.BienSoXe}).";
+            }
+
+            return RedirectToAction(nameof(Index), new { showDeleted = true });
         }
 
         // GET: Xe/LichSuHopDong/5
@@ -396,24 +449,41 @@ namespace bike.Controllers
         public async Task<IActionResult> KiemTraBienSo(string bienSoXe)
         {
             if (string.IsNullOrEmpty(bienSoXe))
-            {
-                return Json("Biển số xe không được để trống");
-            }
+                return Json(new { isValid = false, message = "Biển số xe không được để trống" });
 
-            // Kiểm tra định dạng biển số (có thể tùy chỉnh theo quy định Việt Nam)
-            if (bienSoXe.Length < 4 || bienSoXe.Length > 10)
-            {
-                return Json("Biển số xe phải có từ 4-10 ký tự");
-            }
-
-            // Kiểm tra biển số đã tồn tại chưa
             var existingXe = await _context.Xe.FirstOrDefaultAsync(x => x.BienSoXe == bienSoXe);
             if (existingXe != null)
             {
-                return Json($"Biển số {bienSoXe} đã tồn tại trong hệ thống");
+                return Json(new { isValid = false, message = "Biển số xe đã tồn tại trong hệ thống" });
             }
 
-            return Json(true);
+            return Json(new { isValid = true, message = "Biển số xe hợp lệ" });
+        }
+
+        // GET: Xe/FilterXe - Action cho lọc real-time
+        [HttpGet]
+        [PermissionAuthorize("CanViewXe")]
+        public async Task<IActionResult> FilterXe(string searchString, int? loaiXe, string hangXe, bool? showDeleted = false)
+        {
+            // Debug: Log các tham số filter
+            System.Diagnostics.Debug.WriteLine($"FilterXe called with: searchString='{searchString}', loaiXe={loaiXe}, hangXe='{hangXe}', showDeleted={showDeleted}");
+
+            var xeList = await GetFilteredXeList(searchString, loaiXe, hangXe, showDeleted);
+            
+            // Debug: Log kết quả
+            System.Diagnostics.Debug.WriteLine($"FilterXe result: {xeList.Count} vehicles found");
+            foreach (var xe in xeList)
+            {
+                System.Diagnostics.Debug.WriteLine($"Filtered Vehicle: {xe.TenXe} - Status: '{xe.TrangThai}'");
+            }
+
+            // Trả về partial view cho AJAX request
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return PartialView("_XeTablePartial", xeList);
+            }
+
+            return View("Index", xeList);
         }
     }
 }

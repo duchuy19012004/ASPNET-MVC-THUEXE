@@ -294,28 +294,7 @@ namespace bike.Controllers
             return View(chiTiet);
         }
 
-        // GET: ChiTietHopDong/DanhSachXe/5 - Xem danh sách xe trong hợp đồng
-        [PermissionAuthorize("CanViewHopDong")]
-        public async Task<IActionResult> DanhSachXe(int? hopDongId)
-        {
-            if (hopDongId == null)
-            {
-                return NotFound();
-            }
 
-            var hopDong = await _context.HopDong
-                .Include(h => h.ChiTietHopDong)
-                .ThenInclude(ct => ct.Xe)
-                .FirstOrDefaultAsync(h => h.MaHopDong == hopDongId);
-
-            if (hopDong == null)
-            {
-                return NotFound();
-            }
-
-            ViewBag.HopDong = hopDong;
-            return View(hopDong.ChiTietHopDong.ToList());
-        }
 
         // GET: ChiTietHopDong/GetXeInfo/5 - API lấy thông tin xe
         [HttpGet]
@@ -327,7 +306,6 @@ namespace bike.Controllers
             {
                 return Json(new { success = false, message = "Không tìm thấy xe" });
             }
-
             return Json(new
             {
                 success = true,

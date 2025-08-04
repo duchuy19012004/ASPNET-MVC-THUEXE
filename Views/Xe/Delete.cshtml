@@ -131,6 +131,90 @@
         border-radius: 15px;
         font-size: 12px;
     }
+
+    /* Custom Modal Styles */
+    .custom-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1050;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .custom-modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .custom-modal {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        max-width: 500px;
+        width: 90%;
+        transform: scale(0.7);
+        transition: transform 0.3s ease;
+    }
+
+    .custom-modal-overlay.show .custom-modal {
+        transform: scale(1);
+    }
+
+    .custom-modal-header {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px 10px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .custom-modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .custom-modal-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.3s;
+    }
+
+    .custom-modal-close:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .custom-modal-body {
+        padding: 20px;
+    }
+
+    .custom-modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #dee2e6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
 </style>
 
 <div class="container">
@@ -155,21 +239,7 @@
                     </div>
                 }
 
-                <!-- Cảnh báo xe có lịch sử hợp đồng -->
-                @if (ViewBag.HasContracts == true)
-                {
-                    <div class="alert-history">
-                        <i class="bi bi-info-circle-fill"></i>
-                        <strong>Thông báo:</strong> Xe này đã có lịch sử hợp đồng trong hệ thống.
-                        Việc xóa xe sẽ không ảnh hưởng đến các hợp đồng đã lưu.
-                        Bạn vẫn có thể xem lịch sử hợp đồng trong phần quản lý hợp đồng.
-                    </div>
-                }
 
-                <div class="alert-custom">
-                    <i class="bi bi-info-circle"></i>
-                    <strong>Lưu ý:</strong> Xóa xe sẽ xóa luôn tất cả thông tin về xe và không thể khôi phục.
-                </div>
 
                 <!-- Hình ảnh xe -->
                                         @if (!string.IsNullOrEmpty(Model.HinhAnhHienThi))
@@ -244,19 +314,14 @@
                 <!-- Form xác nhận -->
                 @if (Model.TrangThai != "Đang thuê")
                 {
-                    <form asp-action="Delete" method="post" class="mt-4">
-                        <input type="hidden" asp-for="MaXe" />
-
-                        <div class="d-flex justify-content-between">
-                            <a asp-action="Index" class="btn btn-secondary btn-lg">
-                                <i class="bi bi-x-circle"></i> Hủy bỏ
-                            </a>
-                            <button type="submit" class="btn btn-danger btn-lg btn-delete-confirm"
-                                    onclick="return confirm('Bạn chắc chắn muốn xóa xe này?')">
-                                <i class="bi bi-trash"></i> Xác nhận xóa
-                            </button>
-                        </div>
-                    </form>
+                    <div class="d-flex justify-content-between mt-4">
+                        <a asp-action="Index" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-x-circle"></i> Hủy bỏ
+                        </a>
+                        <button type="button" class="btn btn-danger btn-lg btn-delete-confirm" onclick="showDeleteModal()">
+                            <i class="bi bi-trash"></i> Xác nhận xóa
+                        </button>
+                    </div>
                 }
                 else
                 {
@@ -271,6 +336,35 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div class="custom-modal-overlay" id="deleteModal">
+    <div class="custom-modal">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">
+                <i class="bi bi-exclamation-triangle"></i> Xác nhận xóa xe
+            </h5>
+            <button type="button" class="custom-modal-close" onclick="closeDeleteModal()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="custom-modal-body">
+            <p>Bạn có chắc chắn muốn xóa xe <strong>@Model.TenXe</strong> (Biển số: @Model.BienSoXe)?</p>
+            <p class="text-muted mb-0">Hành động này sẽ đánh dấu xe là "Đã xóa" và ẩn khỏi danh sách chính.</p>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">
+                <i class="bi bi-x-circle"></i> Hủy bỏ
+            </button>
+            <form asp-action="Delete" method="post" style="display: inline;">
+                <input type="hidden" asp-for="MaXe" />
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash"></i> Xác nhận xóa
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Hiển thị thông báo TempData nếu có
@@ -280,5 +374,31 @@
                     toastr.error('@TempData["Error"]');
             </text>
         }
+
+        // Function to show delete confirmation modal
+        function showDeleteModal() {
+            document.getElementById('deleteModal').classList.add('show');
+        }
+
+        // Function to close delete confirmation modal
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('show');
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('deleteModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeDeleteModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeDeleteModal();
+                }
+            });
+        });
     </script>
 }

@@ -131,6 +131,206 @@
         color: #ccc;
         margin-bottom: 20px;
     }
+
+    /* Custom Modal Styles */
+    .custom-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    .custom-modal.show {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-modal-content {
+        background-color: #fff;
+        margin: auto;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        animation: slideIn 0.3s ease-out;
+        max-width: 90%;
+        max-height: 90%;
+        overflow: hidden;
+    }
+
+    .custom-modal-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .custom-modal-title {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .custom-modal-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background-color 0.3s;
+    }
+
+    .custom-modal-close:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .custom-modal-body {
+        padding: 25px;
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+
+    .custom-modal-footer {
+        padding: 20px 25px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        background-color: #f8f9fa;
+    }
+
+    .custom-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .custom-btn-secondary {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .custom-btn-secondary:hover {
+        background-color: #5a6268;
+        color: white;
+    }
+
+    .custom-btn-danger {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .custom-btn-danger:hover {
+        background-color: #c82333;
+        color: white;
+    }
+
+    .custom-btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .custom-btn-primary:hover {
+        background-color: #0056b3;
+        color: white;
+    }
+
+    .custom-form-group {
+        margin-bottom: 20px;
+    }
+
+    .custom-form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #333;
+    }
+
+    .custom-form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 14px;
+        transition: border-color 0.3s;
+    }
+
+    .custom-form-control:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .custom-text-danger {
+        color: #dc3545;
+    }
+
+    .custom-spinner {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @@keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .custom-modal-content {
+            margin: 20px;
+            max-width: calc(100% - 40px);
+        }
+        
+        .custom-modal-header,
+        .custom-modal-body,
+        .custom-modal-footer {
+            padding: 15px;
+        }
+    }
 </style>
 
 <div class="container-fluid">
@@ -266,46 +466,42 @@
     }
 </div>
 
-<!-- Modal Hủy đơn -->
-<div class="modal fade" id="huyDonModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Hủy đơn đặt chỗ</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <form id="huyDonForm">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" id="maDatChoHuy" />
-                    <div class="mb-3">
-                        <label class="form-label">Lý do hủy <span class="text-danger">*</span></label>
-                        <textarea id="lyDoHuy" class="form-control" rows="3"
-                                  placeholder="Nhập lý do hủy đơn..." required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                <button type="button" class="btn btn-danger" onclick="xacNhanHuyDon()">
-                    <i class="bi bi-x-circle"></i> Xác nhận hủy
-                </button>
-            </div>
+<!-- Custom Modal Hủy đơn -->
+<div id="huyDonModal" class="custom-modal">
+    <div class="custom-modal-content">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">Hủy đơn đặt chỗ</h5>
+            <button type="button" class="custom-modal-close" onclick="closeModal('huyDonModal')">&times;</button>
+        </div>
+        <div class="custom-modal-body">
+            <form id="huyDonForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="maDatChoHuy" />
+                <div class="custom-form-group">
+                    <label class="custom-form-label">Lý do hủy <span class="custom-text-danger">*</span></label>
+                    <textarea id="lyDoHuy" class="custom-form-control" rows="3"
+                              placeholder="Nhập lý do hủy đơn..." required></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="custom-modal-footer">
+            <button type="button" class="custom-btn custom-btn-secondary" onclick="closeModal('huyDonModal')">Đóng</button>
+            <button type="button" class="custom-btn custom-btn-danger" onclick="xacNhanHuyDon()">
+                <i class="bi bi-x-circle"></i> Xác nhận hủy
+            </button>
         </div>
     </div>
 </div>
 
-<!-- Modal Chi tiết -->
-<div class="modal fade" id="chiTietModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Chi tiết đơn đặt chỗ</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="chiTietContent">
-                <!-- Nội dung chi tiết sẽ được load ở đây -->
-            </div>
+<!-- Custom Modal Chi tiết -->
+<div id="chiTietModal" class="custom-modal">
+    <div class="custom-modal-content" style="max-width: 800px;">
+        <div class="custom-modal-header">
+            <h5 class="custom-modal-title">Chi tiết đơn đặt chỗ</h5>
+            <button type="button" class="custom-modal-close" onclick="closeModal('chiTietModal')">&times;</button>
+        </div>
+        <div class="custom-modal-body" id="chiTietContent">
+            <!-- Nội dung chi tiết sẽ được load ở đây -->
         </div>
     </div>
 </div>
@@ -322,13 +518,38 @@
                     error: function(msg) { alert('Error: ' + msg); }
                 };
             }
+
+            // Đóng modal khi click bên ngoài
+            $('.custom-modal').on('click', function(e) {
+                if (e.target === this) {
+                    closeModal($(this).attr('id'));
+                }
+            });
+
+            // Đóng modal khi nhấn ESC
+            $(document).on('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAllModals();
+                }
+            });
         });
 
-        function huyDon(maDatCho) {
-            // Xóa backdrop cũ nếu còn
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open');
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
 
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function closeAllModals() {
+            $('.custom-modal').removeClass('show');
+            document.body.style.overflow = '';
+        }
+
+        function huyDon(maDatCho) {
             console.log('Huy don clicked:', maDatCho);
 
             // Set giá trị
@@ -336,8 +557,7 @@
             $('#lyDoHuy').val('');
 
             // Hiển thị modal
-            var myModal = new bootstrap.Modal(document.getElementById('huyDonModal'));
-            myModal.show();
+            showModal('huyDonModal');
         }
 
         function xacNhanHuyDon() {
@@ -350,9 +570,9 @@
             }
 
             // Hiển thị loading
-            var btn = $('.modal-footer .btn-danger');
+            var btn = $('.custom-modal-footer .custom-btn-danger');
             var originalText = btn.html();
-            btn.html('<span class="spinner-border spinner-border-sm"></span> Đang xử lý...').prop('disabled', true);
+            btn.html('<span class="custom-spinner"></span> Đang xử lý...').prop('disabled', true);
 
             $.ajax({
                 url: '@Url.Action("HuyDon", "QuanLyHopDong")',
@@ -378,24 +598,19 @@
                     btn.html(originalText).prop('disabled', false);
                 },
                 complete: function() {
-                    bootstrap.Modal.getInstance(document.getElementById('huyDonModal')).hide();
+                    closeModal('huyDonModal');
                 }
             });
         }
 
         function xemChiTiet(maDatCho) {
-            // Xóa backdrop cũ nếu còn
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open');
-
             console.log('Xem chi tiet clicked:', maDatCho);
 
             // Hiển thị loading
-            $('#chiTietContent').html('<div class="text-center p-4"><div class="spinner-border"></div><p class="mt-2">Đang tải...</p></div>');
+            $('#chiTietContent').html('<div class="text-center p-4"><div class="custom-spinner" style="width: 40px; height: 40px; border-width: 4px;"></div><p class="mt-2">Đang tải...</p></div>');
 
             // Hiển thị modal
-            var myModal = new bootstrap.Modal(document.getElementById('chiTietModal'));
-            myModal.show();
+            showModal('chiTietModal');
 
             // Load nội dung
             $.ajax({
@@ -410,20 +625,5 @@
                 }
             });
         }
-    </script>
-    <script>
-        // Đảm bảo backdrop luôn được xóa khi modal đóng
-        $('#chiTietModal, #huyDonModal').on('hidden.bs.modal', function () {
-            $('.modal-backdrop').remove();
-            $('body').removeClass('modal-open');
-        });
-        // Cho phép bấm ESC để tắt modal và backdrop nếu bị kẹt
-        $(document).on('keydown', function(e) {
-            if (e.key === 'Escape') {
-                $('.modal').modal('hide');
-                $('.modal-backdrop').remove();
-                $('body').removeClass('modal-open');
-            }
-        });
     </script>
 }

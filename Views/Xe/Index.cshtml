@@ -15,10 +15,26 @@
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Quản Lý Xe</h1>
-        <a asp-action="Create" class="btn btn-add">
-            <i class="bi bi-plus-circle"></i> Thêm Xe Mới
-        </a>
+        <div class="d-flex gap-2">
+            @if (ViewBag.ShowDeleted == true)
+            {
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-eye"></i> Xem xe hoạt động
+                </a>
+            }
+            else
+            {
+                <a asp-action="Index" asp-route-showDeleted="true" class="btn btn-outline-warning">
+                    <i class="bi bi-trash"></i> Xem xe đã xóa
+                </a>
+            }
+            <a asp-action="Create" class="btn btn-add">
+                <i class="bi bi-plus-circle"></i> Thêm Xe Mới
+            </a>
+        </div>
     </div>
+
+
 
     <!-- Thống kê -->
     <div class="row mb-4">
@@ -47,46 +63,52 @@
             </div>
         </div>
     </div>
-
     <!-- Bộ lọc -->
-    <form method="get" class="row g-3 mb-4">
+    <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <input type="text" name="searchString" class="form-control" placeholder="Tìm kiếm xe..." value="@Context.Request.Query["searchString"]" />
+            <input type="text" id="searchString" class="form-control" placeholder="Tìm kiếm xe..." value="@Context.Request.Query["searchString"]" />
         </div>
         <div class="col-md-2">
-            <select name="loaiXe" class="form-select">
+            <select id="loaiXe" class="form-select">
                 <option value="">Loại xe</option>
                 @foreach (var item in ViewBag.LoaiXeList as SelectList)
                 {
-                    <option value="@item.Value">@item.Text</option>
+                    if (item.Value == ViewBag.CurrentLoaiXe?.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 }
             </select>
         </div>
         <div class="col-md-2">
-            <select name="hangXe" class="form-select">
+            <select id="hangXe" class="form-select">
                 <option value="">Hãng xe</option>
                 @foreach (var item in ViewBag.HangXeList as SelectList)
                 {
-                    <option value="@item.Value">@item.Text</option>
-                }
-            </select>
-        </div>
-        <div class="col-md-2">
-            <select name="trangThai" class="form-select">
-                <option value="">Trạng thái</option>
-                @foreach (var item in ViewBag.TrangThaiList as SelectList)
-                {
-                    <option value="@item.Value">@item.Text</option>
+                    if (item.Value == ViewBag.CurrentHangXe?.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
                 }
             </select>
         </div>
         <div class="col-md-3">
-            <button type="submit" class="btn btn-secondary">
+            <button type="button" id="filterBtn" class="btn btn-secondary">
                 <i class="bi bi-funnel"></i> Lọc
             </button>
+            <button type="button" id="clearFilterBtn" class="btn btn-outline-secondary" style="display: none;">
+                <i class="bi bi-x-circle"></i> Xóa lọc
+            </button>
         </div>
-    </form>
-
+    </div>
     <!-- Bảng danh sách -->
     <div class="card">
         <div class="card-header d-flex justify-content-between">
@@ -100,102 +122,8 @@
                 </button>
             </div>
         </div>
-        <div class="card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Mã xe</th>
-                        <th>Hình ảnh</th>
-                        <th>Tên xe</th>
-                        <th>Loại xe</th>
-                        <th>Biển số</th>
-                        <th>Giá thuê/ngày</th>
-                        <th>Tổng chi phí</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var xe in Model)
-                    {
-                        <tr>
-                            <td>#XE@(xe.MaXe.ToString("D3"))</td>
-                            <td>
-                                @if (!string.IsNullOrEmpty(xe.HinhAnhHienThi))
-                                {
-                                    <img src="~/images/xe/@xe.HinhAnhHienThi" style="width:50px;height:50px;object-fit:cover;" />
-                                }
-                                else
-                                {
-                                    <i class="bi bi-image" style="font-size:30px;color:#ccc;"></i>
-                                }
-                            </td>
-                            <td>
-                                <strong>@xe.TenXe</strong>
-                                @if (xe.TrangThai == "Đang thuê")
-                                {
-                                    <span class="position-relative">
-                                        <span class="rental-indicator"></span>
-                                    </span>
-                                }
-                            </td>
-                            <td>@xe.LoaiXe?.TenLoaiXe</td>
-                            <td>@xe.BienSoXe</td>
-                            <td class="text-danger"><strong>@xe.GiaThue.ToString("N0")đ</strong></td>
-                            <td class="text-danger">
-                                <strong>@xe.ChiTieu.Sum(c => c.SoTien).ToString("N0")đ</strong>
-                            </td>
-                            <td>
-                                @{
-                                    string badgeClass = xe.TrangThai switch
-                                    {
-                                        "Sẵn sàng" => "bg-success",
-                                        "Đang thuê" => "bg-warning text-dark",
-                                        "Bảo trì" => "bg-danger",
-                                        _ => "bg-secondary"
-                                    };
-                                }
-                                <span class="badge @badgeClass">@xe.TrangThai</span>
-                            </td>
-                            <td>
-                                <!-- View Details button (always available) -->
-                                <button type="button" class="btn btn-info btn-sm" title="Xem chi tiết" onclick="showXeDetails(@xe.MaXe)">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                                
-                                @if (xe.TrangThai == "Đang thuê")
-                                {
-                                    <!-- Edit button disabled -->
-                                    <span class="btn-wrapper">
-                                        <button class="btn btn-warning btn-sm btn-disabled" disabled>
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <span class="custom-tooltip">Không thể sửa xe đang cho thuê</span>
-                                    </span>
-                                    <!-- Delete button disabled -->
-                                    <span class="btn-wrapper">
-                                        <button class="btn btn-danger btn-sm btn-disabled" disabled>
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                        <span class="custom-tooltip">Không thể xóa xe đang cho thuê</span>
-                                    </span>
-                                }
-                                else
-                                {
-                                    <!-- Normal Edit/Delete buttons -->
-                                    <a asp-action="Edit" asp-route-id="@xe.MaXe" class="btn btn-warning btn-sm" title="Sửa">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a asp-action="Delete" asp-route-id="@xe.MaXe" class="btn btn-danger btn-sm"
-                                       onclick="return confirm('Bạn có chắc chắn muốn xóa xe này?');" title="Xóa">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+        <div class="card-body" id="xeTableContainer">
+            @Html.Partial("_XeTablePartial", Model)
         </div>
     </div>
 </div>
@@ -205,7 +133,23 @@
 
 @section Scripts {
     <script>
-        // Optional: Thêm thông báo khi user cố click vào button disabled
+        // Hiển thị thông báo TempData nếu có
+        @if (TempData["Success"] != null)
+        {
+            <text>
+                toastr.success('@TempData["Success"]');
+            </text>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <text>
+                toastr.error('@TempData["Error"]');
+            </text>
+        }
+        
+        // Biến để lưu timeout cho debounce
+        let filterTimeout;
+        
         $(document).ready(function() {
             // Prevent any accidental clicks on disabled buttons
             $('.btn-disabled').on('click', function(e) {
@@ -227,7 +171,133 @@
                     closeCustomModal();
                 }
             });
+
+            // Thiết lập event listeners cho lọc real-time
+            setupFilterEvents();
+            
+            // Kiểm tra trạng thái filter ban đầu và hiển thị/ẩn button xóa lọc
+            checkFilterStatus();
         });
+
+        // Thiết lập các event listeners cho bộ lọc
+        function setupFilterEvents() {
+            // Lọc real-time khi thay đổi input tìm kiếm (với debounce)
+            $('#searchString').on('input', function() {
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(function() {
+                    filterXe();
+                }, 300); // Delay 300ms để tránh gọi quá nhiều
+            });
+
+            // Lọc real-time khi thay đổi dropdown
+            $('#loaiXe, #hangXe').on('change', function() {
+                filterXe();
+            });
+
+            // Nút lọc
+            $('#filterBtn').on('click', function() {
+                filterXe();
+            });
+
+            // Nút xóa lọc
+            $('#clearFilterBtn').on('click', function() {
+                clearFilters();
+            });
+        }
+
+        // Hàm lọc xe real-time
+        function filterXe() {
+            // Lấy giá trị từ các input
+            const searchString = $('#searchString').val();
+            const loaiXe = $('#loaiXe').val();
+            const hangXe = $('#hangXe').val();
+            const showDeleted = @(ViewBag.ShowDeleted == true ? "true" : "false");
+            
+            // Debug: Log giá trị filter
+            console.log('Filter values:', {
+                searchString: searchString,
+                loaiXe: loaiXe,
+                hangXe: hangXe,
+                showDeleted: showDeleted
+            });
+            
+            // Kiểm tra xem có filter nào được áp dụng không
+            const hasFilters = searchString || loaiXe || hangXe;
+            console.log('Has filters:', hasFilters);
+            
+            // Hiển thị/ẩn button xóa lọc dựa trên việc có filter hay không
+            if (hasFilters) {
+                $('#clearFilterBtn').show();
+            } else {
+                $('#clearFilterBtn').hide();
+            }
+            
+            // Hiển thị loading
+            $('#xeTableContainer').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Đang tải...</span></div><br><small class="text-muted">Đang lọc dữ liệu...</small></div>');
+            
+            // Gọi AJAX để lọc
+            $.ajax({
+                url: '@Url.Action("FilterXe", "Xe")',
+                type: 'GET',
+                data: {
+                    searchString: searchString,
+                    loaiXe: loaiXe,
+                    hangXe: hangXe,
+                    showDeleted: showDeleted
+                },
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                success: function(result) {
+                    $('#xeTableContainer').html(result);
+                    
+                    // Cập nhật URL để lưu trạng thái filter
+                    updateUrl(searchString, loaiXe, hangXe, showDeleted);
+                },
+                error: function(xhr, status, error) {
+                    $('#xeTableContainer').html('<div class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle"></i><br>Có lỗi xảy ra khi lọc dữ liệu</div>');
+                }
+            });
+        }
+
+        // Hàm kiểm tra trạng thái filter và hiển thị/ẩn button xóa lọc
+        function checkFilterStatus() {
+            const searchString = $('#searchString').val();
+            const loaiXe = $('#loaiXe').val();
+            const hangXe = $('#hangXe').val();
+            
+            const hasFilters = searchString || loaiXe || hangXe;
+            
+            if (hasFilters) {
+                $('#clearFilterBtn').show();
+            } else {
+                $('#clearFilterBtn').hide();
+            }
+        }
+        
+        // Hàm xóa tất cả bộ lọc
+        function clearFilters() {
+            $('#searchString').val('');
+            $('#loaiXe').val('');
+            $('#hangXe').val('');
+            
+            // Ẩn button xóa lọc
+            $('#clearFilterBtn').hide();
+            
+            // Lọc lại với dữ liệu rỗng
+            filterXe();
+        }
+        // Hàm cập nhật URL để lưu trạng thái filter
+        function updateUrl(searchString, loaiXe, hangXe, showDeleted) {
+            const params = new URLSearchParams();
+            if (searchString) params.append('searchString', searchString);
+            if (loaiXe) params.append('loaiXe', loaiXe);
+            if (hangXe) params.append('hangXe', hangXe);
+            if (showDeleted) params.append('showDeleted', showDeleted);
+            
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.pushState({}, '', newUrl);
+        }
 
         // Function to show xe details modal
         function showXeDetails(xeId) {
@@ -254,7 +324,6 @@
                 }
             });
         }
-
         // Function to close custom modal
         function closeCustomModal() {
             const modal = document.getElementById('customXeDetailsModal');

@@ -5,112 +5,130 @@
 }
 
 <style>
+    /* Color Palette - Maximum 3 main colors */
+    :root {
+        --primary: #2563eb;      /* Blue - Main brand color */
+        --secondary: #6b7280;    /* Gray - Supporting color */
+        --white: #ffffff;        /* White - Background */
+        --light-gray: #f9fafb;   /* Light gray - Subtle backgrounds */
+        --border: #e5e7eb;       /* Border color */
+        --text-primary: #111827; /* Primary text */
+        --text-secondary: #6b7280; /* Secondary text */
+        --success: #059669;      /* Success green */
+        --warning: #d97706;      /* Warning orange */
+        --danger: #dc2626;       /* Danger red */
+    }
+
     .detail-container {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
-        padding: 30px 0;
+        padding: 2rem 0;
     }
 
     .contract-card {
-        background: white;
-        border-radius: 15px;
+        background: var(--white);
+        border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid var(--border);
     }
 
     .contract-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 30px;
+        background: var(--primary);
+        color: var(--white);
+        padding: 2rem;
         text-align: center;
     }
 
     .contract-number {
-        font-size: 32px;
-        font-weight: bold;
-        margin-bottom: 10px;
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.025em;
     }
 
     .contract-status {
         display: inline-block;
-        padding: 8px 20px;
-        background: rgba(255,255,255,0.2);
-        border-radius: 20px;
-        margin-top: 10px;
+        padding: 0.5rem 1rem;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 9999px;
+        margin-top: 0.75rem;
+        font-weight: 500;
+        backdrop-filter: blur(10px);
     }
 
     .contract-body {
-        padding: 30px;
+        padding: 2rem;
     }
 
     .section-divider {
-        height: 2px;
-        background: #f0f0f0;
-        margin: 30px 0;
+        height: 1px;
+        background: var(--border);
+        margin: 2rem 0;
     }
 
     .info-section {
-        margin-bottom: 30px;
+        margin-bottom: 2rem;
     }
 
     .section-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 20px;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
-        gap: 10px;
-        border-bottom: 2px solid #667eea;
-        padding-bottom: 10px;
+        gap: 0.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--primary);
     }
 
-    /* Redesigned info display - horizontal layout */
+    /* Info rows */
     .info-row {
         display: flex;
-        background: #f8f9fa;
+        background: var(--light-gray);
         border-radius: 8px;
-        margin-bottom: 12px;
+        margin-bottom: 0.75rem;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        border: 1px solid var(--border);
     }
 
     .info-label {
-        background: #667eea;
-        color: white;
-        padding: 15px 20px;
-        font-weight: 600;
-        min-width: 150px;
+        background: var(--secondary);
+        color: var(--white);
+        padding: 1rem 1.25rem;
+        font-weight: 500;
+        min-width: 160px;
         display: flex;
         align-items: center;
-        font-size: 14px;
+        font-size: 0.875rem;
     }
 
     .info-value {
-        padding: 15px 20px;
+        padding: 1rem 1.25rem;
         flex: 1;
-        font-size: 16px;
-        color: #333;
+        font-size: 1rem;
+        color: var(--text-primary);
         font-weight: 500;
         display: flex;
         align-items: center;
     }
 
-    /* Vehicle section styling */
+    /* Vehicle cards */
     .vehicle-card {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        margin-bottom: 20px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
         overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
     }
 
     .vehicle-header {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-        padding: 15px 20px;
-        font-weight: 600;
+        background: var(--primary);
+        color: var(--white);
+        padding: 1rem 1.25rem;
+        font-weight: 500;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -118,55 +136,78 @@
 
     .vehicle-actions {
         display: flex;
-        gap: 8px;
+        gap: 0.5rem;
     }
 
     .vehicle-body {
-        padding: 20px;
+        padding: 1.5rem;
     }
 
     .vehicle-info-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
+        gap: 1rem;
+        margin-bottom: 1rem;
     }
 
     .vehicle-info-item {
-        background: #f8f9fa;
-        padding: 12px 15px;
+        background: var(--light-gray);
+        padding: 1rem;
         border-radius: 6px;
-        border-left: 3px solid #4facfe;
+        border-left: 3px solid var(--primary);
     }
 
     .vehicle-info-label {
-        font-size: 12px;
-        color: #666;
-        margin-bottom: 4px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
         font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
 
     .vehicle-info-value {
-        font-size: 14px;
-        color: #333;
+        font-size: 0.875rem;
+        color: var(--text-primary);
         font-weight: 600;
+    }
+
+    /* Status badges */
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .status-renting {
+        background: var(--warning);
+        color: var(--white);
+    }
+
+    .status-completed {
+        background: var(--success);
+        color: var(--white);
     }
 
     /* Financial section */
     .financial-summary {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-        padding: 25px;
-        border-radius: 10px;
-        margin-top: 20px;
+        background: var(--primary);
+        color: var(--white);
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 1.5rem;
     }
 
     .financial-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 12px;
-        font-size: 16px;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.2);
+        margin-bottom: 0.75rem;
+        font-size: 1rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
     }
 
     .financial-row:last-child {
@@ -174,54 +215,94 @@
     }
 
     .financial-total {
-        font-size: 24px;
-        font-weight: bold;
-        border-top: 2px solid rgba(255,255,255,0.3);
-        padding-top: 15px;
-        margin-top: 15px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        border-top: 2px solid rgba(255, 255, 255, 0.3);
+        padding-top: 1rem;
+        margin-top: 1rem;
     }
 
     /* Action buttons */
     .action-section {
-        margin-top: 30px;
+        margin-top: 2rem;
         display: flex;
-        gap: 15px;
+        gap: 1rem;
         justify-content: center;
         flex-wrap: wrap;
     }
 
     .btn-print {
-        background: #6c757d;
-        color: white;
+        background: var(--secondary);
+        color: var(--white);
         border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+    .btn-print:hover {
+        background: #4b5563;
+        color: var(--white);
     }
 
     .btn-return {
-        background: #28a745;
-        color: white;
+        background: var(--success);
+        color: var(--white);
         border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.2s;
     }
 
-    /* Status badges */
-    .status-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
+    .btn-return:hover {
+        background: #047857;
+        color: var(--white);
+    }
+
+    /* Time info */
+    .time-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .time-item {
+        text-align: center;
+        padding: 0.75rem;
+        background: var(--light-gray);
+        border-radius: 6px;
+        border: 1px solid var(--border);
+    }
+
+    .time-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+    }
+
+    .time-value {
+        font-size: 0.875rem;
+        color: var(--text-primary);
         font-weight: 600;
     }
 
-    .status-renting {
-        background: #ffc107;
-        color: #000;
+    /* Notes section */
+    .notes-section {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--light-gray);
+        border-radius: 6px;
+        border-left: 3px solid var(--secondary);
     }
 
-    .status-completed {
-        background: #28a745;
-        color: white;
+    .notes-text {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin: 0;
     }
 
     /* Responsive design */
@@ -232,7 +313,7 @@
         
         .info-label {
             min-width: auto;
-            border-radius: 8px 8px 0 0;
+            border-radius: 6px 6px 0 0;
         }
         
         .vehicle-info-grid {
@@ -243,9 +324,11 @@
             flex-direction: column;
             align-items: center;
         }
+
+        .time-info {
+            grid-template-columns: 1fr;
+        }
     }
-
-
 
     /* Print styles */
     @@media print {
@@ -317,20 +400,16 @@
             <div class="info-section">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="section-title mb-0">
-                        <i class="bi bi-bicycle"></i> Danh sách xe thuê
+                        <i class="bi bi-bicycle"></i> Danh sách xe thuê (@(Model.ChiTietHopDong?.Count() ?? 0) xe)
                     </h3>
                     <div>
                         @if (Model.TrangThai == "Đang thuê")
                         {
                             <a asp-controller="ChiTietHopDong" asp-action="ThemXe" asp-route-hopDongId="@Model.MaHopDong" 
-                               class="btn btn-success btn-sm me-2">
+                               class="btn btn-success btn-sm">
                                 <i class="bi bi-plus-circle"></i> Thêm xe
                             </a>
                         }
-                        <a asp-controller="ChiTietHopDong" asp-action="DanhSachXe" asp-route-hopDongId="@Model.MaHopDong" 
-                           class="btn btn-info btn-sm">
-                            <i class="bi bi-list-ul"></i> Xem chi tiết
-                        </a>
                     </div>
                 </div>
                 
@@ -362,11 +441,11 @@
                                 <div class="vehicle-info-grid">
                                     <div class="vehicle-info-item">
                                         <div class="vehicle-info-label">Hãng xe</div>
-                                        <div class="vehicle-info-value">@chiTiet.Xe?.HangXe</div>
+                                        <div class="vehicle-info-value">@chiTiet.Xe?.HangXe @chiTiet.Xe?.DongXe</div>
                                     </div>
                                     <div class="vehicle-info-item">
                                         <div class="vehicle-info-label">Giá thuê/ngày</div>
-                                        <div class="vehicle-info-value text-danger">@chiTiet.GiaThueNgay.ToString("N0")đ</div>
+                                        <div class="vehicle-info-value">@chiTiet.GiaThueNgay.ToString("N0")đ</div>
                                     </div>
                                     <div class="vehicle-info-item">
                                         <div class="vehicle-info-label">Số ngày thuê</div>
@@ -374,7 +453,7 @@
                                     </div>
                                     <div class="vehicle-info-item">
                                         <div class="vehicle-info-label">Thành tiền</div>
-                                        <div class="vehicle-info-value text-success">@chiTiet.ThanhTien.ToString("N0")đ</div>
+                                        <div class="vehicle-info-value">@chiTiet.ThanhTien.ToString("N0")đ</div>
                                     </div>
                                     @if (!string.IsNullOrEmpty(chiTiet.TinhTrangTraXe))
                                     {
@@ -388,6 +467,47 @@
                                         </div>
                                     }
                                 </div>
+                                
+                                <!-- Thông tin thời gian -->
+                                <div class="time-info">
+                                    <div class="time-item">
+                                        <div class="time-label">
+                                            <i class="bi bi-calendar-check"></i> Ngày nhận
+                                        </div>
+                                        <div class="time-value">@chiTiet.NgayNhanXe.ToString("dd/MM/yyyy")</div>
+                                    </div>
+                                    <div class="time-item">
+                                        <div class="time-label">
+                                            <i class="bi bi-calendar-x"></i> Ngày trả dự kiến
+                                        </div>
+                                        <div class="time-value">@chiTiet.NgayTraXeDuKien.ToString("dd/MM/yyyy")</div>
+                                    </div>
+                                    <div class="time-item">
+                                        <div class="time-label">
+                                            <i class="bi bi-clock"></i> Trạng thái
+                                        </div>
+                                        <div class="time-value">
+                                            @if (chiTiet.NgayTraXeThucTe.HasValue)
+                                            {
+                                                <span class="text-success">Đã trả: @chiTiet.NgayTraXeThucTe.Value.ToString("dd/MM/yyyy")</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-warning">Chưa trả</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Ghi chú -->
+                                @if (!string.IsNullOrEmpty(chiTiet.GhiChu))
+                                {
+                                    <div class="notes-section">
+                                        <div class="notes-text">
+                                            <i class="bi bi-chat-text"></i> <strong>Ghi chú:</strong> @chiTiet.GhiChu
+                                        </div>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }
@@ -399,6 +519,7 @@
                     </div>
                 }
             </div>
+
             <div class="section-divider"></div>
 
             <!-- Thời gian thuê -->
@@ -537,13 +658,19 @@
                     </div>
                 }
             </div>
-
             <!-- Action buttons -->
             <div class="action-section no-print">
+                @if (Context.Request.Query.ContainsKey("newlyCreated"))
+                {
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Hợp đồng vừa được tạo thành công!</strong><br />                      
+                    </div>
+                }
                 <a href="@Url.Action("InHopDongA4", new { id = Model.MaHopDong })" target="_blank" class="btn btn-print">
                     <i class="bi bi-printer"></i> In hợp đồng
                 </a>
-                @if (Model.TrangThai == "Đang thuê")
+                @if (Model.TrangThai == "Đang thuê" && !Context.Request.Query.ContainsKey("newlyCreated"))
                 {
                     <a asp-action="TraXe" asp-route-id="@Model.MaHopDong" class="btn btn-return">
                         <i class="bi bi-check-circle"></i> Xử lý trả xe
@@ -628,7 +755,6 @@
                 form.submit();
             }
         }
-
         // Thêm function tạo hóa đơn nhanh
         function taoHoaDonNhanh(maHopDong) {
             console.log('Tao hoa don nhanh:', maHopDong);
@@ -640,7 +766,6 @@
             var myModal = new bootstrap.Modal(document.getElementById('taoHoaDonNhanhModal'));
             myModal.show();
         }
-
         function xacNhanTaoHoaDonNhanh() {
             var maHopDong = @Model.MaHopDong;
             var ghiChu = $('#ghiChuHoaDonNhanh').val();
@@ -649,7 +774,6 @@
             var btn = $('.modal-footer .btn-success');
             var originalText = btn.html();
             btn.html('<span class="spinner-border spinner-border-sm"></span> Đang tạo...').prop('disabled', true);
-
             $.ajax({
                 url: '@Url.Action("TaoHoaDon", "QuanLyHoaDon")',
                 type: 'POST',
@@ -666,7 +790,6 @@
                         } else {
                             alert(response.message);
                         }
-                        
                         // Reload trang để hiển thị thông tin hóa đơn
                         setTimeout(function() {
                             location.reload();

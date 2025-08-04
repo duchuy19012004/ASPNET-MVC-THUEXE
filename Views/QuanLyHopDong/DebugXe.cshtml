@@ -1,0 +1,77 @@
+@{
+    ViewData["Title"] = "Debug Xe";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="container mt-4">
+    <h2>Debug Thông Tin Xe</h2>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Thống kê theo trạng thái</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Tổng số xe:</strong> @ViewBag.TotalXe</p>
+                    <p><strong>Xe sẵn sàng:</strong> @ViewBag.XeSanSang</p>
+                    <p><strong>Xe đang thuê:</strong> @ViewBag.XeDangThue</p>
+                    <p><strong>Xe bảo trì:</strong> @ViewBag.XeBaoTri</p>
+                    <p><strong>Xe hư hỏng:</strong> @ViewBag.XeHuHong</p>
+                    <p><strong>Xe mất:</strong> @ViewBag.XeMat</p>
+                    <p><strong>Xe đã xóa:</strong> @ViewBag.XeDaXoa</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Danh sách tất cả xe</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.AllXe != null && ViewBag.AllXe.Count > 0)
+                    {
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Mã</th>
+                                    <th>Tên xe</th>
+                                    <th>Biển số</th>
+                                    <th>Trạng thái</th>
+                                    <th>Giá thuê</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var xe in ViewBag.AllXe)
+                                {
+                                    <tr>
+                                        <td>@xe.MaXe</td>
+                                        <td>@xe.TenXe</td>
+                                        <td>@xe.BienSoXe</td>
+                                        <td>
+                                            <span class="badge @(xe.TrangThai == "Sẵn sàng" ? "bg-success" : 
+                                                              xe.TrangThai == "Đang thuê" ? "bg-primary" : 
+                                                              xe.TrangThai == "Bảo trì" ? "bg-warning" : 
+                                                              xe.TrangThai == "Hư hỏng" ? "bg-danger" : 
+                                                              xe.TrangThai == "Mất" ? "bg-dark" : "bg-secondary")">
+                                                @xe.TrangThai
+                                            </span>
+                                        </td>
+                                        <td>@xe.GiaThue.ToString("N0")đ</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted">Không có xe nào trong database</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3">
+        <a href="@Url.Action("Create")" class="btn btn-primary">Quay lại Create</a>
+    </div>
+</div> 

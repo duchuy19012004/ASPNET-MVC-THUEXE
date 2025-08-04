@@ -10,11 +10,9 @@
     .page-header {
         margin-bottom: 30px;
     }
-
     .stat-cards {
         margin-bottom: 30px;
     }
-
     .stat-card {
         background: white;
         border-radius: 10px;
@@ -128,6 +126,157 @@
         border-radius: 10px;
         margin-bottom: 30px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .filter-section .form-label {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .filter-section .form-control,
+    .filter-section .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        transition: all 0.3s;
+    }
+
+    .filter-section .form-control:focus,
+    .filter-section .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    .filter-section .btn {
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .filter-section .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .filter-section .btn:disabled {
+        transform: none;
+        box-shadow: none;
+    }
+
+    #filterResult {
+        border-radius: 8px;
+        border: none;
+    }
+
+    #filterResult.alert-info {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        color: #1565c0;
+        border-left: 4px solid #2196f3;
+    }
+
+    #filterResult.alert-warning {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+        color: #ef6c00;
+        border-left: 4px solid #ff9800;
+    }
+
+    #filterResult.alert-danger {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        color: #c62828;
+        border-left: 4px solid #f44336;
+    }
+
+    /* Shortcut buttons */
+    .filter-section .btn-outline-primary {
+        border: 2px solid #007bff;
+        color: #007bff;
+        background: transparent;
+        transition: all 0.3s;
+        font-size: 0.875rem;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .filter-section .btn-outline-primary:hover {
+        background: #007bff;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+    }
+
+    .filter-section .btn-outline-primary:active {
+        transform: translateY(0);
+    }
+
+    /* Loading animation */
+    #tableLoading .spinner-border {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    /* No results styling */
+    #noResults {
+        background: #f8f9fa;
+        border-radius: 10px;
+        border: 2px dashed #dee2e6;
+    }
+
+    #noResults i {
+        opacity: 0.5;
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .filter-section .row {
+            margin: 0;
+        }
+        
+        .filter-section .col-md-2,
+        .filter-section .col-md-3 {
+            margin-bottom: 15px;
+        }
+        
+        .filter-section .btn {
+            width: 100%;
+        }
+        
+        .d-flex.flex-wrap.gap-2 {
+            justify-content: center;
+        }
+        
+        .d-flex.flex-wrap.gap-2 .btn {
+            margin-bottom: 5px;
+        }
+        
+        .stat-cards .col-lg-3 {
+            margin-bottom: 20px;
+        }
+        
+        .page-header {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .page-header .btn {
+            margin-bottom: 5px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .filter-section {
+            padding: 15px;
+        }
+        
+        .stat-card {
+            height: 160px;
+        }
+        
+        .stat-number {
+            font-size: 28px;
+        }
+        
+        .stat-card i {
+            font-size: 32px !important;
+        }
     }
 
     .contract-table {
@@ -346,6 +495,46 @@
         0%, 100% { transform: scale(1); }
         50% { transform: scale(1.1); }
     }
+
+    /* Pagination styles */
+    .pagination-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    .pagination .page-link {
+        border: 2px solid #e9ecef;
+        color: #007bff;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+
+    .pagination .page-link:hover {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+    }
+
+    .pagination .page-item.active .page-link {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+    }
+
+    .pagination .page-item.disabled .page-link {
+        color: #6c757d;
+        border-color: #e9ecef;
+        background-color: #f8f9fa;
+    }
+
+    .pagination .page-link:focus {
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
 </style>
 
 <div class="container-fluid">
@@ -480,8 +669,17 @@
     <!-- Filter -->
     <div class="filter-section">
         <form method="get" class="row g-3 align-items-center">
-            <div class="col-md-3">
-                <select name="trangThai" class="form-select">
+            <div class="col-md-2">
+                <label class="form-label">Từ ngày</label>
+                <input type="date" id="tuNgay" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Đến ngày</label>
+                <input type="date" id="denNgay" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Trạng thái</label>
+                <select id="trangThaiFilter" class="form-select">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Đang thuê" selected="@(ViewBag.TrangThai == "Đang thuê" ? "selected" : null)">Đang thuê</option>
                     <option value="Hoàn thành" selected="@(ViewBag.TrangThai == "Hoàn thành" ? "selected" : null)">Hoàn thành</option>
@@ -489,11 +687,19 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <button type="submit" class="btn btn-secondary">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" id="btnFilter" class="btn btn-primary w-100">
                     <i class="bi bi-funnel"></i> Lọc
                 </button>
             </div>
-            <div class="col-md-4 ms-auto">
+            <div class="col-md-2">
+                <label class="form-label">&nbsp;</label>
+                <button type="button" id="btnReset" class="btn btn-secondary w-100">
+                    <i class="bi bi-arrow-clockwise"></i> Làm mới
+                </button>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Tìm kiếm</label>
                 <div class="search-box">
                     <i class="bi bi-search search-icon"></i>
                     <input type="text"
@@ -505,10 +711,51 @@
                 </div>
             </div>
         </form>
+        
+        <!-- Thông báo kết quả lọc -->
+        <div id="filterResult" class="mt-3" style="display: none;">
+            <div class="alert alert-info d-flex align-items-center">
+                <i class="bi bi-info-circle me-2"></i>
+                <span id="filterMessage"></span>
+            </div>
+        </div>
+        
+        <!-- Shortcut lọc nhanh -->
+        <div class="mt-3">
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setDateRange('today')">
+                    <i class="bi bi-calendar-day"></i> Hôm nay
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setDateRange('yesterday')">
+                    <i class="bi bi-calendar-minus"></i> Hôm qua
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setDateRange('thisWeek')">
+                    <i class="bi bi-calendar-week"></i> Tuần này
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setDateRange('thisMonth')">
+                    <i class="bi bi-calendar-month"></i> Tháng này
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="setDateRange('lastMonth')">
+                    <i class="bi bi-calendar-x"></i> Tháng trước
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- Table -->
-    <!-- Cập nhật phần table header trong Views/QuanLyHopDong/Index.cshtml -->
+    <div class="contract-table">
+        <div id="tableLoading" class="text-center py-5" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Đang tải...</span>
+            </div>
+            <p class="mt-3 text-muted">Đang lọc dữ liệu...</p>
+        </div>
+        
+        <div id="noResults" class="text-center py-5" style="display: none;">
+            <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
+            <h5 class="mt-3 text-muted">Không tìm thấy hợp đồng nào</h5>
+            <p class="text-muted">Thử thay đổi điều kiện lọc hoặc tìm kiếm</p>
+        </div>
 
         <table class="table table-hover mb-0" id="contractTable">
             <thead class="table-light">
@@ -617,6 +864,114 @@
             </tbody>
         </table>
 
+        <!-- Container cho phân trang AJAX -->
+        <div id="ajaxPaginationContainer" class="mt-3" style="display: none;">
+            <!-- Phân trang sẽ được thêm vào đây khi lọc -->
+        </div>
+
+        <!-- Phân trang cho dữ liệu ban đầu -->
+        @if (ViewBag.TotalItems > ViewBag.PageSize)
+        {
+            <div class="pagination-container mt-3">
+                <nav aria-label="Phân trang hợp đồng">
+                    <ul class="pagination justify-content-center mb-0">
+                        @{
+                            int totalPagesCount = (int)Math.Ceiling((double)ViewBag.TotalItems / ViewBag.PageSize);
+                            int currentPageNum = ViewBag.CurrentPage;
+                            int startPage = Math.Max(1, currentPageNum - 2);
+                            int endPage = Math.Min(totalPagesCount, currentPageNum + 2);
+                        }
+
+                        <!-- Nút Previous -->
+                        @if (currentPageNum > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { trangThai = ViewBag.TrangThai, page = currentPageNum - 1 })">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-left"></i></span>
+                            </li>
+                        }
+
+                        <!-- Hiển thị các trang -->
+                        @if (startPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { trangThai = ViewBag.TrangThai, page = 1 })">1</a>
+                            </li>
+                            @if (startPage > 2)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            if (i == currentPageNum)
+                            {
+                                <li class="page-item active">
+                                    <span class="page-link">@i</span>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="@Url.Action("Index", new { trangThai = ViewBag.TrangThai, page = i })">@i</a>
+                                </li>
+                            }
+                        }
+
+                        @if (endPage < totalPagesCount)
+                        {
+                            @if (endPage < totalPagesCount - 1)
+                            {
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            }
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { trangThai = ViewBag.TrangThai, page = totalPagesCount })">@totalPagesCount</a>
+                            </li>
+                        }
+
+                        <!-- Nút Next -->
+                        @if (currentPageNum < totalPagesCount)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("Index", new { trangThai = ViewBag.TrangThai, page = currentPageNum + 1 })">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="bi bi-chevron-right"></i></span>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+                
+                <!-- Thông tin phân trang -->
+                <div class="text-center mt-2">
+                    <small class="text-muted">
+                        @{
+                            int startItem = (currentPageNum - 1) * ViewBag.PageSize + 1;
+                            int endItem = Math.Min(currentPageNum * ViewBag.PageSize, ViewBag.TotalItems);
+                        }
+                        Hiển thị @startItem-@endItem trong tổng số @ViewBag.TotalItems hợp đồng
+                    </small>
+                </div>
+            </div>
+        }
+
 
 <!-- Modal tạo hóa đơn từ index -->
 <div class="modal fade" id="taoHoaDonIndexModal" tabindex="-1">
@@ -656,197 +1011,8 @@
 </div>
 
 @section Scripts {
-    <script>
-        $(document).ready(function() {
-            const searchInput = $('#searchPhone');
-            const clearButton = $('#clearSearch');
-            const contractTable = $('#contractTable');
-            const noResults = $('#noResults');
-            let searchTimeout;
-
-            // Show/hide clear button
-            searchInput.on('input', function() {
-                const value = $(this).val();
-                if (value.length > 0) {
-                    clearButton.show();
-                } else {
-                    clearButton.hide();
-                }
-
-                // Clear previous timeout
-                clearTimeout(searchTimeout);
-
-                // Set new timeout for search
-                searchTimeout = setTimeout(function() {
-                    performSearch(value);
-                }, 300); // 300ms delay
-            });
-
-            // Clear search
-            clearButton.on('click', function() {
-                searchInput.val('');
-                clearButton.hide();
-                performSearch('');
-                searchInput.focus();
-            });
-
-            // Perform search function
-            function performSearch(searchValue) {
-                const rows = contractTable.find('tbody tr');
-                let hasResults = false;
-
-                if (searchValue === '') {
-                    // Show all rows
-                    rows.show().removeClass('highlight-row');
-                    contractTable.show();
-                    noResults.hide();
-                    return;
-                }
-
-                // Search logic
-                rows.each(function() {
-                    const row = $(this);
-                    const phone = row.data('phone');
-
-                    if (phone && phone.toString().includes(searchValue)) {
-                        row.show().addClass('highlight-row');
-                        hasResults = true;
-                    } else {
-                        row.hide().removeClass('highlight-row');
-                    }
-                });
-
-                // Show/hide no results message
-                if (hasResults) {
-                    contractTable.show();
-                    noResults.hide();
-                } else {
-                    contractTable.hide();
-                    noResults.show();
-                }
-            }
-
-            // Format phone number input (optional)
-            searchInput.on('keypress', function(e) {
-                // Only allow numbers, spaces, and common phone characters
-                const char = String.fromCharCode(e.which);
-                if (!/[0-9\s\-\+\(\)]/.test(char)) {
-                    e.preventDefault();
-                }
-            });
-
-            // Handle Enter key
-            searchInput.on('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const foundRows = contractTable.find('tbody tr:visible');
-                    if (foundRows.length === 1) {
-                        // If only one result, go to detail
-                        const detailLink = foundRows.find('a[title="Chi tiết"]');
-                        if (detailLink.length > 0) {
-                            window.location.href = detailLink.attr('href');
-                        }
-                    }
-                }
-            });
-        });
-
-        // Function tạo hóa đơn từ index
-        function taoHoaDonTuIndex(maHopDong, tenKhach) {
-            console.log('Tao hoa don tu index:', maHopDong, tenKhach);
-            
-            // Set giá trị
-            $('#maHopDongIndex').val(maHopDong);
-            $('#tenKhachHangIndex').text(tenKhach);
-            $('#ghiChuHoaDonIndex').val('');
-            
-            // Hiển thị modal
-            var myModal = new bootstrap.Modal(document.getElementById('taoHoaDonIndexModal'));
-            myModal.show();
-        }
-
-        function xacNhanTaoHoaDonIndex() {
-            var maHopDong = $('#maHopDongIndex').val();
-            var ghiChu = $('#ghiChuHoaDonIndex').val();
-
-            // Hiển thị loading
-            var btn = $('#taoHoaDonIndexModal .modal-footer .btn-success');
-            var originalText = btn.html();
-            btn.html('<span class="spinner-border spinner-border-sm"></span> Đang tạo...').prop('disabled', true);
-
-            $.ajax({
-                url: '@Url.Action("TaoHoaDon", "QuanLyHoaDon")',
-                type: 'POST',
-                data: {
-                    maHopDong: maHopDong,
-                    ghiChu: ghiChu,
-                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-                },
-                success: function(response) {
-                    if (response.success) {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.success(response.message);
-                        } else {
-                            alert(response.message);
-                        }
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    } else {
-                        if (typeof toastr !== 'undefined') {
-                            toastr.error(response.message);
-                        } else {
-                            alert('Lỗi: ' + response.message);
-                        }
-                        btn.html(originalText).prop('disabled', false);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    var errorMsg = 'Có lỗi xảy ra: ' + error;
-                    if (typeof toastr !== 'undefined') {
-                        toastr.error(errorMsg);
-                    } else {
-                        alert(errorMsg);
-                    }
-                    btn.html(originalText).prop('disabled', false);
-                },
-                complete: function() {
-                    bootstrap.Modal.getInstance(document.getElementById('taoHoaDonIndexModal')).hide();
-                }
-            });
-        }
-
-        // Function để đóng notification banner
-        function closeNotification() {
-            const notification = document.getElementById('newOrderNotification');
-            if (notification) {
-                // Thêm animation fade out
-                notification.style.animation = 'slideOutUp 0.3s ease-in forwards';
-                
-                // Xóa element sau khi animation hoàn thành
-                setTimeout(function() {
-                    notification.remove();
-                }, 300);
-                
-                // Lưu vào localStorage để không hiện lại trong phiên làm việc
-                localStorage.setItem('hiddenNotification_' + new Date().toDateString(), 'true');
-            }
-        }
-
-        // Kiểm tra xem có nên hiện notification không (tùy chọn)
-        $(document).ready(function() {
-            const notification = document.getElementById('newOrderNotification');
-            if (notification) {
-                const today = new Date().toDateString();
-                const isHidden = localStorage.getItem('hiddenNotification_' + today);
-                
-                if (isHidden === 'true') {
-                    notification.style.display = 'none';
-                }
-            }
-        });
-    </script>
-
+    <script src="~/js/quanlyhopdong-filter.js"></script>
+    
     <style>
         @@keyframes slideOutUp {
             from {
