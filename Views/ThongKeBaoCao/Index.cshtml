@@ -179,7 +179,7 @@
                     <i class="bi bi-calendar-check"></i>
                 </div>
                 <div class="stat-value" id="donDatValue">@Model.TongDonDatXe</div>
-                                        <div class="stat-label" id="donDatLabel">Đơn đặt tháng này</div>
+                <div class="stat-label" id="donDatLabel">Đơn đặt tháng này</div>
             </div>
         </div>
 
@@ -199,7 +199,7 @@
                     <i class="bi bi-person-plus"></i>
                 </div>
                 <div class="stat-value" id="khachHangMoiValue">@Model.KhachHangMoi</div>
-                                        <div class="stat-label" id="khachHangMoiLabel">Khách hàng mới tháng này</div>
+                <div class="stat-label" id="khachHangMoiLabel">Khách hàng mới tháng này</div>
             </div>
         </div>
 
@@ -220,6 +220,16 @@
                 </div>
                 <div class="stat-value" id="tongThietHaiValue">@Model.TongThietHai.ToString("N0")đ</div>
                 <div class="stat-label" id="tongThietHaiLabel">Tổng tiền thiệt hại tháng này</div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="stat-value" id="doanhThuGocValue">@Model.DoanhThuGoc.ToString("N0")đ</div>
+                <div class="stat-label" id="doanhThuGocLabel">Doanh thu gốc tháng này</div>
             </div>
         </div>
     </div>
@@ -1240,6 +1250,7 @@
                     if (data.success) {
                         // Cập nhật giá trị
                         document.getElementById('doanhThuValue').textContent = data.doanhThu.toLocaleString('vi-VN') + 'đ';
+                        document.getElementById('doanhThuGocValue').textContent = data.doanhThuGoc.toLocaleString('vi-VN') + 'đ';
                         document.getElementById('tongChiTieuValue').textContent = data.tongChiTieu.toLocaleString('vi-VN') + 'đ';
                         document.getElementById('tongThietHaiValue').textContent = data.tongThietHai.toLocaleString('vi-VN') + 'đ';
                         document.getElementById('donDatValue').textContent = data.tongDonDat;
@@ -1257,6 +1268,7 @@
                         
                         const period = periodLabels[filter] || 'hôm nay';
                         document.getElementById('doanhThuLabel').textContent = `Doanh thu ${period}`;
+                        document.getElementById('doanhThuGocLabel').textContent = `Doanh thu gốc ${period}`;
                         document.getElementById('tongChiTieuLabel').textContent = `Tổng chi tiêu ${period}`;
                         document.getElementById('tongThietHaiLabel').textContent = `Tổng tiền thiệt hại ${period}`;
                         document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;
@@ -1331,6 +1343,7 @@
         
         const period = periodLabels[initialFilter] || 'hôm nay';
         document.getElementById('doanhThuLabel').textContent = `Doanh thu ${period}`;
+        document.getElementById('doanhThuGocLabel').textContent = `Doanh thu gốc ${period}`;
         document.getElementById('tongChiTieuLabel').textContent = `Tổng chi tiêu ${period}`;
         document.getElementById('tongThietHaiLabel').textContent = `Tổng tiền thiệt hại ${period}`;
         document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;

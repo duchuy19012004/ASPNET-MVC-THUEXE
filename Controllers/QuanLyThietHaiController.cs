@@ -21,23 +21,43 @@ namespace bike.Controllers
         // GET: QuanLyThietHai
         public async Task<IActionResult> Index()
         {
-            var thietHaiList = await _context.ThietHai
-                .Include(t => t.Xe)
-                .Include(t => t.HopDong)
-                    .ThenInclude(h => h.KhachHang)
-                .Include(t => t.NguoiBaoCao)
-                .OrderByDescending(t => t.NgayTao)
-                .ToListAsync();
+            try
+            {
+                var thietHaiList = await _context.ThietHai
+                    .Include(t => t.Xe)
+                    .Include(t => t.HopDong)
+                        .ThenInclude(h => h.KhachHang)
+                    .Include(t => t.NguoiBaoCao)
+                    .OrderByDescending(t => t.NgayTao)
+                    .ToListAsync();
 
-            // Tính toán thống kê
-            ViewData["TongThietHai"] = thietHaiList.Count;
-            ViewData["ThietHaiChuaXuLy"] = thietHaiList.Count(t => t.TrangThaiXuLy == "Chưa xử lý");
-            ViewData["ThietHaiDangXuLy"] = thietHaiList.Count(t => t.TrangThaiXuLy == "Đang xử lý");
-            ViewData["ThietHaiDaXuLy"] = thietHaiList.Count(t => t.DaHoanThanh);
-            ViewData["TongChiPhi"] = thietHaiList.Sum(t => t.ChiPhiXuLy);
-            ViewData["TongDenBu"] = thietHaiList.Sum(t => t.SoTienDenBu);
+                // Tính toán thống kê với null checks
+                var tongThietHai = thietHaiList?.Count ?? 0;
+                var thietHaiChuaXuLy = thietHaiList?.Where(t => t != null && t.TrangThaiXuLy == "Chưa xử lý").Count() ?? 0;
+                var thietHaiDangXuLy = thietHaiList?.Where(t => t != null && t.TrangThaiXuLy == "Đang xử lý").Count() ?? 0;
+                var thietHaiDaXuLy = thietHaiList?.Where(t => t != null && (t.TrangThaiXuLy == "Đã xử lý" || t.TrangThaiXuLy == "Đã đền bù")).Count() ?? 0;
+                var tongDenBu = thietHaiList?.Where(t => t != null).Sum(t => t.SoTienDenBu) ?? 0;
 
-            return View(thietHaiList);
+                ViewData["TongThietHai"] = tongThietHai;
+                ViewData["ThietHaiChuaXuLy"] = thietHaiChuaXuLy;
+                ViewData["ThietHaiDangXuLy"] = thietHaiDangXuLy;
+                ViewData["ThietHaiDaXuLy"] = thietHaiDaXuLy;
+                ViewData["TongDenBu"] = tongDenBu;
+
+                return View(thietHaiList ?? new List<ThietHai>());
+            }
+            catch (Exception ex)
+            {
+                // Log lỗi và trả về view với danh sách rỗng
+                ViewData["TongThietHai"] = 0;
+                ViewData["ThietHaiChuaXuLy"] = 0;
+                ViewData["ThietHaiDangXuLy"] = 0;
+                ViewData["ThietHaiDaXuLy"] = 0;
+                ViewData["TongDenBu"] = 0;
+                
+                TempData["ErrorMessage"] = "Có lỗi xảy ra khi tải dữ liệu: " + ex.Message;
+                return View(new List<ThietHai>());
+            }
         }
 
         // GET: QuanLyThietHai/Details/5 - Redirect to Index since we use modal now
@@ -52,6 +72,7 @@ namespace bike.Controllers
             TempData["InfoMessage"] = "Vui lòng sử dụng modal để xem chi tiết thiệt hại.";
             return RedirectToAction(nameof(Index));
         }
+
         // GET: QuanLyThietHai/Edit/5
         [PermissionAuthorize("CanEditThietHai")]
         public async Task<IActionResult> Edit(int? id)
@@ -81,7 +102,7 @@ namespace bike.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [PermissionAuthorize("CanEditThietHai")]
-        public async Task<IActionResult> Edit(int id, [Bind("MaThietHai,MoTaThietHai,ChiPhiXuLy,SoTienDenBu,TrangThaiXuLy,PhuongAnXuLy,GhiChu")] ThietHai thietHai)
+        public async Task<IActionResult> Edit(int id, [Bind("MaThietHai,LoaiThietHai,MoTaThietHai,SoTienDenBu,TrangThaiXuLy,PhuongAnXuLy,GhiChu")] ThietHai thietHai)
         {
             if (id != thietHai.MaThietHai)
             {
@@ -103,8 +124,8 @@ namespace bike.Controllers
                     }
 
                     // Chỉ cập nhật các trường được phép sửa
+                    existingThietHai.LoaiThietHai = thietHai.LoaiThietHai;
                     existingThietHai.MoTaThietHai = thietHai.MoTaThietHai;
-                    existingThietHai.ChiPhiXuLy = thietHai.ChiPhiXuLy;
                     existingThietHai.SoTienDenBu = thietHai.SoTienDenBu;
                     existingThietHai.TrangThaiXuLy = thietHai.TrangThaiXuLy;
                     existingThietHai.PhuongAnXuLy = thietHai.PhuongAnXuLy;
@@ -152,7 +173,6 @@ namespace bike.Controllers
             await PopulateViewData();
             return View(thietHai);
         }
-
         // GET: QuanLyThietHai/Delete/5 - Redirect to Index since we use modal now
         [PermissionAuthorize("CanDeleteThietHai")]
         public async Task<IActionResult> Delete(int? id)
@@ -166,7 +186,6 @@ namespace bike.Controllers
             TempData["InfoMessage"] = "Vui lòng sử dụng modal để xóa thiệt hại.";
             return RedirectToAction(nameof(Index));
         }
-
         // POST: QuanLyThietHai/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -175,7 +194,6 @@ namespace bike.Controllers
         {
             // Check if this is an AJAX request
             bool isAjaxRequest = Request.Headers["X-Requested-With"] == "XMLHttpRequest";
-            
             try
             {
                 var thietHai = await _context.ThietHai.FindAsync(id);
@@ -250,7 +268,6 @@ namespace bike.Controllers
                 trangThaiXuLy = thietHai.TrangThaiXuLy,
                 trangThaiClass = thietHai.TrangThaiClass,
                 phuongAnXuLy = thietHai.PhuongAnXuLy ?? "Chưa có",
-                chiPhiXuLy = thietHai.ChiPhiXuLy.ToString("N0") + "đ",
                 soTienDenBu = thietHai.SoTienDenBu.ToString("N0") + "đ",
                 soTienConLai = thietHai.SoTienConLai.ToString("N0") + "đ",
                 ngayHoanThanh = thietHai.NgayHoanThanh?.ToString("dd/MM/yyyy") ?? "Chưa hoàn thành",
@@ -288,12 +305,11 @@ namespace bike.Controllers
                     <td>
                         <span class='badge bg-{t.TrangThaiClass}'>{t.TrangThaiXuLy}</span>
                     </td>
-                    <td class='text-danger fw-bold'>{t.ChiPhiXuLy.ToString("N0")}đ</td>
                     <td class='text-success fw-bold'>{t.SoTienDenBu.ToString("N0")}đ</td>
                     <td class='text-center'>
-                        <a href='/QuanLyThietHai/Edit/{t.MaThietHai}' class='btn btn-warning btn-sm' title='Sửa'>
+                        <button type='button' class='btn btn-warning btn-sm' title='Sửa' onclick='showEditModal({t.MaThietHai})'>
                             <i class='bi bi-pencil-square'></i>
-                        </a>
+                        </button>
                         <button type='button' class='btn btn-info btn-sm' title='Chi tiết' onclick='showChiTietModal({t.MaThietHai})'>
                             <i class='bi bi-eye'></i>
                         </button>
@@ -307,7 +323,6 @@ namespace bike.Controllers
             {
                 rows = rows,
                 soLuong = thietHaiList.Count,
-                tongChiPhi = thietHaiList.Sum(t => t.ChiPhiXuLy),
                 tongDenBu = thietHaiList.Sum(t => t.SoTienDenBu)
             };
 
@@ -347,12 +362,11 @@ namespace bike.Controllers
                     <td>
                         <span class='badge bg-{t.TrangThaiClass}'>{t.TrangThaiXuLy}</span>
                     </td>
-                    <td class='text-danger fw-bold'>{t.ChiPhiXuLy.ToString("N0")}đ</td>
                     <td class='text-success fw-bold'>{t.SoTienDenBu.ToString("N0")}đ</td>
                     <td class='text-center'>
-                        <a href='/QuanLyThietHai/Edit/{t.MaThietHai}' class='btn btn-warning btn-sm' title='Sửa'>
+                        <button type='button' class='btn btn-warning btn-sm' title='Sửa' onclick='showEditModal({t.MaThietHai})'>
                             <i class='bi bi-pencil-square'></i>
-                        </a>
+                        </button>
                         <button type='button' class='btn btn-info btn-sm' title='Chi tiết' onclick='showChiTietModal({t.MaThietHai})'>
                             <i class='bi bi-eye'></i>
                         </button>
@@ -392,12 +406,11 @@ namespace bike.Controllers
                     <td>
                         <span class='badge bg-{t.TrangThaiClass}'>{t.TrangThaiXuLy}</span>
                     </td>
-                    <td class='text-danger fw-bold'>{t.ChiPhiXuLy.ToString("N0")}đ</td>
                     <td class='text-success fw-bold'>{t.SoTienDenBu.ToString("N0")}đ</td>
                     <td class='text-center'>
-                        <a href='/QuanLyThietHai/Edit/{t.MaThietHai}' class='btn btn-warning btn-sm' title='Sửa'>
+                        <button type='button' class='btn btn-warning btn-sm' title='Sửa' onclick='showEditModal({t.MaThietHai})'>
                             <i class='bi bi-pencil-square'></i>
-                        </a>
+                        </button>
                         <button type='button' class='btn btn-info btn-sm' title='Chi tiết' onclick='showChiTietModal({t.MaThietHai})'>
                             <i class='bi bi-eye'></i>
                         </button>

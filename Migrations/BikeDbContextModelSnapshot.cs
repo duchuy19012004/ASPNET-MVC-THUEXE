@@ -440,9 +440,6 @@ namespace bike.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaThietHai"));
 
-                    b.Property<decimal>("ChiPhiXuLy")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("GhiChu")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -465,7 +462,6 @@ namespace bike.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("MoTaThietHai")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -473,9 +469,6 @@ namespace bike.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("NgayHoanThanh")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("NgayPhatHien")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("NgayTao")
@@ -488,16 +481,8 @@ namespace bike.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("SoDienThoaiKhach")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
-
                     b.Property<decimal>("SoTienDenBu")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("TenKhachHang")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("TrangThaiXuLy")
                         .IsRequired()

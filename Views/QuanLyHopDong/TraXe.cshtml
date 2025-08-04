@@ -102,6 +102,15 @@
         margin-bottom: 20px;
     }
 
+    .early-return-notice {
+        background: #d1ecf1;
+        border: 1px solid #bee5eb;
+        color: #0c5460;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
     .form-disabled {
         pointer-events: none;
         opacity: 0.5;
@@ -131,7 +140,7 @@
         <h4 class="mb-3"><i class="bi bi-info-circle"></i> Thông tin hợp đồng</h4>
         <div class="contract-info">
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="info-row">
                         <span class="info-label">Khách hàng:</span>
                         <span class="info-value">@Model.HoTenKhach</span>
@@ -145,7 +154,21 @@
                         <span class="info-value">@Model.SoCCCD</span>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="info-row">
+                        <span class="info-label">Ngày nhận xe:</span>
+                        <span class="info-value">@Model.NgayNhanXe.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Ngày trả dự kiến:</span>
+                        <span class="info-value">@Model.NgayTraXeDuKien.ToString("dd/MM/yyyy")</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Tiền cọc:</span>
+                        <span class="info-value text-success">@Model.TienCoc.ToString("N0")đ</span>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     @if (hasChiTiet)
                     {
                         var chiTietDau = Model.ChiTietHopDong.First();
@@ -173,17 +196,25 @@
             </div>
         </div>
 
-        <!-- Cảnh báo trả trễ -->
+        <!-- Cảnh báo trả trễ/sớm -->
         @{
             var ngayTraDuKien = Model.NgayTraXeDuKien.Date;
             var ngayHienTai = DateTime.Now.Date;
             var soNgayTre = (ngayHienTai - ngayTraDuKien).Days;
+            var soNgaySom = (ngayTraDuKien - ngayHienTai).Days;
         }
         @if (soNgayTre > 0)
         {
             <div class="overdue-warning">
                 <i class="bi bi-exclamation-triangle"></i>
                 <strong>Lưu ý:</strong> Khách trả xe trễ @soNgayTre ngày so với hợp đồng!
+            </div>
+        }
+        else if (soNgaySom > 0)
+        {
+            <div class="early-return-notice">
+                <i class="bi bi-info-circle"></i>
+                <strong>Thông báo:</strong> Khách trả xe sớm @soNgaySom ngày so với hợp đồng.
             </div>
         }
 
@@ -203,17 +234,24 @@
             <h4 class="mb-3"><i class="bi bi-calendar-check"></i> Thông tin trả xe</h4>
 
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label">Ngày nhận xe</label>
                         <input type="date" class="form-control" value="@Model.NgayNhanXe.ToString("yyyy-MM-dd")" readonly />
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Ngày trả xe dự kiến</label>
+                        <input type="date" class="form-control" value="@Model.NgayTraXeDuKien.ToString("yyyy-MM-dd")" readonly />
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="mb-3">
                         <label class="form-label">Ngày trả xe thực tế <span class="text-danger">*</span></label>
                         <input type="date" name="ngayTraThucTe" class="form-control"
-                               value="@DateTime.Now.ToString("yyyy-MM-dd")" required onchange="calculateFinal()" />
+                               value="@(Model.NgayTraXeThucTe?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd"))" 
+                               min="@Model.NgayNhanXe.ToString("yyyy-MM-dd")" required onchange="calculateFinal()" />
                     </div>
                 </div>
             </div>
@@ -369,12 +407,23 @@
                 const ngayTra = new Date(ngayTraInput);
                 const giaThue = @(hasChiTiet && Model.ChiTietHopDong.Any() ? Model.ChiTietHopDong.First().GiaThueNgay : 0);
                 const phuPhi = parseFloat(document.querySelector('input[name="phuPhi"]').value) || 0;
-                
-                console.log('Calculate Final - ngayNhan:', ngayNhan, 'ngayTra:', ngayTra, 'giaThue:', giaThue);
 
-            if (ngayTra && ngayTra >= ngayNhan) {
+            if (ngayTra) {
+                // Kiểm tra ngày trả xe thực tế có hợp lệ không
+                if (ngayTra < ngayNhan) {
+                    document.getElementById('soNgayThue').innerHTML = '0 ngày';
+                    document.getElementById('tienThueXe').innerHTML = '0đ';
+                    document.getElementById('tongTienFinal').innerHTML = '0đ';
+                    return;
+                }
                 // Tính số ngày thuê
-                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
+                let soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
+
+                // Nếu số ngày <= 0 (cùng ngày hoặc trả sớm hơn) thì tính 1 ngày
+                if (soNgay <= 0) {
+                    soNgay = 1;
+                }
+                
                 const tienThue = soNgay * giaThue;
                 const tongTien = tienThue + phuPhi;
 
@@ -410,22 +459,33 @@
 
         // Khởi tạo khi load trang
         $(document).ready(function() {
-            console.log('Page loaded, vehicleData:', vehicleData);
-            console.log('hasChiTiet:', @hasChiTiet.ToString().ToLower());
-            
             // Khởi tạo format display cho phụ phí
             formatOtherFeeDisplay();
             
             calculateFinal();
             
+            // Thêm event listener cho input ngày trả xe thực tế để tính toán real-time
+            $('input[name="ngayTraThucTe"]').on('change input', function() {
+                calculateFinal();
+            });
+            
             // Validate form trước khi submit
             $('form').on('submit', function(e) {
-                console.log('Form submit triggered');
                 
                 // Kiểm tra có dữ liệu xe không
                 if (!@hasChiTiet.ToString().ToLower()) {
                     e.preventDefault();
                     alert('Không thể trả xe vì hợp đồng thiếu thông tin xe!');
+                    return false;
+                }
+                
+                // Kiểm tra ngày trả xe thực tế
+                const ngayTraThucTe = document.querySelector('input[name="ngayTraThucTe"]').value;
+                const ngayNhanXe = '@Model.NgayNhanXe.ToString("yyyy-MM-dd")';
+                
+                if (ngayTraThucTe < ngayNhanXe) {
+                    e.preventDefault();
+                    alert('Ngày trả xe thực tế không thể nhỏ hơn ngày nhận xe!');
                     return false;
                 }
                 

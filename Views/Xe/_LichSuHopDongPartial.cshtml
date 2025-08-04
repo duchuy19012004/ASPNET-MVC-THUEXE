@@ -1,8 +1,22 @@
 @model IEnumerable<bike.Models.ChiTietHopDong>
 @{
     var xe = ViewBag.Xe as bike.Models.Xe;
+    
+    // Helper function để format thời gian
+    string FormatDateTime(DateTime dateTime)
+    {
+        var dateStr = dateTime.ToString("dd/MM/yyyy");
+        var timeStr = dateTime.ToString("HH:mm");
+        
+        // Nếu thời gian là 00:00 thì chỉ hiển thị ngày
+        if (timeStr == "00:00")
+        {
+            return dateStr;
+        }
+        
+        return $"{dateStr} {timeStr}";
+    }
 }
-
 <!-- Thống kê -->
 <div class="stats-card">
     <div class="row">
@@ -24,7 +38,6 @@
         </div>
     </div>
 </div>
-
 <!-- Bảng danh sách -->
 <div class="card">
     <div class="card-header d-flex justify-content-between">
@@ -71,11 +84,11 @@
                                     }
                                 </td>
                                 <td>@ct.HopDong.SoDienThoai</td>
-                                <td>@ct.HopDong.NgayNhanXe.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@FormatDateTime(ct.HopDong.NgayNhanXe)</td>
                                 <td>
                                     @if (ct.HopDong.NgayTraXeThucTe.HasValue)
                                     {
-                                        @ct.HopDong.NgayTraXeThucTe.Value.ToString("dd/MM/yyyy HH:mm")
+                                        @FormatDateTime(ct.HopDong.NgayTraXeThucTe.Value)
                                     }
                                     else
                                     {

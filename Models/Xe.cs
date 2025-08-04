@@ -27,15 +27,16 @@ namespace bike.Models
         [Required(ErrorMessage = "Dòng xe là bắt buộc")]
         [Display(Name = "Dòng xe")]
         [StringLength(50)]
-        public string? DongXe { get; set; }
+        public string DongXe { get; set; }
 
         [Required(ErrorMessage = "Trạng thái là bắt buộc")]
         [Display(Name = "Trạng thái")]
         [StringLength(20)]
-        public string? TrangThai { get; set; } // Sẵn sàng, Đang thuê, Bảo trì, Hư hỏng, Mất, Đã xóa
+        public string TrangThai { get; set; } // Sẵn sàng, Đang thuê, Bảo trì, Hư hỏng, Mất, Đã xóa
 
+        [Required(ErrorMessage = "Giá thuê là bắt buộc")]
         [Display(Name = "Giá thuê/ngày")]
-        [Range(0, double.MaxValue, ErrorMessage = "Giá thuê phải lớn hơn 0")]
+        [Range(1, double.MaxValue, ErrorMessage = "Giá thuê phải lớn hơn 0")]
         public decimal GiaThue { get; set; }
         // Thông tin thiệt hại và đền bù
         [Display(Name = "Giá trị xe (đền bù)")]
@@ -55,6 +56,7 @@ namespace bike.Models
         public decimal ChiPhiSuaChua { get; set; } = 0;
 
         // Thêm thuộc tính khóa ngoại
+        [Required(ErrorMessage = "Loại xe là bắt buộc")]
         [Display(Name = "Mã loại xe")]
         public int MaLoaiXe { get; set; }
 

@@ -47,27 +47,17 @@ namespace bike.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Users",
+                name: "Roles",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
+                    MaVaiTro = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Ten = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    MatKhau = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    VaiTro = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    SoDienThoai = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Avatar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    DiaChi = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    NgayTao = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    NgayVaoLam = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    NgayNghiViec = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    MucLuong = table.Column<decimal>(type: "decimal(18,0)", nullable: true)
+                    TenVaiTro = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    MoTa = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.PrimaryKey("PK_Roles", x => x.MaVaiTro);
                 });
 
             migrationBuilder.CreateTable(
@@ -100,6 +90,36 @@ namespace bike.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Ten = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    MatKhau = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    VaiTro = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    SoDienThoai = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Avatar = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    DiaChi = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    NgayTao = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    NgayVaoLam = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NgayNghiViec = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    MucLuong = table.Column<decimal>(type: "decimal(18,0)", nullable: true),
+                    RoleMaVaiTro = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Users_Roles_RoleMaVaiTro",
+                        column: x => x.RoleMaVaiTro,
+                        principalTable: "Roles",
+                        principalColumn: "MaVaiTro");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ChiTieu",
                 columns: table => new
                 {
@@ -119,6 +139,30 @@ namespace bike.Migrations
                         column: x => x.MaXe,
                         principalTable: "Xe",
                         principalColumn: "MaXe");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HinhAnhXe",
+                columns: table => new
+                {
+                    MaHinhAnh = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    MaXe = table.Column<int>(type: "int", nullable: false),
+                    TenFile = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    MoTa = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    ThuTu = table.Column<int>(type: "int", nullable: false),
+                    LaAnhChinh = table.Column<bool>(type: "bit", nullable: false),
+                    NgayThem = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HinhAnhXe", x => x.MaHinhAnh);
+                    table.ForeignKey(
+                        name: "FK_HinhAnhXe_Xe_MaXe",
+                        column: x => x.MaXe,
+                        principalTable: "Xe",
+                        principalColumn: "MaXe",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -155,26 +199,82 @@ namespace bike.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "HinhAnhXe",
+                name: "UserPermissions",
                 columns: table => new
                 {
-                    MaHinhAnh = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MaXe = table.Column<int>(type: "int", nullable: false),
-                    TenFile = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
-                    MoTa = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    ThuTu = table.Column<int>(type: "int", nullable: false),
-                    LaAnhChinh = table.Column<bool>(type: "bit", nullable: false),
-                    NgayThem = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    CanManageXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageLoaiXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewLoaiXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateLoaiXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditLoaiXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteLoaiXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageHopDong = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewHopDong = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateHopDong = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditHopDong = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteHopDong = table.Column<bool>(type: "bit", nullable: false),
+                    CanPrintHopDong = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageHoaDon = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewHoaDon = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateHoaDon = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditHoaDon = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteHoaDon = table.Column<bool>(type: "bit", nullable: false),
+                    CanPrintHoaDon = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageNhanVien = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewNhanVien = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateNhanVien = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditNhanVien = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteNhanVien = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageUser = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewUser = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateUser = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditUser = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteUser = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageBanner = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewBanner = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateBanner = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditBanner = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteBanner = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageChiTieu = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewChiTieu = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateChiTieu = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditChiTieu = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteChiTieu = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageThietHai = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewThietHai = table.Column<bool>(type: "bit", nullable: false),
+                    CanCreateThietHai = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditThietHai = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteThietHai = table.Column<bool>(type: "bit", nullable: false),
+                    CanThanhToanThietHai = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewBaoCao = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewThongKe = table.Column<bool>(type: "bit", nullable: false),
+                    CanExportBaoCao = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageCart = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewCart = table.Column<bool>(type: "bit", nullable: false),
+                    CanCheckout = table.Column<bool>(type: "bit", nullable: false),
+                    CanDatCho = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewDatCho = table.Column<bool>(type: "bit", nullable: false),
+                    CanManageHinhAnhXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanViewHinhAnhXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanUploadHinhAnhXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanEditHinhAnhXe = table.Column<bool>(type: "bit", nullable: false),
+                    CanDeleteHinhAnhXe = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_HinhAnhXe", x => x.MaHinhAnh);
+                    table.PrimaryKey("PK_UserPermissions", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_HinhAnhXe_Xe_MaXe",
-                        column: x => x.MaXe,
-                        principalTable: "Xe",
-                        principalColumn: "MaXe",
+                        name: "FK_UserPermissions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -187,8 +287,8 @@ namespace bike.Migrations
                     MaDatCho = table.Column<int>(type: "int", nullable: true),
                     MaKhachHang = table.Column<int>(type: "int", nullable: true),
                     HoTenKhach = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    SoDienThoai = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    SoCCCD = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    SoDienThoai = table.Column<string>(type: "nvarchar(11)", maxLength: 11, nullable: false),
+                    SoCCCD = table.Column<string>(type: "nvarchar(12)", maxLength: 12, nullable: false),
                     DiaChi = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
                     NgayNhanXe = table.Column<DateTime>(type: "datetime2", nullable: false),
                     NgayTraXeDuKien = table.Column<DateTime>(type: "datetime2", nullable: false),
@@ -199,7 +299,11 @@ namespace bike.Migrations
                     GhiChu = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     NgayTao = table.Column<DateTime>(type: "datetime2", nullable: false),
                     TrangThai = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    MaNguoiTao = table.Column<int>(type: "int", nullable: true)
+                    MaNguoiTao = table.Column<int>(type: "int", nullable: true),
+                    CccdMatTruoc = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    CccdMatSau = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    BangLaiXe = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    GiayToKhac = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -289,56 +393,51 @@ namespace bike.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BaoCaoThietHai",
+                name: "ThietHai",
                 columns: table => new
                 {
-                    MaBaoCao = table.Column<int>(type: "int", nullable: false)
+                    MaThietHai = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MaChiTiet = table.Column<int>(type: "int", nullable: false),
+                    MaXe = table.Column<int>(type: "int", nullable: false),
+                    MaHopDong = table.Column<int>(type: "int", nullable: true),
                     LoaiThietHai = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    MoTaChiTiet = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
-                    NgayPhatHien = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ViTriThietHai = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    ChiPhiSuaChuaUocTinh = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    ChiPhiSuaChuaThucTe = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    PhiDenBuKhachHang = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    GiaTriXeTruocKhiHong = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    GiaTriXeSauKhiHong = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MoTaThietHai = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    NgayXayRa = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    MaKhachHang = table.Column<int>(type: "int", nullable: true),
                     TrangThaiXuLy = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    PhuongAnXuLy = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    SoTienDenBu = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    NgayHoanThanh = table.Column<DateTime>(type: "datetime2", nullable: true),
                     GhiChu = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    MaNguoiTao = table.Column<int>(type: "int", nullable: true),
+                    MaNguoiBaoCao = table.Column<int>(type: "int", nullable: true),
                     NgayTao = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    NgayCapNhat = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    SoTienDaThanhToan = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
-                    NgayThanhToan = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    GhiChuThanhToan = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    TrangThaiThanhToan = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false)
+                    NgayCapNhat = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BaoCaoThietHai", x => x.MaBaoCao);
+                    table.PrimaryKey("PK_ThietHai", x => x.MaThietHai);
                     table.ForeignKey(
-                        name: "FK_BaoCaoThietHai_ChiTietHopDong_MaChiTiet",
-                        column: x => x.MaChiTiet,
-                        principalTable: "ChiTietHopDong",
-                        principalColumn: "MaChiTiet",
-                        onDelete: ReferentialAction.Cascade);
+                        name: "FK_ThietHai_HopDong_MaHopDong",
+                        column: x => x.MaHopDong,
+                        principalTable: "HopDong",
+                        principalColumn: "MaHopDong");
                     table.ForeignKey(
-                        name: "FK_BaoCaoThietHai_Users_MaNguoiTao",
-                        column: x => x.MaNguoiTao,
+                        name: "FK_ThietHai_Users_MaKhachHang",
+                        column: x => x.MaKhachHang,
                         principalTable: "Users",
                         principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ThietHai_Users_MaNguoiBaoCao",
+                        column: x => x.MaNguoiBaoCao,
+                        principalTable: "Users",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_ThietHai_Xe_MaXe",
+                        column: x => x.MaXe,
+                        principalTable: "Xe",
+                        principalColumn: "MaXe",
+                        onDelete: ReferentialAction.Cascade);
                 });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BaoCaoThietHai_MaChiTiet",
-                table: "BaoCaoThietHai",
-                column: "MaChiTiet");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_BaoCaoThietHai_MaNguoiTao",
-                table: "BaoCaoThietHai",
-                column: "MaNguoiTao");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChiTietHopDong_MaHopDong",
@@ -402,6 +501,37 @@ namespace bike.Migrations
                 column: "MaNguoiTao");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ThietHai_MaHopDong",
+                table: "ThietHai",
+                column: "MaHopDong");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ThietHai_MaKhachHang",
+                table: "ThietHai",
+                column: "MaKhachHang");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ThietHai_MaNguoiBaoCao",
+                table: "ThietHai",
+                column: "MaNguoiBaoCao");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ThietHai_MaXe",
+                table: "ThietHai",
+                column: "MaXe");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPermissions_UserId",
+                table: "UserPermissions",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_RoleMaVaiTro",
+                table: "Users",
+                column: "RoleMaVaiTro");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Xe_MaLoaiXe",
                 table: "Xe",
                 column: "MaLoaiXe");
@@ -414,7 +544,7 @@ namespace bike.Migrations
                 name: "Banner");
 
             migrationBuilder.DropTable(
-                name: "BaoCaoThietHai");
+                name: "ChiTietHopDong");
 
             migrationBuilder.DropTable(
                 name: "ChiTieu");
@@ -426,7 +556,10 @@ namespace bike.Migrations
                 name: "HoaDon");
 
             migrationBuilder.DropTable(
-                name: "ChiTietHopDong");
+                name: "ThietHai");
+
+            migrationBuilder.DropTable(
+                name: "UserPermissions");
 
             migrationBuilder.DropTable(
                 name: "HopDong");
@@ -439,6 +572,9 @@ namespace bike.Migrations
 
             migrationBuilder.DropTable(
                 name: "Xe");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
 
             migrationBuilder.DropTable(
                 name: "LoaiXe");

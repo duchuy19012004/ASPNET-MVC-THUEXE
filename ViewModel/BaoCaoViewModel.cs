@@ -15,6 +15,7 @@ namespace bike.ViewModels
         // Thống kê tổng quan
         public int TongDonDatXe { get; set; }
         public decimal DoanhThuHomNay { get; set; }
+        public decimal DoanhThuGoc { get; set; } // Doanh thu gốc (chưa trừ chi tiêu và thiệt hại)
         public decimal TongChiTieu { get; set; } // Tổng chi tiêu
         public decimal TongThietHai { get; set; } // Tổng tiền thiệt hại
         public int XeDangChoThue { get; set; }
@@ -73,10 +74,12 @@ namespace bike.ViewModels
 
         public string ?TenKhach { get; set; }
         public string ?TenXe { get; set; }
+        public string ?BienSoXe { get; set; }
         public DateTime NgayDat { get; set; }
         public DateTime NgayTra { get; set; }
         public string ?TrangThai { get; set; }
         public decimal TongTien { get; set; }
+        public int SoNgayThue { get; set; }
     }
 
     // Class cho chart period

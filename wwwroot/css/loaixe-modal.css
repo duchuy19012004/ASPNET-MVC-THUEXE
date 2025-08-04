@@ -76,7 +76,6 @@
   gap: 8px;
 }
 
-.btn-edit,
 .btn-delete {
   padding: 6px 12px;
   border: none;
@@ -86,18 +85,6 @@
   font-weight: 500;
   text-decoration: none;
   transition: all 0.3s ease;
-}
-
-.btn-edit {
-  background: #28a745;
-  color: white;
-}
-
-.btn-edit:hover {
-  background: #218838;
-}
-
-.btn-delete {
   background: #dc3545;
   color: white;
 }
@@ -195,11 +182,94 @@
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
 
-.validation-error {
-  color: #dc3545;
+.loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.modal-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
   font-size: 12px;
-  margin-top: 4px;
-  display: block;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.modal-badge.danger {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.modal-badge.warning {
+  background-color: #fff3cd;
+  color: #856404;
+}
+
+.modal-badge.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.modal-badge.secondary {
+  background-color: #e2e3e5;
+  color: #383d41;
+}
+
+.modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-row:last-child {
+  border-bottom: none;
+}
+
+.modal-label {
+  font-weight: 600;
+  color: #495057;
+  min-width: 120px;
+}
+
+.modal-value {
+  color: #6c757d;
+  text-align: right;
+  flex: 1;
+}
+
+.modal-btn-primary {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.modal-btn-primary:hover {
+  background: #0056b3;
+}
+
+.modal-btn-primary:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
 }
 
 .modal-footer {

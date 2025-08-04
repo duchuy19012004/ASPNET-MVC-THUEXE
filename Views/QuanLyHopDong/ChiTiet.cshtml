@@ -469,7 +469,6 @@
                     </div>
                 </div>
             </div>
-
             <!-- Giấy tờ đính kèm -->
             @{
                 var hasDocuments = !string.IsNullOrEmpty(Model.CccdMatTruoc) || 
@@ -477,7 +476,7 @@
                                    !string.IsNullOrEmpty(Model.BangLaiXe) || 
                                    !string.IsNullOrEmpty(Model.GiayToKhac);
             }
-            
+    
             @if (hasDocuments)
             {
                 <div class="section-divider"></div>
@@ -498,7 +497,12 @@
                                     <div class="document-body">
                                         <div class="document-preview">
                                             <img src="~/uploads/hopdong/@Model.CccdMatTruoc" alt="CCCD mặt trước" 
-                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.CccdMatTruoc', 'CCCD/CMND - Mặt trước')" />
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.CccdMatTruoc', 'CCCD/CMND - Mặt trước')" 
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                            <div style="display: none; text-align: center; color: #dc3545; padding: 20px;">
+                                                <i class="bi bi-exclamation-triangle"></i> Không thể tải hình ảnh<br/>
+                                                <small>File: @Model.CccdMatTruoc</small>
+                                            </div>
                                         </div>
                                         <div class="document-actions">
                                             <a href="~/uploads/hopdong/@Model.CccdMatTruoc" target="_blank" class="btn btn-primary btn-sm">
@@ -523,7 +527,12 @@
                                     <div class="document-body">
                                         <div class="document-preview">
                                             <img src="~/uploads/hopdong/@Model.CccdMatSau" alt="CCCD mặt sau" 
-                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.CccdMatSau', 'CCCD/CMND - Mặt sau')" />
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.CccdMatSau', 'CCCD/CMND - Mặt sau')" 
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                            <div style="display: none; text-align: center; color: #dc3545; padding: 20px;">
+                                                <i class="bi bi-exclamation-triangle"></i> Không thể tải hình ảnh<br/>
+                                                <small>File: @Model.CccdMatSau</small>
+                                            </div>
                                         </div>
                                         <div class="document-actions">
                                             <a href="~/uploads/hopdong/@Model.CccdMatSau" target="_blank" class="btn btn-primary btn-sm">
@@ -548,7 +557,12 @@
                                     <div class="document-body">
                                         <div class="document-preview">
                                             <img src="~/uploads/hopdong/@Model.BangLaiXe" alt="Bằng lái xe" 
-                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.BangLaiXe', 'Bằng lái xe')" />
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.BangLaiXe', 'Bằng lái xe')" 
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                            <div style="display: none; text-align: center; color: #dc3545; padding: 20px;">
+                                                <i class="bi bi-exclamation-triangle"></i> Không thể tải hình ảnh<br/>
+                                                <small>File: @Model.BangLaiXe</small>
+                                            </div>
                                         </div>
                                         <div class="document-actions">
                                             <a href="~/uploads/hopdong/@Model.BangLaiXe" target="_blank" class="btn btn-primary btn-sm">
@@ -573,7 +587,12 @@
                                     <div class="document-body">
                                         <div class="document-preview">
                                             <img src="~/uploads/hopdong/@Model.GiayToKhac" alt="Giấy tờ khác" 
-                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.GiayToKhac', 'Giấy tờ khác')" />
+                                                 class="document-image" onclick="previewDocument('~/uploads/hopdong/@Model.GiayToKhac', 'Giấy tờ khác')" 
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+                                            <div style="display: none; text-align: center; color: #dc3545; padding: 20px;">
+                                                <i class="bi bi-exclamation-triangle"></i> Không thể tải hình ảnh<br/>
+                                                <small>File: @Model.GiayToKhac</small>
+                                            </div>
                                         </div>
                                         <div class="document-actions">
                                             <a href="~/uploads/hopdong/@Model.GiayToKhac" target="_blank" class="btn btn-primary btn-sm">
@@ -855,15 +874,8 @@
                     </div>
                 }
             </div>
-            <!-- Action buttons -->
-            <div class="action-section no-print">
-                @if (Context.Request.Query.ContainsKey("newlyCreated"))
-                {
-                    <div class="alert alert-info mb-3">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>Hợp đồng vừa được tạo thành công!</strong><br />                      
-                    </div>
-                }
+                         <!-- Action buttons -->
+             <div class="action-section no-print">
                 <a href="@Url.Action("InHopDongA4", new { id = Model.MaHopDong })" target="_blank" class="btn btn-print">
                     <i class="bi bi-printer"></i> In hợp đồng
                 </a>
@@ -1087,6 +1099,21 @@
         // Load thông tin khi trang load
         $(document).ready(function() {
             loadTongTienKhachDaTra();
+            
+            // Debug: Check image loading
+            $('.document-image').each(function() {
+                var img = $(this);
+                var src = img.attr('src');
+                console.log('Checking image:', src);
+                
+                img.on('error', function() {
+                    console.error('Failed to load image:', src);
+                });
+                
+                img.on('load', function() {
+                    console.log('Successfully loaded image:', src);
+                });
+            });
         });
     </script>
 }

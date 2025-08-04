@@ -55,12 +55,13 @@ namespace bike.Controllers
                 });
             }
 
-            // 1.1. Dữ liệu biểu đồ thiệt hại
+            // 1.1. Dữ liệu biểu đồ thiệt hại - chỉ tính những thiệt hại chưa được đền bù
             foreach (var period in chartPeriods)
             {
                 var thietHaiNgay = await _context.ThietHai
                     .Where(t => t.NgayXayRa.Date >= period.StartDate &&
-                               t.NgayXayRa.Date <= period.EndDate)
+                               t.NgayXayRa.Date <= period.EndDate &&
+                               t.TrangThaiXuLy != "Đã đền bù")
                     .SumAsync(t => t.SoTienDenBu);
 
                 viewModel.BieuDoThietHai.Add(new BieuDoItem
@@ -96,8 +97,6 @@ namespace bike.Controllers
                                u.VaiTro == "User")
                     .CountAsync();
 
-
-
                 viewModel.BieuDoKhachHangMoi.Add(new BieuDoItem
                 {
                     Label = period.Label,
@@ -123,8 +122,6 @@ namespace bike.Controllers
                 .Take(5)
                 .ToListAsync();
 
-
-
             viewModel.TopXeThueNhieu = topXe;
 
             // 5. Thống kê loại xe theo danh mục
@@ -139,8 +136,6 @@ namespace bike.Controllers
                 .OrderByDescending(x => x.Value)
                 .ToListAsync();
 
-
-
             viewModel.BieuDoLoaiXe = thongKeLoaiXe;
 
             // 5. Thống kê tổng quan
@@ -148,7 +143,7 @@ namespace bike.Controllers
             var startOfMonth = new DateTime(today.Year, today.Month, 1);
             var endOfMonth = startOfMonth.AddMonths(1).AddDays(-1);
 
-            // Doanh thu theo filter được chọn (chỉ tính hợp đồng hoàn thành)
+            // Doanh thu gốc theo filter được chọn (chỉ tính hợp đồng hoàn thành - chưa trừ gì cả)
             var doanhThuGross = await _context.HopDong
                 .Where(h => h.TrangThai == "Hoàn thành" && 
                            h.NgayTraXeThucTe.HasValue && 
@@ -161,13 +156,15 @@ namespace bike.Controllers
                             ct.NgayChi.Date <= chartPeriods.Last().EndDate)
                 .SumAsync(ct => ct.SoTien);
 
+            viewModel.DoanhThuGoc = doanhThuGross; // Lưu doanh thu gốc
             viewModel.TongChiTieu = chiTieu; // Lưu tổng chi tiêu
             viewModel.DoanhThuHomNay = Math.Max(0, doanhThuGross - chiTieu);
 
-            // Tổng tiền thiệt hại theo filter được chọn
+            // Tổng tiền thiệt hại theo filter được chọn - chỉ tính những thiệt hại chưa được đền bù
             viewModel.TongThietHai = await _context.ThietHai
                 .Where(t => t.NgayXayRa.Date >= chartPeriods.First().StartDate &&
-                           t.NgayXayRa.Date <= chartPeriods.Last().EndDate)
+                           t.NgayXayRa.Date <= chartPeriods.Last().EndDate &&
+                           t.TrangThaiXuLy != "Đã đền bù")
                 .SumAsync(t => t.SoTienDenBu);
 
             // Tổng đơn đặt theo filter được chọn
@@ -211,7 +208,32 @@ namespace bike.Controllers
 
             viewModel.BieuDoHopDongTrangThai = thongKeHopDongTheoTrangThai;
 
+            // 7. 10 đơn đặt gần đây
+            var donGanDay = await _context.DatCho
+                .Include(d => d.Xe)
+                .OrderByDescending(d => d.NgayDat)
+                .Take(10)
+                .Select(d => new DonDatGanDayItem
+                {
+                    TenKhach = d.HoTen,
+                    TenXe = d.Xe.TenXe,
+                    NgayDat = d.NgayDat,
+                    NgayTra = d.NgayTraXe,
+                    TrangThai = d.TrangThai,
+                    TongTien = d.TongTienDuKien
+                })
+                .ToListAsync();
+
+            viewModel.DonDatGanDay = donGanDay;
+
             return View(viewModel);
+        }
+
+        // GET: ThongKeBaoCao/BarChart - Hiển thị biểu đồ cột
+        [PermissionAuthorize("CanViewBaoCao")]
+        public async Task<IActionResult> BarChart(string chartFilter = "7days")
+        {
+            return View(new { ChartFilter = chartFilter ?? "7days" });
         }
 
         // GET: ThongKeBaoCao/GetChartData - Lấy dữ liệu charts theo filter
@@ -265,16 +287,12 @@ namespace bike.Controllers
                                    d.NgayDat <= period.EndDate)
                         .CountAsync();
 
-
-
                     // Khách hàng mới
                     var khachHangMoi = await _context.Users
                         .Where(u => u.NgayTao.Date >= period.StartDate &&
                                    u.NgayTao.Date <= period.EndDate && 
                                    u.VaiTro == "User")
                         .CountAsync();
-
-
 
                     donDatData.Add(donDat);
                     khachHangMoiData.Add(khachHangMoi);
@@ -350,6 +368,125 @@ namespace bike.Controllers
             }
         }
 
+        // GET: ThongKeBaoCao/GetBarChartData - Lấy dữ liệu biểu đồ cột (Doanh thu, Chi tiêu, Thiệt hại, Doanh thu thực tế)
+        [HttpGet]
+        [PermissionAuthorize("CanViewBaoCao")]
+        public async Task<IActionResult> GetBarChartData(string filter = "7days", DateTime? startDate = null, DateTime? endDate = null)
+        {
+            try
+            {
+                List<ChartPeriod> chartPeriods;
+                
+                // Nếu có startDate và endDate thì tạo periods theo khoảng thời gian tùy chọn
+                if (startDate.HasValue && endDate.HasValue)
+                {
+                    chartPeriods = GetCustomChartPeriods(startDate.Value, endDate.Value);
+                }
+                else
+                {
+                    chartPeriods = GetChartPeriods(filter);
+                }
+                
+                var labels = new List<string>();
+                var doanhThuGocData = new List<decimal>();
+                var doanhThuData = new List<decimal>();
+                var chiTieuData = new List<decimal>();
+                var thietHaiData = new List<decimal>();
+                var doanhThuThucTeData = new List<decimal>();
+
+                foreach (var period in chartPeriods)
+                {
+                    labels.Add(period.Label);
+
+                    // Doanh thu gốc (tổng tiền từ hợp đồng hoàn thành - không trừ gì cả)
+                    var doanhThuGoc = await _context.HopDong
+                        .Where(h => h.TrangThai == "Hoàn thành" && 
+                                   h.NgayTraXeThucTe.HasValue && 
+                                   h.NgayTraXeThucTe.Value.Date >= period.StartDate &&
+                                   h.NgayTraXeThucTe.Value.Date <= period.EndDate)
+                        .SumAsync(h => h.TongTien);
+
+                    // Chi tiêu (từ bảng ChiTieu)
+                    var chiTieu = await _context.ChiTieu
+                        .Where(ct => ct.NgayChi.Date >= period.StartDate &&
+                                    ct.NgayChi.Date <= period.EndDate)
+                        .SumAsync(ct => ct.SoTien);
+
+                    // Thiệt hại (từ bảng ThietHai) - chỉ tính những thiệt hại chưa được đền bù
+                    var thietHai = await _context.ThietHai
+                        .Where(t => t.NgayXayRa.Date >= period.StartDate &&
+                                   t.NgayXayRa.Date <= period.EndDate &&
+                                   t.TrangThaiXuLy != "Đã đền bù")
+                        .SumAsync(t => t.SoTienDenBu);
+
+                    // Doanh thu sau khi trừ chi tiêu (không trừ thiệt hại)
+                    var doanhThu = doanhThuGoc - chiTieu;
+
+                    // Doanh thu thực tế = Doanh thu gốc - Chi tiêu - Thiệt hại (chỉ những thiệt hại chưa đền bù)
+                    var doanhThuThucTe = doanhThuGoc - chiTieu - thietHai;
+
+                    doanhThuGocData.Add(doanhThuGoc);
+                    doanhThuData.Add(doanhThu);
+                    chiTieuData.Add(chiTieu);
+                    thietHaiData.Add(thietHai);
+                    doanhThuThucTeData.Add(doanhThuThucTe);
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    labels = labels,
+                    datasets = new[]
+                    {
+                        new
+                        {
+                            label = "Doanh thu gốc",
+                            data = doanhThuGocData,
+                            backgroundColor = "rgba(54, 162, 235, 0.8)",
+                            borderColor = "rgba(54, 162, 235, 1)",
+                            borderWidth = 1
+                        },
+                        new
+                        {
+                            label = "Doanh thu sau chi tiêu",
+                            data = doanhThuData,
+                            backgroundColor = "rgba(100, 149, 237, 0.8)",
+                            borderColor = "rgba(100, 149, 237, 1)",
+                            borderWidth = 1
+                        },
+                        new
+                        {
+                            label = "Chi tiêu",
+                            data = chiTieuData,
+                            backgroundColor = "rgba(255, 99, 132, 0.8)",
+                            borderColor = "rgba(255, 99, 132, 1)",
+                            borderWidth = 1
+                        },
+                        new
+                        {
+                            label = "Thiệt hại",
+                            data = thietHaiData,
+                            backgroundColor = "rgba(255, 159, 64, 0.8)",
+                            borderColor = "rgba(255, 159, 64, 1)",
+                            borderWidth = 1
+                        },
+                        new
+                        {
+                            label = "Doanh thu thực tế",
+                            data = doanhThuThucTeData,
+                            backgroundColor = "rgba(75, 192, 192, 0.8)",
+                            borderColor = "rgba(75, 192, 192, 1)",
+                            borderWidth = 1
+                        }
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         // GET: ThongKeBaoCao/GetStatistics - Lấy thống kê tổng quan theo filter
         [HttpGet]
         [PermissionAuthorize("CanViewBaoCao")]
@@ -359,7 +496,7 @@ namespace bike.Controllers
             {
                 var chartPeriods = GetChartPeriods(filter);
                 
-                // Doanh thu theo filter được chọn (chỉ tính hợp đồng hoàn thành)
+                // Doanh thu gốc theo filter được chọn (chỉ tính hợp đồng hoàn thành - chưa trừ gì cả)
                 var doanhThuGross = await _context.HopDong
                     .Where(h => h.TrangThai == "Hoàn thành" && 
                                h.NgayTraXeThucTe.HasValue && 
@@ -374,10 +511,11 @@ namespace bike.Controllers
 
                 var doanhThu = Math.Max(0, doanhThuGross - chiTieu);
 
-                // Tổng tiền thiệt hại theo filter được chọn
+                // Tổng tiền thiệt hại theo filter được chọn - chỉ tính những thiệt hại chưa được đền bù
                 var tongThietHai = await _context.ThietHai
                     .Where(t => t.NgayXayRa.Date >= chartPeriods.First().StartDate &&
-                               t.NgayXayRa.Date <= chartPeriods.Last().EndDate)
+                               t.NgayXayRa.Date <= chartPeriods.Last().EndDate &&
+                               t.TrangThaiXuLy != "Đã đền bù")
                     .SumAsync(t => t.SoTienDenBu);
 
                 // Tổng đơn đặt xe theo filter được chọn
@@ -410,6 +548,7 @@ namespace bike.Controllers
                 {
                     success = true,
                     doanhThu = doanhThu,
+                    doanhThuGoc = doanhThuGross,
                     tongChiTieu = chiTieu,
                     tongThietHai = tongThietHai,
                     tongDonDat = tongDonDat,
@@ -423,6 +562,67 @@ namespace bike.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        // Helper method để lấy periods cho chart theo khoảng thời gian tùy chọn
+        private List<ChartPeriod> GetCustomChartPeriods(DateTime startDate, DateTime endDate)
+        {
+            var periods = new List<ChartPeriod>();
+            var currentDate = startDate.Date;
+            var end = endDate.Date;
+            
+            // Nếu khoảng thời gian <= 31 ngày thì hiển thị theo ngày
+            if ((end - currentDate).Days <= 31)
+            {
+                while (currentDate <= end)
+                {
+                    periods.Add(new ChartPeriod
+                    {
+                        StartDate = currentDate,
+                        EndDate = currentDate,
+                        Label = currentDate.ToString("dd/MM")
+                    });
+                    currentDate = currentDate.AddDays(1);
+                }
+            }
+            // Nếu khoảng thời gian > 31 ngày và <= 365 ngày thì hiển thị theo tuần
+            else if ((end - currentDate).Days <= 365)
+            {
+                var weekStart = currentDate.AddDays(-(int)currentDate.DayOfWeek);
+                while (weekStart <= end)
+                {
+                    var weekEnd = weekStart.AddDays(6);
+                    if (weekEnd > end) weekEnd = end;
+                    
+                    periods.Add(new ChartPeriod
+                    {
+                        StartDate = weekStart,
+                        EndDate = weekEnd,
+                        Label = weekStart.ToString("dd/MM") + " - " + weekEnd.ToString("dd/MM")
+                    });
+                    weekStart = weekStart.AddDays(7);
+                }
+            }
+            // Nếu khoảng thời gian > 365 ngày thì hiển thị theo tháng
+            else
+            {
+                var monthStart = new DateTime(currentDate.Year, currentDate.Month, 1);
+                while (monthStart <= end)
+                {
+                    var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+                    if (monthEnd > end) monthEnd = end;
+                    
+                    periods.Add(new ChartPeriod
+                    {
+                        StartDate = monthStart,
+                        EndDate = monthEnd,
+                        Label = monthStart.ToString("MM/yyyy")
+                    });
+                    monthStart = monthStart.AddMonths(1);
+                }
+            }
+            
+            return periods;
         }
 
         // Helper method để lấy periods cho chart theo filter

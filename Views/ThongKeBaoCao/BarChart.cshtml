@@ -1,0 +1,641 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Biểu Đồ Cột - Thống Kê Tài Chính Chi Tiết";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        padding: 30px;
+        margin: 20px 0;
+    }
+
+    .chart-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f8f9fa;
+    }
+
+    .chart-title {
+        color: #2c3e50;
+        font-size: 28px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .chart-subtitle {
+        color: #7f8c8d;
+        font-size: 16px;
+    }
+
+    .filter-section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+    }
+
+    .filter-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .filter-btn {
+        padding: 10px 20px;
+        border: 2px solid #3498db;
+        background: white;
+        color: #3498db;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+        background: #3498db;
+        color: white;
+    }
+
+    .custom-date-section {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        justify-content: center;
+        margin-top: 15px;
+        padding: 15px;
+        background: #e8f4fd;
+        border-radius: 10px;
+        border: 1px solid #b3d9ff;
+    }
+
+    .date-input-group {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .date-input-group label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    .date-input-group input[type="date"] {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+    .apply-date-btn {
+        padding: 8px 20px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+
+    .apply-date-btn:hover {
+        background: #229954;
+    }
+
+    .apply-date-btn:disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
+
+    .chart-wrapper {
+        position: relative;
+        height: 500px;
+        margin: 20px 0;
+    }
+
+    .legend {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+
+    .legend-item:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .legend-item.hidden {
+        opacity: 0.4;
+        text-decoration: line-through;
+    }
+
+    .legend-item.hidden .legend-color {
+        opacity: 0.4;
+    }
+
+    .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: 4px;
+    }
+
+    .stats-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-card.chi-tieu {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-card.thiet-hai {
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+        color: #333;
+    }
+
+    .stat-card.doanh-thu-sau-chi-tieu {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .stat-card.doanh-thu-thuc-te {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #333;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 50px;
+        color: #7f8c8d;
+    }
+
+    .error-message {
+        background: #fee;
+        color: #c33;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+    .current-period-info {
+        background: #e8f5e8;
+        border: 1px solid #4caf50;
+        color: #2e7d32;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin: 15px 0;
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .current-period-info i {
+        margin-right: 8px;
+    }
+
+    .legend-controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-top: 15px;
+        align-items: center;
+    }
+
+    .reset-legend-btn {
+        padding: 8px 16px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: background 0.3s ease;
+    }
+
+    .reset-legend-btn:hover {
+        background: #5a6268;
+    }
+</style>
+
+<div class="chart-container">
+    <div class="chart-header">
+        <h1 class="chart-title">
+            <i class="bi bi-bar-chart-fill"></i> Biểu Đồ Cột - Thống Kê Tài Chính Chi Tiết
+        </h1>
+        <p class="chart-subtitle">
+            Phân tích doanh thu gốc, doanh thu sau chi tiêu, chi tiêu, thiệt hại và lợi nhuận thực tế theo thời gian
+        </p>
+    </div>
+
+    <div class="filter-section">
+        <h5 class="mb-3 text-center">
+            <i class="bi bi-calendar-range"></i> Chọn khoảng thời gian
+        </h5>
+        <div class="filter-buttons">
+            <button class="filter-btn" data-filter="today">Hôm nay</button>
+            <button class="filter-btn" data-filter="7days">7 ngày qua</button>
+            <button class="filter-btn" data-filter="week">Tuần này</button>
+            <button class="filter-btn" data-filter="month">30 ngày qua</button>
+            <button class="filter-btn" data-filter="year">12 tháng qua</button>
+        </div>
+        
+        <div class="custom-date-section">
+            <div class="date-input-group">
+                <label for="startDate">Từ ngày:</label>
+                <input type="date" id="startDate" name="startDate" />
+            </div>
+            <div class="date-input-group">
+                <label for="endDate">Đến ngày:</label>
+                <input type="date" id="endDate" name="endDate" />
+            </div>
+            <button type="button" class="apply-date-btn" id="applyCustomDate">
+                <i class="bi bi-check-circle"></i> Áp dụng
+            </button>
+        </div>
+    </div>
+
+    <div id="currentPeriodInfo" class="current-period-info" style="display: none;">
+        <i class="bi bi-calendar-check"></i> <span id="periodInfoText"></span>
+    </div>
+
+    <div class="chart-wrapper">
+        <canvas id="barChart"></canvas>
+        <div id="loading" class="loading">
+            <i class="bi bi-hourglass-split"></i> Đang tải dữ liệu...
+        </div>
+        <div id="error" class="error-message" style="display: none;">
+            <i class="bi bi-exclamation-triangle"></i> Có lỗi xảy ra khi tải dữ liệu
+        </div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item" data-dataset="0">
+            <div class="legend-color" style="background-color: rgba(54, 162, 235, 0.8);"></div>
+            <span>Doanh thu gốc</span>
+        </div>
+        <div class="legend-item" data-dataset="1">
+            <div class="legend-color" style="background-color: rgba(100, 149, 237, 0.8);"></div>
+            <span>Doanh thu sau chi tiêu</span>
+        </div>
+        <div class="legend-item" data-dataset="2">
+            <div class="legend-color" style="background-color: rgba(255, 99, 132, 0.8);"></div>
+            <span>Chi tiêu</span>
+        </div>
+        <div class="legend-item" data-dataset="3">
+            <div class="legend-color" style="background-color: rgba(255, 159, 64, 0.8);"></div>
+            <span>Thiệt hại</span>
+        </div>
+        <div class="legend-item" data-dataset="4">
+            <div class="legend-color" style="background-color: rgba(75, 192, 192, 0.8);"></div>
+            <span>Doanh thu thực tế</span>
+        </div>
+    </div>
+
+    <div class="legend-controls">
+        <button type="button" class="reset-legend-btn" id="resetLegend">
+            <i class="bi bi-arrow-clockwise"></i> Hiển thị tất cả
+        </button>
+    </div>
+
+    <div class="stats-summary" id="statsSummary">
+        <!-- Sẽ được cập nhật bằng JavaScript -->
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let barChart = null;
+        let currentFilter = '7days';
+        let customStartDate = null;
+        let customEndDate = null;
+        let hiddenDatasets = new Set(); // Lưu trữ các dataset đã bị ẩn
+
+        // Khởi tạo khi trang load
+        $(document).ready(function() {
+            // Set active filter button
+            $('.filter-btn[data-filter="' + currentFilter + '"]').addClass('active');
+            
+            // Set default date range (7 days ago to today)
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            
+            $('#startDate').val(sevenDaysAgo.toISOString().split('T')[0]);
+            $('#endDate').val(today.toISOString().split('T')[0]);
+            
+            // Load chart data
+            updatePeriodInfo(currentFilter);
+            loadChartData(currentFilter);
+            
+            // Event listeners cho filter buttons
+            $('.filter-btn').on('click', function() {
+                const filter = $(this).data('filter');
+                $('.filter-btn').removeClass('active');
+                $(this).addClass('active');
+                currentFilter = filter;
+                customStartDate = null;
+                customEndDate = null;
+                updatePeriodInfo(filter);
+                loadChartData(filter);
+            });
+            
+            // Event listener cho custom date button
+            $('#applyCustomDate').on('click', function() {
+                const startDate = $('#startDate').val();
+                const endDate = $('#endDate').val();
+                
+                if (!startDate || !endDate) {
+                    alert('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc!');
+                    return;
+                }
+                
+                if (new Date(startDate) > new Date(endDate)) {
+                    alert('Ngày bắt đầu không thể lớn hơn ngày kết thúc!');
+                    return;
+                }
+                
+                // Remove active state from filter buttons
+                $('.filter-btn').removeClass('active');
+                currentFilter = 'custom';
+                customStartDate = startDate;
+                customEndDate = endDate;
+                updatePeriodInfo('custom', startDate, endDate);
+                loadChartData('custom', startDate, endDate);
+            });
+            
+            // Event listener cho legend items để ẩn/hiện datasets
+            $('.legend-item').on('click', function() {
+                const datasetIndex = parseInt($(this).data('dataset'));
+                toggleDataset(datasetIndex);
+            });
+            
+            // Event listener cho nút reset legend
+            $('#resetLegend').on('click', function() {
+                resetAllDatasets();
+            });
+        });
+
+        function updatePeriodInfo(filter, startDate = null, endDate = null) {
+            let periodText = '';
+            
+            switch(filter) {
+                case 'today':
+                    periodText = 'Hôm nay (' + new Date().toLocaleDateString('vi-VN') + ')';
+                    break;
+                case '7days':
+                    periodText = '7 ngày qua';
+                    break;
+                case 'week':
+                    periodText = 'Tuần này';
+                    break;
+                case 'month':
+                    periodText = '30 ngày qua';
+                    break;
+                case 'year':
+                    periodText = '12 tháng qua';
+                    break;
+                case 'custom':
+                    if (startDate && endDate) {
+                        const start = new Date(startDate).toLocaleDateString('vi-VN');
+                        const end = new Date(endDate).toLocaleDateString('vi-VN');
+                        periodText = 'Từ ' + start + ' đến ' + end;
+                    }
+                    break;
+            }
+            
+            if (periodText) {
+                $('#periodInfoText').text(periodText);
+                $('#currentPeriodInfo').show();
+            } else {
+                $('#currentPeriodInfo').hide();
+            }
+        }
+
+        function loadChartData(filter, startDate = null, endDate = null) {
+            // Hiển thị loading
+            $('#loading').show();
+            $('#error').hide();
+            if (barChart) {
+                barChart.destroy();
+            }
+
+            var data = { filter: filter };
+            if (startDate && endDate) {
+                data.startDate = startDate;
+                data.endDate = endDate;
+            }
+
+            $.ajax({
+                url: '@Url.Action("GetBarChartData", "ThongKeBaoCao")',
+                type: 'GET',
+                data: data,
+                success: function(response) {
+                    $('#loading').hide();
+                    
+                    if (response.success) {
+                        createBarChart(response);
+                        updateStatsSummary(response);
+                    } else {
+                        $('#error').show().text('Lỗi: ' + response.message);
+                    }
+                },
+                error: function() {
+                    $('#loading').hide();
+                    $('#error').show().text('Có lỗi xảy ra khi tải dữ liệu');
+                }
+            });
+        }
+
+        function toggleDataset(datasetIndex) {
+            if (hiddenDatasets.has(datasetIndex)) {
+                hiddenDatasets.delete(datasetIndex);
+                $(`.legend-item[data-dataset="${datasetIndex}"]`).removeClass('hidden');
+            } else {
+                hiddenDatasets.add(datasetIndex);
+                $(`.legend-item[data-dataset="${datasetIndex}"]`).addClass('hidden');
+            }
+            
+            // Cập nhật chart nếu đã có dữ liệu
+            if (barChart) {
+                updateChartVisibility();
+            }
+        }
+
+        function updateChartVisibility() {
+            if (!barChart) return;
+            
+            barChart.data.datasets.forEach((dataset, index) => {
+                dataset.hidden = hiddenDatasets.has(index);
+            });
+            
+            barChart.update();
+        }
+
+        function resetAllDatasets() {
+            hiddenDatasets.clear();
+            $('.legend-item').removeClass('hidden');
+            
+            if (barChart) {
+                updateChartVisibility();
+            }
+        }
+
+        function createBarChart(data) {
+            const ctx = document.getElementById('barChart').getContext('2d');
+            
+            // Áp dụng trạng thái ẩn/hiện cho datasets
+            data.datasets.forEach((dataset, index) => {
+                dataset.hidden = hiddenDatasets.has(index);
+            });
+            
+            barChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: data.datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false // Ẩn legend vì đã có legend riêng
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + 
+                                           new Intl.NumberFormat('vi-VN', {
+                                               style: 'currency',
+                                               currency: 'VND'
+                                           }).format(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Thời gian'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Số tiền (VNĐ)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return new Intl.NumberFormat('vi-VN', {
+                                        style: 'currency',
+                                        currency: 'VND',
+                                        minimumFractionDigits: 0
+                                    }).format(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateStatsSummary(data) {
+            // Tính tổng các giá trị
+            const totals = {
+                doanhThuGoc: 0,
+                doanhThuSauChiTieu: 0,
+                chiTieu: 0,
+                thietHai: 0,
+                doanhThuThucTe: 0
+            };
+
+            data.datasets.forEach((dataset, index) => {
+                const sum = dataset.data.reduce((a, b) => a + b, 0);
+                switch(index) {
+                    case 0: totals.doanhThuGoc = sum; break;
+                    case 1: totals.doanhThuSauChiTieu = sum; break;
+                    case 2: totals.chiTieu = sum; break;
+                    case 3: totals.thietHai = sum; break;
+                    case 4: totals.doanhThuThucTe = sum; break;
+                }
+            });
+
+            // Format số tiền
+            const formatCurrency = (amount) => {
+                return new Intl.NumberFormat('vi-VN', {
+                    style: 'currency',
+                    currency: 'VND',
+                    minimumFractionDigits: 0
+                }).format(amount);
+            };
+
+            // Cập nhật HTML
+            $('#statsSummary').html(`
+                <div class="stat-card">
+                    <div class="stat-value">${formatCurrency(totals.doanhThuGoc)}</div>
+                    <div class="stat-label">Doanh thu gốc</div>
+                </div>
+                <div class="stat-card doanh-thu-sau-chi-tieu">
+                    <div class="stat-value">${formatCurrency(totals.doanhThuSauChiTieu)}</div>
+                    <div class="stat-label">Doanh thu sau chi tiêu</div>
+                </div>
+                <div class="stat-card chi-tieu">
+                    <div class="stat-value">${formatCurrency(totals.chiTieu)}</div>
+                    <div class="stat-label">Tổng chi tiêu</div>
+                </div>
+                <div class="stat-card thiet-hai">
+                    <div class="stat-value">${formatCurrency(totals.thietHai)}</div>
+                    <div class="stat-label">Tổng thiệt hại</div>
+                </div>
+                <div class="stat-card doanh-thu-thuc-te">
+                    <div class="stat-value">${formatCurrency(totals.doanhThuThucTe)}</div>
+                    <div class="stat-label">Doanh thu thực tế</div>
+                </div>
+            `);
+        }
+    </script>
+} 

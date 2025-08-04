@@ -256,32 +256,6 @@ namespace bike.Controllers
 
             return View(xe);
         }
-
-        // GET: Xe/DetailsModal/5
-        [PermissionAuthorize("CanViewXe")]
-        public async Task<IActionResult> DetailsModal(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var xe = await _context.Xe
-                .Include(x => x.LoaiXe)
-                .Include(x => x.ChiTieu)
-                .Include(x => x.HinhAnhXes)
-                .Include(x => x.ChiTietHopDong)
-                    .ThenInclude(ct => ct.HopDong)
-                .FirstOrDefaultAsync(x => x.MaXe == id);
-
-            if (xe == null)
-            {
-                return NotFound();
-            }
-
-            return PartialView("_CustomDetailsModal", xe);
-        }
-
         // GET: Xe/Delete/5
         [PermissionAuthorize("CanDeleteXe")]
         public async Task<IActionResult> Delete(int? id)
@@ -433,15 +407,13 @@ namespace bike.Controllers
         public async Task<IActionResult> KiemTraBienSo(string bienSoXe)
         {
             if (string.IsNullOrEmpty(bienSoXe))
-                return Json(new { isValid = false, message = "Biển số xe không được để trống" });
-
+                return Json(false);
             var existingXe = await _context.Xe.FirstOrDefaultAsync(x => x.BienSoXe == bienSoXe);
             if (existingXe != null)
             {
-                return Json(new { isValid = false, message = "Biển số xe đã tồn tại trong hệ thống" });
+                return Json("Biển số xe đã tồn tại trong hệ thống");
             }
-
-            return Json(new { isValid = true, message = "Biển số xe hợp lệ" });
+            return Json(true);
         }
 
         // GET: Xe/FilterXe
@@ -457,6 +429,106 @@ namespace bike.Controllers
             }
 
             return View("Index", xeList);
+        }
+
+        // GET: Xe/GetXeDetails
+        [HttpGet]
+        [PermissionAuthorize("CanViewXe")]
+        public async Task<IActionResult> GetXeDetails(int id)
+        {
+            var xe = await _context.Xe
+                .Include(x => x.LoaiXe)
+                .Include(x => x.ChiTieu)
+                .Include(x => x.HinhAnhXes)
+                .Include(x => x.ChiTietHopDong)
+                    .ThenInclude(ct => ct.HopDong)
+                .FirstOrDefaultAsync(x => x.MaXe == id);
+
+            if (xe == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy xe" });
+            }
+
+            // Tính toán thống kê
+            var tongChiPhi = xe.ChiTieu?.Sum(c => c.SoTien) ?? 0;
+            var soHopDong = xe.ChiTietHopDong?.Count ?? 0;
+            var soHinhAnh = xe.HinhAnhXes?.Count ?? 0;
+
+            var xeData = new
+            {
+                success = true,
+                xe = new
+                {
+                    maXe = xe.MaXe,
+                    tenXe = xe.TenXe,
+                    bienSoXe = xe.BienSoXe,
+                    hangXe = xe.HangXe,
+                    dongXe = xe.DongXe,
+                    trangThai = xe.TrangThai,
+                    giaThue = xe.GiaThue,
+                    giaTriXe = xe.GiaTriXe,
+                    ngayGapSuCo = xe.NgayGapSuCo,
+                    moTaThietHai = xe.MoTaThietHai,
+                    chiPhiSuaChua = xe.ChiPhiSuaChua,
+                    loaiXe = xe.LoaiXe?.TenLoaiXe,
+                    hinhAnhHienThi = xe.HinhAnhHienThi,
+                    tongChiPhi = tongChiPhi,
+                    soHopDong = soHopDong,
+                    soHinhAnh = soHinhAnh
+                }
+            };
+
+            return Json(xeData);
+        }
+
+        [HttpGet]
+        [PermissionAuthorize("CanViewXe")]
+        public async Task<IActionResult> GetXeLichSuHopDong(int id)
+        {
+            var xe = await _context.Xe
+                .Include(x => x.ChiTietHopDong)
+                    .ThenInclude(ct => ct.HopDong)
+                .Include(x => x.ChiTietHopDong)
+                    .ThenInclude(ct => ct.HopDong.HoaDon)
+                .FirstOrDefaultAsync(x => x.MaXe == id);
+
+            if (xe == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy xe" });
+            }
+
+            var lichSuHopDong = xe.ChiTietHopDong
+                .OrderByDescending(ct => ct.HopDong.NgayNhanXe)
+                .Select(ct => new
+                {
+                    maHopDong = ct.HopDong.MaHopDong,
+                    hoTenKhach = ct.HopDong.HoTenKhach,
+                    soCCCD = ct.HopDong.SoCCCD,
+                    soDienThoai = ct.HopDong.SoDienThoai,
+                    ngayNhanXe = ct.HopDong.NgayNhanXe,
+                    ngayTraXeThucTe = ct.HopDong.NgayTraXeThucTe,
+                    thanhTienTinhToan = ct.ThanhTienTinhToan,
+                    coHoaDon = ct.HopDong.HoaDon != null,
+                    maHoaDon = ct.HopDong.HoaDon?.MaHoaDon
+                })
+                .ToList();
+
+            var thongKe = new
+            {
+                tongHopDong = lichSuHopDong.Count,
+                daHoanThanh = lichSuHopDong.Count(x => x.ngayTraXeThucTe.HasValue),
+                dangThue = lichSuHopDong.Count(x => !x.ngayTraXeThucTe.HasValue),
+                tongDoanhThu = lichSuHopDong.Sum(x => x.thanhTienTinhToan)
+            };
+
+            var result = new
+            {
+                success = true,
+                lichSuHopDong = lichSuHopDong,
+                thongKe = thongKe
+            };
+
+            return Json(result);
         }
     }
 }

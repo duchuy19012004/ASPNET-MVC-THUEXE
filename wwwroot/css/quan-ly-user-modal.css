@@ -12,20 +12,7 @@
   justify-content: center;
   transition: opacity 0.2s;
 }
-.custom-modal {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 1051;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
+
 .custom-modal-content {
   background: #fff;
   border-radius: 20px;
@@ -36,6 +23,7 @@
   padding: 0 0 2rem 0;
   animation: fadeInModal 0.25s;
 }
+
 .custom-modal-header {
   display: flex;
   justify-content: space-between;
@@ -49,9 +37,11 @@
   color: #fff;
   letter-spacing: 0.5px;
 }
+
 .custom-modal-body {
   padding: 2rem;
 }
+
 .close-btn {
   background: none;
   border: none;
@@ -61,30 +51,37 @@
   margin-left: 1rem;
   transition: color 0.2s;
 }
+
 .close-btn:hover {
   color: #ff4d4f;
 }
+
 .custom-modal form .form-label {
   font-weight: 600;
 }
+
 .custom-modal form .form-control,
 .custom-modal form .form-select {
   border-radius: 10px;
   padding: 0.75rem 1rem;
   font-size: 1rem;
 }
+
 .custom-modal .d-flex.gap-2 > * {
   min-width: 120px;
 }
+
 .hidden {
   display: none !important;
 }
+
 .custom-modal.show,
 .modal-overlay.show {
   display: flex !important;
   pointer-events: auto;
   opacity: 1;
 }
+
 @keyframes fadeInModal {
   from {
     opacity: 0;
@@ -95,6 +92,7 @@
     transform: none;
   }
 }
+
 @media (max-width: 600px) {
   .custom-modal-content {
     min-width: 90vw;

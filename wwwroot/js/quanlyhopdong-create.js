@@ -2,8 +2,6 @@ var selectedVehicles = [];
 var totalDailyRate = 0;
 var allVehicles = [];
 var filteredVehicles = [];
-
-// This block ensures allVehicles is initialized from a global variable set in the view
 $(document).ready(function () {
   // Expect window.XeList to be set in the view as a global JS variable
   if (window.XeList) {
@@ -495,9 +493,22 @@ function setupEventHandlers() {
       return false;
     }
 
-    // Hiển thị modal xác nhận
-    showConfirmModal(selectedVehicles.length);
-    return false; // Ngăn form submit ngay lập tức
+    // Check if there are any file uploads
+    var hasFileUploads =
+      document.getElementById("cccdMatTruoc").files.length > 0 ||
+      document.getElementById("cccdMatSau").files.length > 0 ||
+      document.getElementById("bangLaiXe").files.length > 0 ||
+      document.getElementById("giayToKhac").files.length > 0;
+
+    if (hasFileUploads) {
+      // For file uploads, use regular form submission instead of AJAX
+      // The form will submit normally and the controller will handle it
+      return true; // Allow form to submit normally
+    } else {
+      // Hiển thị modal xác nhận
+      showConfirmModal(selectedVehicles.length);
+      return false; // Ngăn form submit ngay lập tức
+    }
   });
 }
 
@@ -1186,6 +1197,27 @@ function confirmCreateContract() {
   formData.append("PhuPhi", document.getElementById("PhuPhi").value);
   formData.append("GhiChu", document.getElementById("GhiChu").value);
   formData.append("TongTien", document.getElementById("TongTienInput").value);
+
+  // Add file uploads
+  var cccdMatTruocFile = document.getElementById("cccdMatTruoc").files[0];
+  if (cccdMatTruocFile) {
+    formData.append("cccdMatTruoc", cccdMatTruocFile);
+  }
+
+  var cccdMatSauFile = document.getElementById("cccdMatSau").files[0];
+  if (cccdMatSauFile) {
+    formData.append("cccdMatSau", cccdMatSauFile);
+  }
+
+  var bangLaiXeFile = document.getElementById("bangLaiXe").files[0];
+  if (bangLaiXeFile) {
+    formData.append("bangLaiXe", bangLaiXeFile);
+  }
+
+  var giayToKhacFile = document.getElementById("giayToKhac").files[0];
+  if (giayToKhacFile) {
+    formData.append("giayToKhac", giayToKhacFile);
+  }
 
   console.log("DEBUG: Form fields added to FormData");
 

@@ -496,6 +496,10 @@ namespace bike.Controllers
                         return View(hopDong);
                     }
 
+                    // Đảm bảo HopDong chính lưu đúng ngày từ DatCho
+                    hopDong.NgayNhanXe = datCho.NgayNhanXe;
+                    hopDong.NgayTraXeDuKien = datCho.NgayTraXe;
+
                     // Tính toán chi tiết hợp đồng từ DatCho
                     var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days;
                     var tienThueXe = datCho.Xe.GiaThue * soNgay;
@@ -511,8 +515,8 @@ namespace bike.Controllers
                         MaHopDong = hopDong.MaHopDong,
                         MaXe = datCho.MaXe,
                         GiaThueNgay = datCho.Xe.GiaThue,
-                        NgayNhanXe = hopDong.NgayNhanXe,
-                        NgayTraXeDuKien = hopDong.NgayTraXeDuKien,
+                        NgayNhanXe = datCho.NgayNhanXe, // Lấy từ DatCho thay vì HopDong
+                        NgayTraXeDuKien = datCho.NgayTraXe, // Lấy từ DatCho thay vì HopDong
                         SoNgayThue = soNgay,
                         ThanhTien = tienThueXe,
                         TrangThaiXe = "Đang thuê",
@@ -579,6 +583,7 @@ namespace bike.Controllers
                 .Include(h => h.DatCho)
                 .Include(h => h.HoaDon) 
                 .Include(h => h.NguoiTao)
+                .Include(h => h.KhachHang)
                 .FirstOrDefaultAsync(h => h.MaHopDong == id);
 
             if (hopDong == null)
@@ -586,7 +591,48 @@ namespace bike.Controllers
                 return NotFound();
             }
 
+            // Debug: Log document information
+            Console.WriteLine($"HopDong {hopDong.MaHopDong} document info:");
+            Console.WriteLine($"CccdMatTruoc: {hopDong.CccdMatTruoc}");
+            Console.WriteLine($"CccdMatSau: {hopDong.CccdMatSau}");
+            Console.WriteLine($"BangLaiXe: {hopDong.BangLaiXe}");
+            Console.WriteLine($"GiayToKhac: {hopDong.GiayToKhac}");
+
             return View(hopDong);
+        }
+
+        // GET: QuanLyHopDong/DebugDocuments/5 - Debug document information
+        [HttpGet]
+        public async Task<IActionResult> DebugDocuments(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var hopDong = await _context.HopDong
+                .FirstOrDefaultAsync(h => h.MaHopDong == id);
+
+            if (hopDong == null)
+            {
+                return NotFound();
+            }
+
+            var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "hopdong");
+            var debugInfo = new
+            {
+                HopDongId = hopDong.MaHopDong,
+                CccdMatTruoc = hopDong.CccdMatTruoc,
+                CccdMatSau = hopDong.CccdMatSau,
+                BangLaiXe = hopDong.BangLaiXe,
+                GiayToKhac = hopDong.GiayToKhac,
+                UploadPath = uploadPath,
+                UploadPathExists = Directory.Exists(uploadPath),
+                FilesInUploadPath = Directory.Exists(uploadPath) ? Directory.GetFiles(uploadPath).Length : 0,
+                AllFiles = Directory.Exists(uploadPath) ? Directory.GetFiles(uploadPath) : new string[0]
+            };
+
+            return Json(debugInfo);
         }
 
         // GET: QuanLyHopDong/TraXe/5 - Form trả xe
@@ -609,8 +655,8 @@ namespace bike.Controllers
                 return NotFound();
             }
 
-            // Set ngày trả mặc định là hôm nay
-            hopDong.NgayTraXeThucTe = DateTime.Now;
+            // Không ghi đè NgayTraXeThucTe nếu đã có giá trị
+            // Chỉ sử dụng DateTime.Now làm giá trị mặc định cho form
 
             return View(hopDong);
         }
@@ -647,6 +693,10 @@ namespace bike.Controllers
                     // Cập nhật thông tin cơ bản
                     ct.NgayTraXeThucTe = ngayTraThucTe;
                     var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days;
+                    if (soNgayThucTe <= 0)
+                    {
+                        soNgayThucTe = 1;
+                    }
                     ct.SoNgayThue = soNgayThucTe;
                     ct.ThanhTien = ct.GiaThueNgay * soNgayThucTe;
 
@@ -679,8 +729,7 @@ namespace bike.Controllers
                                 NgayXayRa = ngayXayRaThietHai ?? DateTime.Now,
                                 MaKhachHang = hopDong.MaKhachHang,
                                 TrangThaiXuLy = "Chưa xử lý",
-                                ChiPhiXuLy = chiPhiThietHai,
-                                SoTienDenBu = 0,
+                                SoTienDenBu = chiPhiThietHai,
                                 GhiChu = $"Tự động tạo từ quá trình trả xe. {ghiChu}",
                                 MaNguoiBaoCao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
                                 NgayTao = DateTime.Now
@@ -781,6 +830,8 @@ namespace bike.Controllers
             }
         }
 
+
+
         // GET: QuanLyHopDong/DebugXe - Debug để kiểm tra dữ liệu xe
         [HttpGet]
         public async Task<IActionResult> DebugXe()
@@ -842,6 +893,8 @@ namespace bike.Controllers
             {
                 Console.WriteLine($"{key}: {Request.Form[key]}");
             }
+            
+
             // Debug: Log danhSachXe specifically
             if (danhSachXe != null)
             {
@@ -849,48 +902,6 @@ namespace bike.Controllers
                 for (int i = 0; i < danhSachXe.Count; i++)
                 {
                     Console.WriteLine($"danhSachXe[{i}]: {danhSachXe[i]}");
-                }
-            }
-            
-            // Kiểm tra và sửa lỗi binding ngày tháng
-            if (hopDong.NgayNhanXe == default(DateTime))
-            {
-                var ngayNhanStr = Request.Form["NgayNhanXe"].ToString();
-                if (DateTime.TryParse(ngayNhanStr, out var ngayNhan))
-                {
-                    hopDong.NgayNhanXe = ngayNhan;
-                    Console.WriteLine($"Fixed NgayNhanXe from form: {ngayNhanStr} -> {ngayNhan}");
-                }
-            }
-            
-            if (hopDong.NgayTraXeDuKien == default(DateTime))
-            {
-                var ngayTraStr = Request.Form["NgayTraXeDuKien"].ToString();
-                if (DateTime.TryParse(ngayTraStr, out var ngayTra))
-                {
-                    hopDong.NgayTraXeDuKien = ngayTra;
-                    Console.WriteLine($"Fixed NgayTraXeDuKien from form: {ngayTraStr} -> {ngayTra}");
-                }
-            }
-            
-            // Kiểm tra và sửa lỗi binding số tiền
-            if (Request.Form.ContainsKey("TienCoc"))
-            {
-                var tienCocStr = Request.Form["TienCoc"].ToString();
-                if (decimal.TryParse(tienCocStr, out var tienCoc))
-                {
-                    hopDong.TienCoc = tienCoc;
-                    Console.WriteLine($"Fixed TienCoc from form: {tienCocStr} -> {tienCoc}");
-                }
-            }
-            
-            if (Request.Form.ContainsKey("PhuPhi"))
-            {
-                var phuPhiStr = Request.Form["PhuPhi"].ToString();
-                if (decimal.TryParse(phuPhiStr, out var phuPhi))
-                {
-                    hopDong.PhuPhi = phuPhi;
-                    Console.WriteLine($"Fixed PhuPhi from form: {phuPhiStr} -> {phuPhi}");
                 }
             }
             
@@ -1013,7 +1024,7 @@ namespace bike.Controllers
                         {
                             var fileName = $"cccd_truoc_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                             var filePath = Path.Combine(uploadPath, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
                             {
                                 await file.CopyToAsync(stream);
                             }
@@ -1029,7 +1040,7 @@ namespace bike.Controllers
                         {
                             var fileName = $"cccd_sau_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                             var filePath = Path.Combine(uploadPath, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
                             {
                                 await file.CopyToAsync(stream);
                             }
@@ -1045,7 +1056,7 @@ namespace bike.Controllers
                         {
                             var fileName = $"bang_lai_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                             var filePath = Path.Combine(uploadPath, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
                             {
                                 await file.CopyToAsync(stream);
                             }
@@ -1061,7 +1072,7 @@ namespace bike.Controllers
                         {
                             var fileName = $"giay_to_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                             var filePath = Path.Combine(uploadPath, fileName);
-                            using (var stream = new FileStream(filePath, FileMode.Create))
+                            using (var stream = new System.IO.FileStream(filePath, System.IO.FileMode.Create))
                             {
                                 await file.CopyToAsync(stream);
                             }
@@ -1073,6 +1084,8 @@ namespace bike.Controllers
                     hopDong.MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                     hopDong.NgayTao = DateTime.Now;
                     hopDong.TrangThai = "Đang thuê";
+
+
 
                     // Tính tổng tiền từ tất cả xe
                     var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days;
@@ -1559,7 +1572,6 @@ namespace bike.Controllers
                 {
                     html += GenerateHopDongRowHtml(hopDong);
                 }
-
                 // Tạo phân trang
                 string paginationHtml = "";
                 if (totalPages > 1)

@@ -1,0 +1,254 @@
+@model List<bike.ViewModels.DonDatGanDayItem>
+@{
+    ViewData["Title"] = "Hợp đồng hoàn thành";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .filter-section {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        margin-bottom: 30px;
+    }
+
+    .table-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .table-header {
+        padding: 20px 25px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        font-weight: bold;
+    }
+
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-completed {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
+
+    .pagination-info {
+        margin: 0 20px;
+        color: #666;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-reset {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-reset:hover {
+        background: #5a6268;
+        color: white;
+    }
+</style>
+
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-check-circle text-success"></i> Hợp đồng hoàn thành</h2>
+        <a href="/BaoCao" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Quay lại Dashboard
+        </a>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="tuNgay" class="form-label">Từ ngày</label>
+                <input type="date" class="form-control" id="tuNgay" name="tuNgay" 
+                       value="@(ViewBag.TuNgay?.ToString("yyyy-MM-dd"))">
+            </div>
+            <div class="col-md-3">
+                <label for="denNgay" class="form-label">Đến ngày</label>
+                <input type="date" class="form-control" id="denNgay" name="denNgay" 
+                       value="@(ViewBag.DenNgay?.ToString("yyyy-MM-dd"))">
+            </div>
+            <div class="col-md-2">
+                <label for="khachHang" class="form-label">Khách hàng</label>
+                <input type="text" class="form-control" id="khachHang" name="khachHang" 
+                       value="@ViewBag.KhachHang" placeholder="Tìm theo tên...">
+            </div>
+            <div class="col-md-2">
+                <label for="xe" class="form-label">Xe</label>
+                <input type="text" class="form-control" id="xe" name="xe" 
+                       value="@ViewBag.Xe" placeholder="Tên xe hoặc biển số...">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="d-grid gap-2 w-100">
+                    <button type="submit" class="btn btn-filter">
+                        <i class="bi bi-search"></i> Lọc
+                    </button>
+                    <a href="/BaoCao/HopDongHoanThanh" class="btn btn-reset">
+                        <i class="bi bi-arrow-clockwise"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Summary -->
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Tìm thấy <strong>@ViewBag.TotalItems</strong> hợp đồng hoàn thành
+        @if (ViewBag.TuNgay != null || ViewBag.DenNgay != null || !string.IsNullOrEmpty(ViewBag.KhachHang) || !string.IsNullOrEmpty(ViewBag.Xe))
+        {
+            <span>với bộ lọc đã áp dụng</span>
+        }
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+        <div class="table-header">
+            <i class="bi bi-list-check"></i> Danh sách hợp đồng hoàn thành
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>STT</th>
+                        <th>Khách hàng</th>
+                        <th>Xe</th>
+                        <th>Biển số</th>
+                        <th>Ngày thuê</th>
+                        <th>Ngày hoàn thành</th>
+                        <th>Số ngày</th>
+                        <th>Tổng tiền</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        int stt = ((ViewBag.CurrentPage - 1) * 20) + 1;
+                        foreach (var hopDong in Model)
+                        {
+                            <tr>
+                                <td>@stt</td>
+                                <td><strong>@hopDong.TenKhach</strong></td>
+                                <td>@hopDong.TenXe</td>
+                                <td><span class="badge bg-secondary">@hopDong.BienSoXe</span></td>
+                                <td>@hopDong.NgayDat.ToString("dd/MM/yyyy")</td>
+                                <td>@hopDong.NgayTra.ToString("dd/MM/yyyy")</td>
+                                <td><span class="badge bg-info">@hopDong.SoNgayThue ngày</span></td>
+                                <td class="text-danger fw-bold">@hopDong.TongTien.ToString("N0")đ</td>
+                                <td>
+                                    <span class="status-badge status-completed">@hopDong.TrangThai</span>
+                                </td>
+                            </tr>
+                            stt++;
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="9" class="text-center py-4">
+                                <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
+                                <p class="text-muted mt-2">Không tìm thấy hợp đồng hoàn thành nào</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="pagination-container">
+            @if (ViewBag.CurrentPage > 1)
+            {
+                <a href="@Url.Action("HopDongHoanThanh", new { 
+                    tuNgay = ViewBag.TuNgay, 
+                    denNgay = ViewBag.DenNgay, 
+                    khachHang = ViewBag.KhachHang, 
+                    xe = ViewBag.Xe, 
+                    page = ViewBag.CurrentPage - 1 
+                })" class="btn btn-outline-primary">
+                    <i class="bi bi-chevron-left"></i> Trước
+                </a>
+            }
+
+            <div class="pagination-info">
+                Trang @ViewBag.CurrentPage / @ViewBag.TotalPages
+            </div>
+
+            @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+            {
+                <a href="@Url.Action("HopDongHoanThanh", new { 
+                    tuNgay = ViewBag.TuNgay, 
+                    denNgay = ViewBag.DenNgay, 
+                    khachHang = ViewBag.KhachHang, 
+                    xe = ViewBag.Xe, 
+                    page = ViewBag.CurrentPage + 1 
+                })" class="btn btn-outline-primary">
+                    Sau <i class="bi bi-chevron-right"></i>
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-submit form when date inputs change
+        document.getElementById('tuNgay').addEventListener('change', function() {
+            if (this.value) {
+                document.querySelector('form').submit();
+            }
+        });
+
+        document.getElementById('denNgay').addEventListener('change', function() {
+            if (this.value) {
+                document.querySelector('form').submit();
+            }
+        });
+
+        // Add loading state to filter button
+        document.querySelector('form').addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Đang lọc...';
+            submitBtn.disabled = true;
+        });
+    </script>
+} 

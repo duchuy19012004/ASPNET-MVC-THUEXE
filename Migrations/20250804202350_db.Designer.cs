@@ -12,8 +12,8 @@ using bike.Repository;
 namespace bike.Migrations
 {
     [DbContext(typeof(BikeDbContext))]
-    [Migration("20250804044902_RemoveQuanLyDonDatPermissions")]
-    partial class RemoveQuanLyDonDatPermissions
+    [Migration("20250804202350_db")]
+    partial class db
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -304,6 +304,18 @@ namespace bike.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaHopDong"));
 
+                    b.Property<string>("BangLaiXe")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("CccdMatSau")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("CccdMatTruoc")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<string>("DiaChi")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -311,6 +323,10 @@ namespace bike.Migrations
                     b.Property<string>("GhiChu")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("GiayToKhac")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("HoTenKhach")
                         .IsRequired()
@@ -417,6 +433,76 @@ namespace bike.Migrations
                     b.HasKey("MaVaiTro");
 
                     b.ToTable("Roles");
+                });
+
+            modelBuilder.Entity("bike.Models.ThietHai", b =>
+                {
+                    b.Property<int>("MaThietHai")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaThietHai"));
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("LoaiThietHai")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int?>("MaHopDong")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaKhachHang")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaNguoiBaoCao")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaXe")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MoTaThietHai")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayHoanThanh")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayXayRa")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PhuongAnXuLy")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal>("SoTienDenBu")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TrangThaiXuLy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("MaThietHai");
+
+                    b.HasIndex("MaHopDong");
+
+                    b.HasIndex("MaKhachHang");
+
+                    b.HasIndex("MaNguoiBaoCao");
+
+                    b.HasIndex("MaXe");
+
+                    b.ToTable("ThietHai");
                 });
 
             modelBuilder.Entity("bike.Models.User", b =>
@@ -840,6 +926,35 @@ namespace bike.Migrations
                     b.Navigation("KhachHang");
 
                     b.Navigation("NguoiTao");
+                });
+
+            modelBuilder.Entity("bike.Models.ThietHai", b =>
+                {
+                    b.HasOne("bike.Models.HopDong", "HopDong")
+                        .WithMany()
+                        .HasForeignKey("MaHopDong");
+
+                    b.HasOne("bike.Models.User", "KhachHang")
+                        .WithMany()
+                        .HasForeignKey("MaKhachHang");
+
+                    b.HasOne("bike.Models.User", "NguoiBaoCao")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiBaoCao");
+
+                    b.HasOne("bike.Models.Xe", "Xe")
+                        .WithMany()
+                        .HasForeignKey("MaXe")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("HopDong");
+
+                    b.Navigation("KhachHang");
+
+                    b.Navigation("NguoiBaoCao");
+
+                    b.Navigation("Xe");
                 });
 
             modelBuilder.Entity("bike.Models.User", b =>

@@ -259,71 +259,210 @@
         color: #f39c12 !important;
     }
     
-    /* Form Styles */
-    .form-group {
-        margin-bottom: 20px;
-    }
+
     
-    .form-label {
+    /* Custom Modal Styles (không sử dụng Bootstrap 5) */
+    .custom-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: none;
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+    .custom-modal-overlay.show {
+        opacity: 1;
+        visibility: visible;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .custom-modal-container {
+        background: white;
+        border-radius: 20px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 85vh;
+        overflow-y: auto;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4);
+        transform: scale(0.7) translateY(-50px);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .custom-modal-overlay.show .custom-modal-container {
+        transform: scale(1) translateY(0);
+    }
+
+    .custom-modal-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 25px 30px;
+        border-radius: 20px 20px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: relative;
+    }
+
+    .custom-modal-title {
+        font-size: 22px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .custom-modal-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        padding: 8px;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+
+    .custom-modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+
+    .custom-modal-body {
+        padding: 30px;
+    }
+
+    .custom-modal-footer {
+        padding: 20px 30px;
+        border-top: 1px solid #e9ecef;
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        background: #f8f9fa;
+        border-radius: 0 0 20px 20px;
+    }
+
+    .custom-modal-btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        min-width: 120px;
+        justify-content: center;
+    }
+
+    .custom-modal-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .custom-modal-btn-secondary:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    .custom-modal-btn-primary {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .custom-modal-btn-primary:hover {
+        background: linear-gradient(135deg, #218838 0%, #1ea085 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+    }
+
+    .custom-modal-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Custom Form Styles */
+    .custom-form-group {
+        margin-bottom: 25px;
+    }
+
+    .custom-form-label {
         display: block;
         font-weight: 600;
         color: #333;
         margin-bottom: 8px;
-    }
-    
-    .form-input {
-        width: 100%;
-        padding: 12px 15px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
         font-size: 14px;
-        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    
-    .form-input:focus {
+
+    .custom-form-input {
+        width: 100%;
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: #fff;
+        box-sizing: border-box;
+    }
+
+    .custom-form-input:focus {
         outline: none;
-        border-color: #3498db;
-        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        transform: translateY(-1px);
     }
-    
-    .form-textarea {
-        min-height: 100px;
-        resize: vertical;
-    }
-    
-    .form-select {
+
+    .custom-form-select {
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 6 7 7 7-7'/%3e%3c/svg%3e");
         background-repeat: no-repeat;
-        background-position: right 12px center;
+        background-position: right 15px center;
         background-size: 16px 12px;
-        padding-right: 40px;
+        padding-right: 45px;
     }
-    
-    .form-row {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
+
+    .custom-form-textarea {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
     }
-    
-    .form-col {
-        flex: 1;
+
+    .custom-form-input.error {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
     }
-    
-    .validation-error {
-        color: #e74c3c;
+
+    .custom-validation-error {
+        color: #dc3545;
         font-size: 12px;
         margin-top: 5px;
         display: none;
+        font-weight: 500;
     }
-    
-    .form-input.error {
-        border-color: #e74c3c;
+
+    .custom-form-input.error + .custom-validation-error {
+        display: block;
     }
-    
-    .form-input.error:focus {
-        box-shadow: 0 0 0 0.2rem rgba(231, 76, 60, 0.25);
-    }
-    
+
     /* Modal Styles */
     .modal-overlay {
         position: fixed;
@@ -544,7 +683,7 @@
     <!-- Statistics Cards -->
     <div class="stats-container">
         <div class="row mb-4">
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                 <div class="stat-card">
                     <div class="stat-icon blue text-white">
                         <i class="bi bi-list-ul"></i>
@@ -553,7 +692,7 @@
                     <div class="stat-label">Tổng thiệt hại</div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                 <div class="stat-card">
                     <div class="stat-icon red text-white">
                         <i class="bi bi-clock"></i>
@@ -562,7 +701,7 @@
                     <div class="stat-label">Chưa xử lý</div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                 <div class="stat-card">
                     <div class="stat-icon orange text-white">
                         <i class="bi bi-gear"></i>
@@ -571,7 +710,7 @@
                     <div class="stat-label">Đang xử lý</div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                 <div class="stat-card">
                     <div class="stat-icon green text-white">
                         <i class="bi bi-check-circle"></i>
@@ -580,16 +719,7 @@
                     <div class="stat-label">Đã xử lý</div>
                 </div>
             </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
-                <div class="stat-card">
-                    <div class="stat-icon purple text-white">
-                        <i class="bi bi-currency-dollar"></i>
-                    </div>
-                    <div class="stat-number">@(((decimal)ViewData["TongChiPhi"]).ToString("N0"))đ</div>
-                    <div class="stat-label">Tổng chi phí</div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6 mb-3">
+            <div class="col-lg-4 col-md-6 col-sm-12 mb-3">
                 <div class="stat-card">
                     <div class="stat-icon cyan text-white">
                         <i class="bi bi-cash-coin"></i>
@@ -639,8 +769,7 @@
                         <th>Mô tả</th>
                         <th>Ngày xảy ra</th>
                         <th>Trạng thái</th>
-                        <th>Chi phí</th>
-                        <th>Đền bù</th>
+                        <th>Số tiền đền bù</th>
                         <th>Thao tác</th>
                     </tr>
                 </thead>
@@ -657,15 +786,14 @@
                             <td>
                                 <span class="badge badge-@item.TrangThaiClass">@item.TrangThaiXuLy</span>
                             </td>
-                            <td class="text-danger font-weight-bold">@item.ChiPhiXuLy.ToString("N0")đ</td>
                             <td class="text-success font-weight-bold">@item.SoTienDenBu.ToString("N0")đ</td>
                             <td class="text-center">
-                                                                 <button onclick="showEditModal(@item.MaThietHai)" class="btn btn-warning btn-sm" title="Sửa">
-                                     <i class="bi bi-pencil-square"></i>
-                                 </button>
-                                                                 <button onclick="showChiTietModal(@item.MaThietHai)" class="btn btn-info btn-sm" title="Chi tiết">
-                                     <i class="bi bi-eye"></i>
-                                 </button>
+                                <button onclick="showEditModal(@item.MaThietHai)" class="btn btn-warning btn-sm" title="Sửa">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                <button onclick="showChiTietModal(@item.MaThietHai)" class="btn btn-info btn-sm" title="Chi tiết">
+                                    <i class="bi bi-eye"></i>
+                                </button>
                                 <button onclick="showDeleteModal(@item.MaThietHai)" class="btn btn-danger btn-sm" title="Xóa">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -705,31 +833,33 @@
     </div>
 </div>
 
-<!-- Modal Chỉnh sửa thiệt hại -->
-<div id="editModal" class="modal-overlay">
-    <div class="modal-container" style="max-width: 700px;">
-        <div class="modal-header">
-            <h3 class="modal-title">
-                <i class="bi bi-pencil-square me-2"></i>
+
+
+<!-- Modal Edit thiệt hại (Custom CSS) -->
+<div id="editModal" class="custom-modal-overlay">
+    <div class="custom-modal-container">
+        <div class="custom-modal-header">
+            <h3 class="custom-modal-title">
+                <i class="bi bi-pencil-square"></i>
                 Chỉnh sửa thiệt hại
             </h3>
-            <button class="modal-close" onclick="closeEditModal()">
+            <button class="custom-modal-close" onclick="closeEditModal()">
                 <i class="bi bi-x"></i>
             </button>
         </div>
-        <div class="modal-body" id="editModalBody">
+        <div class="custom-modal-body" id="editModalBody">
             <div class="text-center">
                 <div class="loading-spinner"></div>
-                <p class="mt-2">Đang tải thông tin...</p>
+                <p>Đang tải thông tin...</p>
             </div>
         </div>
-        <div class="modal-footer">
-            <button class="modal-btn modal-btn-secondary" onclick="closeEditModal()">
-                <i class="bi bi-x-circle me-1"></i>
+        <div class="custom-modal-footer">
+            <button class="custom-modal-btn custom-modal-btn-secondary" onclick="closeEditModal()">
+                <i class="bi bi-x-circle"></i>
                 Hủy
             </button>
-            <button class="modal-btn modal-btn-primary" onclick="saveThietHai()">
-                <i class="bi bi-check-circle me-1"></i>
+            <button class="custom-modal-btn custom-modal-btn-primary" onclick="saveThietHai()">
+                <i class="bi bi-check-circle"></i>
                 Lưu thay đổi
             </button>
         </div>
@@ -839,10 +969,6 @@
                         <div class="modal-value">${data.phuongAnXuLy}</div>
                     </div>
                     <div class="modal-row">
-                        <div class="modal-label">Chi phí xử lý:</div>
-                        <div class="modal-value text-danger font-weight-bold">${data.chiPhiXuLy}</div>
-                    </div>
-                    <div class="modal-row">
                         <div class="modal-label">Số tiền đền bù:</div>
                         <div class="modal-value text-success font-weight-bold">${data.soTienDenBu}</div>
                     </div>
@@ -893,189 +1019,7 @@
         document.body.style.overflow = 'auto';
     }
     
-    // Edit Modal functions
-    function showEditModal(maThietHai) {
-        const modal = document.getElementById('editModal');
-        const modalBody = document.getElementById('editModalBody');
-        
-        // Show modal
-        modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-        
-        // Show loading
-        modalBody.innerHTML = `
-            <div class="text-center">
-                <div class="loading-spinner"></div>
-                <p class="mt-2">Đang tải thông tin...</p>
-            </div>
-        `;
-        
-        // Fetch data
-        $.get('/QuanLyThietHai/GetChiTiet/' + maThietHai, function(response) {
-            if (response.success) {
-                const data = response.data;
-                modalBody.innerHTML = `
-                    <form id="editThietHaiForm">
-                        <input type="hidden" id="maThietHai" value="${data.maThietHai}">
-                        
-                        <div class="form-group">
-                            <label class="form-label">Mô tả thiệt hại *</label>
-                            <textarea id="moTaThietHai" class="form-input form-textarea" required>${data.moTaThietHai}</textarea>
-                            <div class="validation-error" id="moTaThietHaiError">Vui lòng nhập mô tả thiệt hại</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Số tiền đền bù (VNĐ) *</label>
-                            <input type="number" id="soTienDenBu" class="form-input" value="${data.soTienDenBu.replace(/[^\d]/g, '')}" min="0" required>
-                            <div class="validation-error" id="soTienDenBuError">Vui lòng nhập số tiền đền bù</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Trạng thái xử lý *</label>
-                            <select id="trangThaiXuLy" class="form-input form-select" required>
-                                <option value="Chưa xử lý" ${data.trangThaiXuLy === 'Chưa xử lý' ? 'selected' : ''}>Chưa xử lý</option>
-                                <option value="Đang xử lý" ${data.trangThaiXuLy === 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
-                                <option value="Đã xử lý" ${data.trangThaiXuLy === 'Đã xử lý' ? 'selected' : ''}>Đã xử lý</option>
-                                <option value="Đã đền bù" ${data.trangThaiXuLy === 'Đã đền bù' ? 'selected' : ''}>Đã đền bù</option>
-                            </select>
-                            <div class="validation-error" id="trangThaiXuLyError">Vui lòng chọn trạng thái xử lý</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Phương án xử lý</label>
-                            <textarea id="phuongAnXuLy" class="form-input form-textarea">${data.phuongAnXuLy}</textarea>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="form-label">Ghi chú</label>
-                            <textarea id="ghiChu" class="form-input form-textarea">${data.ghiChu}</textarea>
-                        </div>
-                    </form>
-                `;
-            } else {
-                modalBody.innerHTML = `
-                    <div class="text-center text-danger">
-                        <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
-                        <p class="mt-2">Không thể tải thông tin thiệt hại</p>
-                        <p class="text-muted">${response.message || 'Đã xảy ra lỗi'}</p>
-                    </div>
-                `;
-            }
-        }).fail(function() {
-            modalBody.innerHTML = `
-                <div class="text-center text-danger">
-                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
-                    <p class="mt-2">Không thể kết nối đến máy chủ</p>
-                    <p class="text-muted">Vui lòng thử lại sau</p>
-                </div>
-            `;
-        });
-    }
-    
-    function closeEditModal() {
-        const modal = document.getElementById('editModal');
-        modal.classList.remove('show');
-        document.body.style.overflow = 'auto';
-    }
-    
-    function saveThietHai() {
-        // Validate form
-        const form = document.getElementById('editThietHaiForm');
-        const maThietHai = document.getElementById('maThietHai').value;
-        const moTaThietHai = document.getElementById('moTaThietHai').value.trim();
-        const soTienDenBu = document.getElementById('soTienDenBu').value;
-        const trangThaiXuLy = document.getElementById('trangThaiXuLy').value;
-        const phuongAnXuLy = document.getElementById('phuongAnXuLy').value.trim();
-        const ghiChu = document.getElementById('ghiChu').value.trim();
-        
-        // Reset validation errors
-        clearValidationErrors();
-        
-        // Validate required fields
-        let isValid = true;
-        
-        if (!moTaThietHai) {
-            showValidationError('moTaThietHai', 'Vui lòng nhập mô tả thiệt hại');
-            isValid = false;
-        }
-        
-        if (!soTienDenBu || soTienDenBu < 0) {
-            showValidationError('soTienDenBu', 'Vui lòng nhập số tiền đền bù hợp lệ');
-            isValid = false;
-        }
-        
-        if (!trangThaiXuLy) {
-            showValidationError('trangThaiXuLy', 'Vui lòng chọn trạng thái xử lý');
-            isValid = false;
-        }
-        
-        if (!isValid) {
-            return;
-        }
-        
-        // Show loading on save button
-        const saveBtn = document.querySelector('#editModal .modal-btn-primary');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<div class="loading-spinner"></div> Đang lưu...';
-        saveBtn.disabled = true;
-        
-        // Prepare data
-        const formData = {
-            MaThietHai: parseInt(maThietHai),
-            MoTaThietHai: moTaThietHai,
-            SoTienDenBu: parseFloat(soTienDenBu),
-            TrangThaiXuLy: trangThaiXuLy,
-            PhuongAnXuLy: phuongAnXuLy || null,
-            GhiChu: ghiChu || null
-        };
-        
-        // Send request
-        $.ajax({
-            url: '/QuanLyThietHai/Edit/' + maThietHai,
-            type: 'POST',
-            data: formData,
-            headers: {
-                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val(),
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Show success message
-                    alert('Thông tin thiệt hại đã được cập nhật thành công!');
-                    closeEditModal();
-                    // Reload page to refresh data
-                    location.reload();
-                } else {
-                    alert(response.message || 'Có lỗi xảy ra khi cập nhật thông tin');
-                }
-            },
-            error: function() {
-                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
-            },
-            complete: function() {
-                // Restore save button
-                saveBtn.innerHTML = originalText;
-                saveBtn.disabled = false;
-            }
-        });
-    }
-    
-    function showValidationError(fieldId, message) {
-        const field = document.getElementById(fieldId);
-        const errorDiv = document.getElementById(fieldId + 'Error');
-        
-        field.classList.add('error');
-        errorDiv.textContent = message;
-        errorDiv.style.display = 'block';
-    }
-    
-    function clearValidationErrors() {
-        const errorDivs = document.querySelectorAll('.validation-error');
-        const errorFields = document.querySelectorAll('.form-input.error');
-        
-        errorDivs.forEach(div => div.style.display = 'none');
-        errorFields.forEach(field => field.classList.remove('error'));
-    }
+
     
     // Delete Modal functions
     let currentDeleteId = null;
@@ -1206,6 +1150,197 @@
         });
     }
     
+    // Edit Modal functions
+    function showEditModal(maThietHai) {
+        const modal = document.getElementById('editModal');
+        const modalBody = document.getElementById('editModalBody');
+        
+        // Show modal
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        
+        // Show loading
+        modalBody.innerHTML = `
+            <div class="text-center">
+                <div class="loading-spinner"></div>
+                <p>Đang tải thông tin...</p>
+            </div>
+        `;
+        
+        // Fetch data
+        $.get('/QuanLyThietHai/GetChiTiet/' + maThietHai, function(response) {
+            if (response.success) {
+                const data = response.data;
+                modalBody.innerHTML = `
+                    <form id="editThietHaiForm">
+                        <input type="hidden" id="maThietHai" value="${data.maThietHai}">
+                        
+                        <div class="custom-form-group">
+                            <label class="custom-form-label">Loại thiệt hại *</label>
+                            <select id="loaiThietHai" class="custom-form-input custom-form-select" required>
+                                <option value="">-- Chọn loại thiệt hại --</option>
+                                <option value="Hư hỏng phụ kiện" ${data.loaiThietHai === 'Hư hỏng phụ kiện' ? 'selected' : ''}>Hư hỏng phụ kiện</option>
+                                <option value="Hư hỏng thân xe" ${data.loaiThietHai === 'Hư hỏng thân xe' ? 'selected' : ''}>Hư hỏng thân xe</option>
+                                <option value="Mất xe" ${data.loaiThietHai === 'Mất xe' ? 'selected' : ''}>Mất xe</option>
+                                <option value="Khác" ${data.loaiThietHai === 'Khác' ? 'selected' : ''}>Khác</option>
+                            </select>
+                            <div class="custom-validation-error" id="loaiThietHaiError">Vui lòng chọn loại thiệt hại</div>
+                        </div>
+                        
+                        <div class="custom-form-group">
+                            <label class="custom-form-label">Số tiền đền bù (VNĐ) *</label>
+                            <input type="text" id="soTienDenBu" class="custom-form-input" value="${data.soTienDenBu}" required placeholder="Nhập số tiền...">
+                            <div class="custom-validation-error" id="soTienDenBuError">Vui lòng nhập số tiền đền bù</div>
+                        </div>
+                        
+                        <div class="custom-form-group">
+                            <label class="custom-form-label">Trạng thái xử lý *</label>
+                            <select id="trangThaiXuLy" class="custom-form-input custom-form-select" required>
+                                <option value="Chưa xử lý" ${data.trangThaiXuLy === 'Chưa xử lý' ? 'selected' : ''}>Chưa xử lý</option>
+                                <option value="Đang xử lý" ${data.trangThaiXuLy === 'Đang xử lý' ? 'selected' : ''}>Đang xử lý</option>
+                                <option value="Đã xử lý" ${data.trangThaiXuLy === 'Đã xử lý' ? 'selected' : ''}>Đã xử lý</option>
+                                <option value="Đã đền bù" ${data.trangThaiXuLy === 'Đã đền bù' ? 'selected' : ''}>Đã đền bù</option>
+                            </select>
+                            <div class="custom-validation-error" id="trangThaiXuLyError">Vui lòng chọn trạng thái xử lý</div>
+                        </div>
+                        
+                        <div class="custom-form-group">
+                            <label class="custom-form-label">Phương án xử lý</label>
+                            <textarea id="phuongAnXuLy" class="custom-form-input custom-form-textarea" placeholder="Nhập phương án xử lý...">${data.phuongAnXuLy === 'Chưa có' ? '' : (data.phuongAnXuLy || '')}</textarea>
+                        </div>
+                        
+                        <div class="custom-form-group">
+                            <label class="custom-form-label">Ghi chú</label>
+                            <textarea id="ghiChu" class="custom-form-input custom-form-textarea" placeholder="Nhập ghi chú...">${data.ghiChu === 'Không có' ? '' : (data.ghiChu || '')}</textarea>
+                        </div>
+                    </form>
+                `;
+            } else {
+                modalBody.innerHTML = `
+                    <div class="text-center text-danger">
+                        <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
+                        <p>Không thể tải thông tin thiệt hại</p>
+                        <p class="text-muted">${response.message || 'Đã xảy ra lỗi'}</p>
+                    </div>
+                `;
+            }
+        }).fail(function() {
+            modalBody.innerHTML = `
+                <div class="text-center text-danger">
+                    <i class="bi bi-exclamation-triangle" style="font-size: 3rem;"></i>
+                    <p>Không thể kết nối đến máy chủ</p>
+                    <p class="text-muted">Vui lòng thử lại sau</p>
+                </div>
+            `;
+        });
+    }
+    
+    function closeEditModal() {
+        const modal = document.getElementById('editModal');
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+    }
+    
+    function showValidationError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.getElementById(fieldId + 'Error');
+        
+        field.classList.add('error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+    
+    function clearValidationErrors() {
+        const errorDivs = document.querySelectorAll('.custom-validation-error');
+        const errorFields = document.querySelectorAll('.custom-form-input.error');
+        
+        errorDivs.forEach(div => div.style.display = 'none');
+        errorFields.forEach(field => field.classList.remove('error'));
+    }
+    
+    function saveThietHai() {
+        // Validate form
+        const maThietHai = document.getElementById('maThietHai').value;
+        const loaiThietHai = document.getElementById('loaiThietHai').value;
+        const soTienDenBuFormatted = document.getElementById('soTienDenBu').value;
+        const soTienDenBu = parseInt(soTienDenBuFormatted.replace(/[^\d]/g, '')) || 0;
+        const trangThaiXuLy = document.getElementById('trangThaiXuLy').value;
+        const phuongAnXuLy = document.getElementById('phuongAnXuLy').value.trim();
+        const ghiChu = document.getElementById('ghiChu').value.trim();
+        
+        // Reset validation errors
+        clearValidationErrors();
+        
+        // Validate required fields
+        let isValid = true;
+        
+        if (!loaiThietHai) {
+            showValidationError('loaiThietHai', 'Vui lòng chọn loại thiệt hại');
+            isValid = false;
+        }
+        
+        if (!soTienDenBu || soTienDenBu <= 0) {
+            showValidationError('soTienDenBu', 'Vui lòng nhập số tiền đền bù hợp lệ');
+            isValid = false;
+        }
+        
+        if (!trangThaiXuLy) {
+            showValidationError('trangThaiXuLy', 'Vui lòng chọn trạng thái xử lý');
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            return;
+        }
+        
+        // Show loading on save button
+        const saveBtn = document.querySelector('#editModal .custom-modal-btn-primary');
+        const originalText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<div class="loading-spinner"></div> Đang lưu...';
+        saveBtn.disabled = true;
+        
+        // Prepare data
+        const formData = {
+            MaThietHai: parseInt(maThietHai),
+            LoaiThietHai: loaiThietHai,
+            MoTaThietHai: '', // Không cho phép sửa mô tả
+            SoTienDenBu: soTienDenBu,
+            TrangThaiXuLy: trangThaiXuLy,
+            PhuongAnXuLy: phuongAnXuLy.trim() === '' ? null : phuongAnXuLy,
+            GhiChu: ghiChu.trim() === '' ? null : ghiChu
+        };
+        
+        // Send request
+        $.ajax({
+            url: '/QuanLyThietHai/Edit/' + maThietHai,
+            type: 'POST',
+            data: formData,
+            headers: {
+                'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    alert('Thông tin thiệt hại đã được cập nhật thành công!');
+                    closeEditModal();
+                    // Reload page to refresh data
+                    location.reload();
+                } else {
+                    alert(response.message || 'Có lỗi xảy ra khi cập nhật thông tin');
+                }
+            },
+            error: function() {
+                alert('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.');
+            },
+            complete: function() {
+                // Restore save button
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            }
+        });
+    }
+
     // Close modals when clicking outside
     document.addEventListener('DOMContentLoaded', function() {
         const chiTietModal = document.getElementById('chiTietModal');
@@ -1285,4 +1420,6 @@
             searchThietHai();
         }
     });
+
+
 </script> 

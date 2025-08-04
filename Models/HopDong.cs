@@ -47,13 +47,16 @@ namespace bike.Models
         // Thời gian thuê
         [Display(Name = "Ngày nhận xe")]
         [Required]
+        [DataType(DataType.Date)]
         public DateTime NgayNhanXe { get; set; }
 
         [Display(Name = "Ngày trả xe dự kiến")]
         [Required]
+        [DataType(DataType.Date)]
         public DateTime NgayTraXeDuKien { get; set; }
 
         [Display(Name = "Ngày trả xe thực tế")]
+        [DataType(DataType.Date)]
         public DateTime? NgayTraXeThucTe { get; set; }
 
         // Tài chính tổng

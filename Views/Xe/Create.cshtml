@@ -30,7 +30,7 @@
                                 <i class="bi bi-bicycle"></i> @Html.DisplayNameFor(model => model.TenXe)
                                 <span class="required">*</span>
                             </label>
-                            <input asp-for="TenXe" class="form-control form-control-lg" placeholder="" />
+                            <input asp-for="TenXe" class="form-control form-control-lg" placeholder="Ví dụ: Wave Alpha 110cc" />
                             <span asp-validation-for="TenXe" class="text-danger small"></span>
                         </div>
 
@@ -40,7 +40,7 @@
                                 <i class="bi bi-building"></i> @Html.DisplayNameFor(model => model.HangXe)
                                 <span class="required">*</span>
                             </label>
-                            <input asp-for="HangXe" class="form-control" placeholder="VD: Honda" />
+                            <input asp-for="HangXe" class="form-control" placeholder="Ví dụ: Honda, Yamaha, Suzuki" />
                             <span asp-validation-for="HangXe" class="text-danger small"></span>
                         </div>
 
@@ -50,7 +50,7 @@
                                 <i class="bi bi-tag"></i> @Html.DisplayNameFor(model => model.DongXe)
                                 <span class="required">*</span>
                             </label>
-                            <input asp-for="DongXe" class="form-control" placeholder="VD: Wave Alpha 110cc" />
+                            <input asp-for="DongXe" class="form-control" placeholder="Ví dụ: Wave Alpha, Vision, Air Blade" />
                             <span asp-validation-for="DongXe" class="text-danger small"></span>
                         </div>
 
@@ -75,7 +75,7 @@
                                 <i class="bi bi-card-text"></i> @Html.DisplayNameFor(model => model.BienSoXe)
                                 <span class="required">*</span>
                             </label>
-                            <input asp-for="BienSoXe" class="form-control" placeholder="" />
+                            <input asp-for="BienSoXe" class="form-control" />
                             <span asp-validation-for="BienSoXe" class="text-danger small"></span>
                         </div>
 
@@ -86,7 +86,7 @@
                                 <span class="required">*</span>
                             </label>
                             <div class="input-group">
-                                <input asp-for="GiaThue" class="form-control" placeholder="" />
+                                <input asp-for="GiaThue" class="form-control" placeholder="Ví dụ: 150000" />
                                 <span class="input-group-text">VNĐ/ngày</span>
                             </div>
                             <span asp-validation-for="GiaThue" class="text-danger small"></span>
@@ -275,6 +275,20 @@
             });
         });
 
+        // Validation cho các trường bắt buộc
+        $('input[required], select[required]').on('blur', function() {
+            const $input = $(this);
+            const $error = $input.next('.text-danger');
+            
+            if (!$input.val().trim()) {
+                $input.removeClass('is-valid').addClass('is-invalid');
+                $error.text('Trường này là bắt buộc');
+            } else {
+                $input.removeClass('is-invalid').addClass('is-valid');
+                $error.text('');
+            }
+        });
+
         // Kiểm tra biển số real-time
         $(document).ready(function() {
             let timeout;
@@ -283,11 +297,8 @@
                 const bienSo = $(this).val();
                 const $input = $(this);
                 const $error = $input.next('.text-danger');
-
-                // Reset validation state
                 $input.removeClass('is-valid is-invalid');
                 $error.text('');
-
                 if (bienSo.length > 0) {
                     timeout = setTimeout(function() {
                         $.ajax({
@@ -320,8 +331,22 @@
 
             priceInput.addEventListener('input', function(e) {
                 const value = parseInt(e.target.value);
+                const $input = $(this);
+                const $error = $input.parent().next('.text-danger');
+                
+                // Reset validation state
+                $input.removeClass('is-valid is-invalid');
+                $error.text('');
+                
                 if (value && !isNaN(value)) {
-                    pricePreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ/ngày';
+                    if (value > 0) {
+                        $input.removeClass('is-invalid').addClass('is-valid');
+                        pricePreview.innerHTML = '<i class="bi bi-eye"></i> Hiển thị: ' + value.toLocaleString('vi-VN') + 'đ/ngày';
+                    } else {
+                        $input.removeClass('is-valid').addClass('is-invalid');
+                        $error.text('Giá thuê phải lớn hơn 0');
+                        pricePreview.innerHTML = '';
+                    }
                 } else {
                     pricePreview.innerHTML = '';
                 }

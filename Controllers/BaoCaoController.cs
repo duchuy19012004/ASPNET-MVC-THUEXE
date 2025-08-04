@@ -151,19 +151,22 @@ namespace bike.Controllers
 
             viewModel.TopXeThueNhieu = topXe;
 
-            // 4. 10 đơn đặt gần đây
-            var donGanDay = await _context.DatCho
-                .Include(d => d.Xe)
-                .OrderByDescending(d => d.NgayDat)
+            // 4. 10 hợp đồng hoàn thành gần đây
+            var donGanDay = await _context.HopDong
+                .Include(h => h.KhachHang)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
+                .Where(h => h.TrangThai == "Hoàn thành" && h.NgayTraXeThucTe.HasValue)
+                .OrderByDescending(h => h.NgayTraXeThucTe)
                 .Take(10)
-                .Select(d => new DonDatGanDayItem
+                .Select(h => new DonDatGanDayItem
                 {
-                    TenKhach = d.HoTen,
-                    TenXe = d.Xe.TenXe,
-                    NgayDat = d.NgayDat,
-                    NgayTra = d.NgayTraXe,
-                    TrangThai = d.TrangThai,
-                    TongTien = d.TongTienDuKien
+                    TenKhach = h.KhachHang != null ? h.KhachHang.Ten : h.HoTenKhach,
+                    TenXe = h.ChiTietHopDong.FirstOrDefault().Xe.TenXe,
+                    NgayDat = h.NgayTao,
+                    NgayTra = h.NgayTraXeThucTe.Value,
+                    TrangThai = h.TrangThai,
+                    TongTien = h.TongTien
                 })
                 .ToListAsync();
 
@@ -222,5 +225,79 @@ namespace bike.Controllers
             TempData["Info"] = "Chức năng xuất Excel đang được phát triển";
             return RedirectToAction(nameof(Index));
         }
+
+        // GET: BaoCao/HopDongHoanThanh - Danh sách hợp đồng hoàn thành
+        [PermissionAuthorize("CanViewBaoCao")]
+        public async Task<IActionResult> HopDongHoanThanh(DateTime? tuNgay, DateTime? denNgay, string? khachHang, string? xe, int page = 1)
+        {
+            // Nếu không có ngày, mặc định lấy 30 ngày gần nhất
+            var endDate = denNgay ?? DateTime.Now.Date;
+            var startDate = tuNgay ?? endDate.AddDays(-30);
+
+            var query = _context.HopDong
+                .Include(h => h.KhachHang)
+                .Include(h => h.ChiTietHopDong)
+                .ThenInclude(ct => ct.Xe)
+                .Where(h => h.TrangThai == "Hoàn thành" && h.NgayTraXeThucTe.HasValue);
+
+            // Áp dụng bộ lọc theo ngày
+            if (tuNgay.HasValue)
+            {
+                query = query.Where(h => h.NgayTraXeThucTe.Value.Date >= tuNgay.Value.Date);
+            }
+            if (denNgay.HasValue)
+            {
+                query = query.Where(h => h.NgayTraXeThucTe.Value.Date <= denNgay.Value.Date);
+            }
+
+            // Áp dụng bộ lọc theo khách hàng
+            if (!string.IsNullOrEmpty(khachHang))
+            {
+                query = query.Where(h => (h.KhachHang != null && h.KhachHang.Ten.Contains(khachHang)) || 
+                                        h.HoTenKhach.Contains(khachHang));
+            }
+
+            // Áp dụng bộ lọc theo xe
+            if (!string.IsNullOrEmpty(xe))
+            {
+                query = query.Where(h => h.ChiTietHopDong.Any(ct => ct.Xe.TenXe.Contains(xe) || ct.Xe.BienSoXe.Contains(xe)));
+            }
+
+            // Sắp xếp theo thời gian hoàn thành (mới nhất lên đầu)
+            query = query.OrderByDescending(h => h.NgayTraXeThucTe);
+
+            // Phân trang
+            int pageSize = 20;
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var hopDongList = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(h => new DonDatGanDayItem
+                {
+                    TenKhach = h.KhachHang != null ? h.KhachHang.Ten : h.HoTenKhach,
+                    TenXe = h.ChiTietHopDong.FirstOrDefault().Xe.TenXe,
+                    BienSoXe = h.ChiTietHopDong.FirstOrDefault().Xe.BienSoXe,
+                    NgayDat = h.NgayTao,
+                    NgayTra = h.NgayTraXeThucTe.Value,
+                    TrangThai = h.TrangThai,
+                    TongTien = h.TongTien,
+                    SoNgayThue = h.ChiTietHopDong.Sum(ct => ct.SoNgayThue)
+                })
+                .ToListAsync();
+
+            ViewBag.TuNgay = tuNgay;
+            ViewBag.DenNgay = denNgay;
+            ViewBag.KhachHang = khachHang;
+            ViewBag.Xe = xe;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalItems = totalItems;
+
+            return View(hopDongList);
+        }
+
+
     }
 }

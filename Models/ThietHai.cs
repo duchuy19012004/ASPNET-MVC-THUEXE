@@ -29,10 +29,9 @@ namespace bike.Models
         [StringLength(50)]
         public string LoaiThietHai { get; set; } // Mất xe, Hư hỏng phụ kiện, Hư hỏng thân xe, Khác
 
-        [Required(ErrorMessage = "Mô tả thiệt hại là bắt buộc")]
         [Display(Name = "Mô tả thiệt hại")]
         [StringLength(1000)]
-        public string MoTaThietHai { get; set; }
+        public string? MoTaThietHai { get; set; }
 
         [Display(Name = "Ngày xảy ra thiệt hại")]
         [Required(ErrorMessage = "Ngày xảy ra thiệt hại là bắt buộc")]
@@ -54,11 +53,6 @@ namespace bike.Models
         [Display(Name = "Phương án xử lý")]
         [StringLength(500)]
         public string? PhuongAnXuLy { get; set; }
-
-        [Display(Name = "Chi phí sửa chữa/đền bù")]
-        [Column(TypeName = "decimal(18,2)")]
-        [Range(0, double.MaxValue, ErrorMessage = "Chi phí phải lớn hơn hoặc bằng 0")]
-        public decimal ChiPhiXuLy { get; set; } = 0;
 
         [Display(Name = "Số tiền khách đền bù")]
         [Column(TypeName = "decimal(18,2)")]
@@ -88,7 +82,7 @@ namespace bike.Models
 
         // Computed properties
         [NotMapped]
-        public decimal SoTienConLai => ChiPhiXuLy - SoTienDenBu;
+        public decimal SoTienConLai => 0 - SoTienDenBu; // ChiPhiXuLy đã bị xóa, giờ là 0 - SoTienDenBu
 
         [NotMapped]
         public bool DaHoanThanh => TrangThaiXuLy == "Đã xử lý" || TrangThaiXuLy == "Đã đền bù";

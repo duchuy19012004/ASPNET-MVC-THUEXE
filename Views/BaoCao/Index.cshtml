@@ -322,11 +322,14 @@
             </div>
         </div>
 
-        <!-- Đơn đặt gần đây -->
+        <!-- Hợp đồng hoàn thành gần đây -->
         <div class="col-lg-6 mb-4">
             <div class="table-card">
                 <div class="table-header">
-                    <i class="bi bi-clock-history"></i> Đơn đặt xe gần đây
+                    <i class="bi bi-check-circle"></i> Hợp đồng hoàn thành gần đây
+                    <a href="/BaoCao/HopDongHoanThanh" class="btn btn-sm btn-outline-primary float-end">
+                        <i class="bi bi-arrow-right"></i> Xem tất cả
+                    </a>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -336,7 +339,7 @@
                                 <th>Khách hàng</th>
                                 <th>Xe</th>
                                 <th>Trạng thái</th>
-                                <th>Ngày thuê</th>
+                                <th>Ngày hoàn thành</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -352,12 +355,13 @@
                                                 "Chờ xác nhận" => "status-waiting",
                                                 "Đang giữ chỗ" => "status-confirmed",
                                                 "Đã xử lý" => "status-completed",
+                                                "Hoàn thành" => "status-completed",
                                                 _ => ""
                                             };
                                         }
                                         <span class="status-badge @statusClass">@don.TrangThai</span>
                                     </td>
-                                    <td>@don.NgayDat</td>
+                                    <td>@don.NgayTra.ToString("dd/MM/yyyy")</td>
                                 </tr>
                             }
                         </tbody>
