@@ -10,11 +10,12 @@ namespace bike.ViewModels
         public DateTime DenNgay { get; set; }
         
         // Filter cho charts
-        public string ChartFilter { get; set; } = "7days"; // 7days, week, month, year
+        public string ChartFilter { get; set; } = "today"; // today, 7days, week, month, year
 
         // Thống kê tổng quan
         public int TongDonDatXe { get; set; }
         public decimal DoanhThuHomNay { get; set; }
+        public decimal TongChiTieu { get; set; } // Tổng chi tiêu
         public int XeDangChoThue { get; set; }
         public int HopDongHoatDong { get; set; }
         public int KhachHangMoi { get; set; } // Khách hàng đăng ký mới hôm nay
@@ -29,6 +30,7 @@ namespace bike.ViewModels
         public List<BieuDoItem> BieuDoDonDat { get; set; }
         public List<BieuDoItem> BieuDoKhachHangMoi { get; set; }
         public List<BieuDoItem> BieuDoLoaiXe { get; set; }
+        public List<BieuDoItem> BieuDoHopDongTrangThai { get; set; }
 
         // Top xe được thuê nhiều
         public List<XeThueNhieuItem> TopXeThueNhieu { get; set; }
@@ -42,18 +44,17 @@ namespace bike.ViewModels
             BieuDoDonDat = new List<BieuDoItem>();
             BieuDoKhachHangMoi = new List<BieuDoItem>();
             BieuDoLoaiXe = new List<BieuDoItem>();
+            BieuDoHopDongTrangThai = new List<BieuDoItem>();
             TopXeThueNhieu = new List<XeThueNhieuItem>();
             DonDatGanDay = new List<DonDatGanDayItem>();
         }
     }
-
     // Class cho item biểu đồ
     public class BieuDoItem
     {
         public string ?Label { get; set; } // Ngày/Tháng
         public decimal Value { get; set; } // Giá trị
     }
-
     // Class cho xe thuê nhiều
     public class XeThueNhieuItem
     {
@@ -66,7 +67,7 @@ namespace bike.ViewModels
     // Class cho đơn đặt gần đây
     public class DonDatGanDayItem
     {
-        public int MaDatCho { get; set; }
+
         public string ?TenKhach { get; set; }
         public string ?TenXe { get; set; }
         public DateTime NgayDat { get; set; }

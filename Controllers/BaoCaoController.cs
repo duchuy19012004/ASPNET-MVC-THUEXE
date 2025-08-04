@@ -35,9 +35,12 @@ namespace bike.Controllers
             };
 
             // 1. Thống kê tổng quan
-            // Tổng đơn đặt xe trong khoảng thời gian
-            viewModel.TongDonDatXe = await _context.DatCho
-                .Where(d => d.NgayDat >= startDate && d.NgayDat <= endDate.AddDays(1))
+            // Tổng đơn đặt xe - tính số hợp đồng thuê với trạng thái hoàn thành
+            viewModel.TongDonDatXe = await _context.HopDong
+                .Where(h => h.TrangThai == "Hoàn thành" && 
+                           h.NgayTraXeThucTe.HasValue &&
+                           h.NgayTraXeThucTe.Value.Date >= startDate && 
+                           h.NgayTraXeThucTe.Value.Date <= endDate.AddDays(1))
                 .CountAsync();
             // Doanh thu hôm nay - CHỈ TÍNH KHI ĐÃ TRẢ XE THÀNH CÔNG, TRỪ CHI TIÊU
             var today = DateTime.Now.Date;
@@ -47,21 +50,13 @@ namespace bike.Controllers
                            h.NgayTraXeThucTe.Value.Date == today)
                 .SumAsync(h => h.TongTien);
 
-            // Tính tổng phí đền bù thiệt hại đã thanh toán hôm nay
-            var tongPhiDenBuHomNay = await _context.BaoCaoThietHai
-                .Where(b => b.NgayThanhToan.HasValue && 
-                           b.NgayThanhToan.Value.Date == today &&
-                           b.SoTienDaThanhToan.HasValue && 
-                           b.SoTienDaThanhToan.Value > 0)
-                .SumAsync(b => b.SoTienDaThanhToan ?? 0);
-
             // Tính tổng chi tiêu trong ngày
             var tongChiTieuHomNay = await _context.ChiTieu
                 .Where(ct => ct.NgayChi.Date == today)
                 .SumAsync(ct => ct.SoTien);
 
-            // Doanh thu thực = Doanh thu hợp đồng + Phí đền bù - Chi tiêu (tối thiểu là 0)
-            viewModel.DoanhThuHomNay = Math.Max(0, doanhThuTheoHopDong + tongPhiDenBuHomNay - tongChiTieuHomNay);
+            // Doanh thu thực = Doanh thu hợp đồng - Chi tiêu (tối thiểu là 0)
+            viewModel.DoanhThuHomNay = Math.Max(0, doanhThuTheoHopDong - tongChiTieuHomNay);
 
             // Xe đang cho thuê
             viewModel.XeDangChoThue = await _context.Xe
@@ -86,8 +81,11 @@ namespace bike.Controllers
             var previousStartDate = startDate.AddDays(-previousPeriodDays - 1);
             var previousEndDate = startDate.AddDays(-1);
 
-            var previousDonDat = await _context.DatCho
-                .Where(d => d.NgayDat >= previousStartDate && d.NgayDat <= previousEndDate)
+            var previousDonDat = await _context.HopDong
+                .Where(h => h.TrangThai == "Hoàn thành" && 
+                           h.NgayTraXeThucTe.HasValue &&
+                           h.NgayTraXeThucTe.Value.Date >= previousStartDate && 
+                           h.NgayTraXeThucTe.Value.Date <= previousEndDate)
                 .CountAsync();
 
             if (previousDonDat > 0)
@@ -103,21 +101,12 @@ namespace bike.Controllers
                            h.NgayTraXeThucTe.Value.Date <= previousEndDate)
                 .SumAsync(h => h.TongTien);
 
-            // Tính phí đền bù kỳ trước
-            var previousPhiDenBu = await _context.BaoCaoThietHai
-                .Where(b => b.NgayThanhToan.HasValue &&
-                           b.NgayThanhToan.Value.Date >= previousStartDate && 
-                           b.NgayThanhToan.Value.Date <= previousEndDate &&
-                           b.SoTienDaThanhToan.HasValue && 
-                           b.SoTienDaThanhToan.Value > 0)
-                .SumAsync(b => b.SoTienDaThanhToan ?? 0);
-
             var previousExpenses = await _context.ChiTieu
                 .Where(ct => ct.NgayChi.Date >= previousStartDate && 
                             ct.NgayChi.Date <= previousEndDate)
                 .SumAsync(ct => ct.SoTien);
 
-            var previousRevenue = Math.Max(0, previousRevenueGross + previousPhiDenBu - previousExpenses);
+            var previousRevenue = Math.Max(0, previousRevenueGross - previousExpenses);
 
             var currentRevenueGross = await _context.HopDong
                 .Where(h => h.TrangThai == "Hoàn thành" && 
@@ -126,21 +115,12 @@ namespace bike.Controllers
                            h.NgayTraXeThucTe.Value.Date <= endDate)
                 .SumAsync(h => h.TongTien);
 
-            // Tính phí đền bù kỳ hiện tại
-            var currentPhiDenBu = await _context.BaoCaoThietHai
-                .Where(b => b.NgayThanhToan.HasValue &&
-                           b.NgayThanhToan.Value.Date >= startDate && 
-                           b.NgayThanhToan.Value.Date <= endDate &&
-                           b.SoTienDaThanhToan.HasValue && 
-                           b.SoTienDaThanhToan.Value > 0)
-                .SumAsync(b => b.SoTienDaThanhToan ?? 0);
-
             var currentExpenses = await _context.ChiTieu
                 .Where(ct => ct.NgayChi.Date >= startDate && 
                             ct.NgayChi.Date <= endDate)
                 .SumAsync(ct => ct.SoTien);
 
-            var currentRevenue = Math.Max(0, currentRevenueGross + currentPhiDenBu - currentExpenses);
+            var currentRevenue = Math.Max(0, currentRevenueGross - currentExpenses);
 
             if (previousRevenue > 0)
             {
@@ -178,10 +158,10 @@ namespace bike.Controllers
                 .Take(10)
                 .Select(d => new DonDatGanDayItem
                 {
-                    MaDatCho = d.MaDatCho,
                     TenKhach = d.HoTen,
                     TenXe = d.Xe.TenXe,
                     NgayDat = d.NgayDat,
+                    NgayTra = d.NgayTraXe,
                     TrangThai = d.TrangThai,
                     TongTien = d.TongTienDuKien
                 })

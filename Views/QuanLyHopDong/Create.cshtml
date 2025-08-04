@@ -260,37 +260,83 @@
     /* Select2 custom styling for vehicle images */
     .select2-results__option {
         padding: 0 !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .select2-results__option:hover {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+    }
+    
+    .select2-results__option--highlighted {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+        color: white !important;
+        transform: translateX(5px);
+        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+    }
+    
+    .select2-results__option--highlighted .select2-vehicle-option {
+        color: white;
+    }
+    
+    .select2-results__option--highlighted .vehicle-option-info .vehicle-details {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .select2-results__option--highlighted .vehicle-option-price {
+        color: #fff !important;
     }
     
     .select2-vehicle-option {
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 8px 12px;
+        padding: 12px 16px;
         width: 100%;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 6px;
+        margin: 2px 4px;
     }
     
     .select2-vehicle-option img {
         width: 40px;
         height: 40px;
-        border-radius: 4px;
+        border-radius: 6px;
         object-fit: cover;
-        border: 1px solid #e0e0e0;
+        border: 2px solid #e0e0e0;
         flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .select2-results__option:hover .select2-vehicle-option img {
+        border-color: #007bff;
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
     }
     
     .select2-vehicle-option .vehicle-option-image-placeholder {
         width: 40px;
         height: 40px;
-        border-radius: 4px;
-        background: #f8f9fa;
-        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 2px solid #e0e0e0;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #999;
         font-size: 16px;
         flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .select2-results__option:hover .select2-vehicle-option .vehicle-option-image-placeholder {
+        border-color: #007bff;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
     }
     
     .select2-vehicle-option .vehicle-option-info {
@@ -305,6 +351,12 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .select2-results__option:hover .select2-vehicle-option .vehicle-option-info .vehicle-name {
+        color: #007bff;
+        transform: translateX(2px);
     }
     
     .select2-vehicle-option .vehicle-option-info .vehicle-details {
@@ -313,6 +365,12 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .select2-results__option:hover .select2-vehicle-option .vehicle-option-info .vehicle-details {
+        color: #495057;
+        transform: translateX(2px);
     }
     
     .select2-vehicle-option .vehicle-option-price {
@@ -322,6 +380,16 @@
         text-align: right;
         min-width: 80px;
         flex-shrink: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: rgba(40, 167, 69, 0.1);
+    }
+    
+    .select2-results__option:hover .select2-vehicle-option .vehicle-option-price {
+        background: rgba(40, 167, 69, 0.2);
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(40, 167, 69, 0.2);
     }
     
     /* Rental period section */
@@ -477,6 +545,24 @@
             min-width: auto;
         }
         
+        /* Mobile hover effects */
+        .select2-results__option:hover {
+            transform: translateX(2px);
+        }
+        
+        .select2-results__option--highlighted {
+            transform: translateX(3px);
+        }
+        
+        .select2-results__option:hover .select2-vehicle-option img,
+        .select2-results__option:hover .select2-vehicle-option .vehicle-option-image-placeholder {
+            transform: scale(1.02);
+        }
+        
+        .select2-results__option:hover .select2-vehicle-option .vehicle-option-price {
+            transform: scale(1.02);
+        }
+        
 
     }
     
@@ -530,6 +616,43 @@
     .select2-vehicle-option .vehicle-status .badge {
         font-size: 0.7em;
         padding: 0.2em 0.5em;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .select2-results__option:hover .select2-vehicle-option .vehicle-status .badge {
+        transform: scale(1.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Select2 dropdown container styling */
+    .select2-dropdown {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+    
+    .select2-results {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .select2-results::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .select2-results::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 3px;
+    }
+    
+    .select2-results::-webkit-scrollbar-thumb {
+        background: #c1c1c1;
+        border-radius: 3px;
+    }
+    
+    .select2-results::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8;
     }
 </style>
 <div class="create-container">

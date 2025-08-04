@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using bike.Repository;
 
@@ -11,9 +12,11 @@ using bike.Repository;
 namespace bike.Migrations
 {
     [DbContext(typeof(BikeDbContext))]
-    partial class BikeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250804032128_AddDonDatPermissions")]
+    partial class AddDonDatPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -63,6 +66,91 @@ namespace bike.Migrations
                     b.HasKey("MaBanner");
 
                     b.ToTable("Banner");
+                });
+
+            modelBuilder.Entity("bike.Models.BaoCaoThietHai", b =>
+                {
+                    b.Property<int>("MaBaoCao")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MaBaoCao"));
+
+                    b.Property<decimal?>("ChiPhiSuaChuaThucTe")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal?>("ChiPhiSuaChuaUocTinh")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("GhiChu")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("GhiChuThanhToan")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<decimal?>("GiaTriXeSauKhiHong")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal?>("GiaTriXeTruocKhiHong")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("LoaiThietHai")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("MaChiTiet")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaNguoiTao")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MoTaChiTiet")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("NgayCapNhat")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayPhatHien")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("NgayTao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("NgayThanhToan")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal?>("PhiDenBuKhachHang")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal?>("SoTienDaThanhToan")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TrangThaiThanhToan")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("TrangThaiXuLy")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ViTriThietHai")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("MaBaoCao");
+
+                    b.HasIndex("MaChiTiet");
+
+                    b.HasIndex("MaNguoiTao");
+
+                    b.ToTable("BaoCaoThietHai");
                 });
 
             modelBuilder.Entity("bike.Models.ChiTietHopDong", b =>
@@ -489,13 +577,22 @@ namespace bike.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("CanCancelDonDat")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("CanCheckout")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanConfirmDonDat")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanCreateBanner")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanCreateChiTieu")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanCreateDonDat")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanCreateHoaDon")
@@ -528,6 +625,9 @@ namespace bike.Migrations
                     b.Property<bool>("CanDeleteChiTieu")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("CanDeleteDonDat")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("CanDeleteHinhAnhXe")
                         .HasColumnType("bit");
 
@@ -556,6 +656,9 @@ namespace bike.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanEditChiTieu")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanEditDonDat")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanEditHinhAnhXe")
@@ -592,6 +695,9 @@ namespace bike.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanManageChiTieu")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanManageDonDat")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanManageHinhAnhXe")
@@ -643,6 +749,9 @@ namespace bike.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanViewDatCho")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanViewDonDat")
                         .HasColumnType("bit");
 
                     b.Property<bool>("CanViewHinhAnhXe")
@@ -740,6 +849,24 @@ namespace bike.Migrations
                     b.HasIndex("MaLoaiXe");
 
                     b.ToTable("Xe");
+                });
+
+            modelBuilder.Entity("bike.Models.BaoCaoThietHai", b =>
+                {
+                    b.HasOne("bike.Models.ChiTietHopDong", "ChiTietHopDong")
+                        .WithMany()
+                        .HasForeignKey("MaChiTiet")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("bike.Models.User", "NguoiTao")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiTao")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ChiTietHopDong");
+
+                    b.Navigation("NguoiTao");
                 });
 
             modelBuilder.Entity("bike.Models.ChiTietHopDong", b =>

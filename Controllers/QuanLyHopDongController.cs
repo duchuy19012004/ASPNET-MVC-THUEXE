@@ -12,12 +12,10 @@ namespace bike.Controllers
     public class QuanLyHopDongController : Controller
     {
         private readonly BikeDbContext _context;
-        private readonly IDamageCompensationService _damageService;
 
-        public QuanLyHopDongController(BikeDbContext context, IDamageCompensationService damageService)
+        public QuanLyHopDongController(BikeDbContext context)
         {
             _context = context;
-            _damageService = damageService;
         }
 
         // GET: QuanLyHopDong - Danh sách hợp đồng
@@ -582,8 +580,7 @@ namespace bike.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [PermissionAuthorize("CanEditHopDong")]
-        public async Task<IActionResult> TraXe(int id, DateTime ngayTraThucTe, decimal phuPhi, string ghiChu, 
-            List<string> tinhTrangTraXe, List<string> moTaThietHai, List<decimal> chiPhiSuaChua)
+        public async Task<IActionResult> TraXe(int id, DateTime ngayTraThucTe, decimal phuPhi, string ghiChu)
         {
             var hopDong = await _context.HopDong
                 .Include(h => h.ChiTietHopDong)
@@ -603,92 +600,20 @@ namespace bike.Controllers
                 hopDong.GhiChu += ghiChu;
                 hopDong.TrangThai = "Hoàn thành";
 
-                decimal tongPhiDenBu = 0;
-
-                // Cập nhật chi tiết từng xe với xử lý thiệt hại
-                for (int i = 0; i < hopDong.ChiTietHopDong.Count; i++)
+                // Cập nhật chi tiết từng xe
+                foreach (var ct in hopDong.ChiTietHopDong)
                 {
-                    var ct = hopDong.ChiTietHopDong.ElementAt(i);
-                    
                     // Cập nhật thông tin cơ bản
                     ct.NgayTraXeThucTe = ngayTraThucTe;
                     var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days + 1;
                     ct.SoNgayThue = soNgayThucTe;
                     ct.ThanhTien = ct.GiaThueNgay * soNgayThucTe;
 
-                    // Xử lý thiệt hại nếu có
-                    string tinhTrang = i < tinhTrangTraXe.Count ? tinhTrangTraXe[i] : "Bình thường";
-                    string moTa = i < moTaThietHai.Count ? moTaThietHai[i] : "";
-                    decimal chiPhi = i < chiPhiSuaChua.Count ? chiPhiSuaChua[i] : 0;
-
-                    // Cập nhật thông tin thiệt hại trong ChiTietHopDong
-                    ct.TinhTrangTraXe = tinhTrang;
-                    ct.MoTaThietHai = moTa;
-
-                    // Tính phí đền bù bằng service
-                    if (tinhTrang != "Bình thường")
-                    {
-                        var compensationResult = _damageService.ProcessDamageReport(
-                            tinhTrang, ct.Xe.GiaTriXe, chiPhi, soNgayThucTe);
-                        
-                        ct.PhiDenBu = compensationResult.CompensationAmount;
-                        tongPhiDenBu += ct.PhiDenBu;
-
-                        // Cập nhật trạng thái xe theo kết quả xử lý
-                        ct.Xe.TrangThai = compensationResult.NewBikeStatus;
-                        ct.TrangThaiXe = compensationResult.NewBikeStatus;
-
-                        // Cập nhật thông tin thiệt hại vào xe
-                        ct.Xe.NgayGapSuCo = ngayTraThucTe;
-                        ct.Xe.MoTaThietHai = moTa;
-                        ct.Xe.ChiPhiSuaChua = chiPhi;
-
-                        // Tạo báo cáo thiệt hại chi tiết
-                        var baoCaoThietHai = new BaoCaoThietHai
-                        {
-                            MaChiTiet = ct.MaChiTiet,
-                            LoaiThietHai = tinhTrang,
-                            MoTaChiTiet = moTa,
-                            NgayPhatHien = ngayTraThucTe,
-                            ChiPhiSuaChuaUocTinh = chiPhi,
-                            PhiDenBuKhachHang = ct.PhiDenBu,
-                            GiaTriXeTruocKhiHong = ct.Xe.GiaTriXe,
-                            GiaTriXeSauKhiHong = compensationResult.NewBikeStatus == "Mất" ? 0 : 
-                                ct.Xe.GiaTriXe - compensationResult.CompensationAmount,
-                            TrangThaiXuLy = compensationResult.NewBikeStatus == "Mất" ? "Không thể sửa" : "Chờ xử lý",
-                            MaNguoiTao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
-                            NgayTao = DateTime.Now,
-                            NgayCapNhat = DateTime.Now
-                        };
-
-                        _context.BaoCaoThietHai.Add(baoCaoThietHai);
-
-                        // Tự động tạo chi tiêu cho việc sửa chữa xe (nếu có chi phí ước tính)
-                        if (chiPhi > 0)
-                        {
-                            var chiTieuSuaChua = new ChiTieu
-                            {
-                                NoiDung = $"Sửa chữa xe {ct.Xe.TenXe} ({ct.Xe.BienSoXe}) - {tinhTrang}",
-                                SoTien = chiPhi,
-                                NgayChi = ngayTraThucTe,
-                                GhiChu = string.IsNullOrEmpty(moTa) ? $"Sửa chữa do {tinhTrang.ToLower()}" : moTa,
-                                MaXe = ct.MaXe
-                            };
-
-                            _context.ChiTieu.Add(chiTieuSuaChua);
-                        }
-                    }
-                    else
-                    {
-                        // Xe bình thường - trạng thái sẵn sàng
-                        ct.Xe.TrangThai = "Sẵn sàng";
-                        ct.TrangThaiXe = "Đã trả";
-                        ct.PhiDenBu = 0;
-                    }
+                    // Xe trả về trạng thái sẵn sàng
+                    ct.Xe.TrangThai = "Sẵn sàng";
+                    ct.TrangThaiXe = "Đã trả";
+                    ct.PhiDenBu = 0;
                 }
-
-                // Cộng phí đền bù vào tổng phí phụ
-                hopDong.PhuPhi += tongPhiDenBu;
 
                 // Tính lại tổng tiền
                 hopDong.TongTien = hopDong.ChiTietHopDong.Sum(ct => ct.ThanhTien) + hopDong.PhuPhi;
@@ -719,28 +644,7 @@ namespace bike.Controllers
                     hoaDonInfo = $" Mã hóa đơn: HD{hoaDon.MaHoaDon:D6}";
                 }
 
-                if (tongPhiDenBu > 0)
-                {
-                    // Tính tổng chi phí sửa chữa đã tạo chi tiêu
-                    var tongChiPhiSuaChua = hopDong.ChiTietHopDong
-                        .Where(ct => ct.TinhTrangTraXe != "Bình thường")
-                        .Sum(ct => ct.Xe.ChiPhiSuaChua);
-
-                    TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công! Phí đền bù: {tongPhiDenBu:N0}đ.{hoaDonInfo}";
-                    
-                    if (tongChiPhiSuaChua > 0)
-                    {
-                        TempData["Warning"] = $"Có thiệt hại xe được ghi nhận. Chi phí sửa chữa {tongChiPhiSuaChua:N0}đ đã được thêm vào danh sách chi tiêu.";
-                    }
-                    else
-                    {
-                        TempData["Warning"] = "Có thiệt hại xe được ghi nhận. Vui lòng kiểm tra báo cáo thiệt hại.";
-                    }
-                }
-                else
-                {
-                    TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công!{hoaDonInfo}";
-                }
+                TempData["Success"] = $"Xử lý trả xe và tạo hóa đơn thành công!{hoaDonInfo}";
 
                 return RedirectToAction("ChiTiet", new { id = hopDong.MaHopDong });
             }

@@ -97,6 +97,170 @@ namespace bike.Controllers
             return View(chiTieu);
         }
 
+        // Action để trả về dữ liệu chi tiết dạng JSON cho modal
+        public async Task<IActionResult> GetChiTiet(int? id)
+        {
+            if (id == null)
+            {
+                return Json(new { success = false, message = "ID không hợp lệ" });
+            }
+
+            var chiTieu = await _context.ChiTieu
+                .Include(c => c.Xe)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            
+            if (chiTieu == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy khoản chi" });
+            }
+
+            var result = new
+            {
+                success = true,
+                data = new
+                {
+                    id = chiTieu.Id,
+                    noiDung = chiTieu.NoiDung,
+                    soTien = chiTieu.SoTien,
+                    ngayChi = chiTieu.NgayChi.ToString("dd/MM/yyyy"),
+                    ghiChu = chiTieu.GhiChu ?? "Không có ghi chú",
+                    xeLienKet = chiTieu.Xe?.BienSoXe ?? "Không liên kết xe"
+                }
+            };
+
+            return Json(result);
+        }
+
+        // Action để trả về dữ liệu xóa dạng JSON cho modal
+        public async Task<IActionResult> GetDeleteData(int? id)
+        {
+            if (id == null)
+            {
+                return Json(new { success = false, message = "ID không hợp lệ" });
+            }
+
+            var chiTieu = await _context.ChiTieu
+                .Include(c => c.Xe)
+                .FirstOrDefaultAsync(m => m.Id == id);
+            
+            if (chiTieu == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy khoản chi" });
+            }
+
+            var result = new
+            {
+                success = true,
+                data = new
+                {
+                    id = chiTieu.Id,
+                    noiDung = chiTieu.NoiDung,
+                    soTien = chiTieu.SoTien,
+                    ngayChi = chiTieu.NgayChi.ToString("dd/MM/yyyy"),
+                    xeLienKet = chiTieu.Xe?.BienSoXe ?? "Không liên kết xe"
+                }
+            };
+
+            return Json(result);
+        }
+
+        // Action để lọc dữ liệu theo ngày bằng AJAX
+        public async Task<IActionResult> FilterByDate(string startDate, string endDate)
+        {
+            try
+            {
+                DateTime? start = null;
+                DateTime? end = null;
+
+                // Parse start date
+                if (!string.IsNullOrEmpty(startDate))
+                {
+                    if (DateTime.TryParse(startDate, out DateTime parsedStart))
+                    {
+                        start = parsedStart.Date;
+                    }
+                }
+
+                // Parse end date
+                if (!string.IsNullOrEmpty(endDate))
+                {
+                    if (DateTime.TryParse(endDate, out DateTime parsedEnd))
+                    {
+                        end = parsedEnd.Date.AddDays(1).AddSeconds(-1); // End of day
+                    }
+                }
+                // Build query
+                var query = _context.ChiTieu.Include(c => c.Xe).AsQueryable();
+
+                if (start.HasValue)
+                {
+                    query = query.Where(c => c.NgayChi >= start.Value);
+                }
+
+                if (end.HasValue)
+                {
+                    query = query.Where(c => c.NgayChi <= end.Value);
+                }
+
+                // Get filtered data
+                var filteredData = await query
+                    .OrderByDescending(c => c.NgayChi)
+                    .Take(100)
+                    .ToListAsync();
+
+                // Calculate statistics for filtered data
+                decimal tongChiFiltered = filteredData.Sum(c => c.SoTien);
+                int soLuongFiltered = filteredData.Count;
+
+                // Prepare HTML for table rows
+                var tableRows = new List<string>();
+                foreach (var item in filteredData)
+                {
+                    var xeInfo = item.Xe != null ? $"<span class=\"badge bg-secondary\">{item.Xe.BienSoXe}</span>" : "";
+                    var ghiChu = !string.IsNullOrEmpty(item.GhiChu) ? item.GhiChu : "";
+                    
+                    var row = $@"
+                        <tr>
+                            <td>{item.NoiDung}</td>
+                            <td class=""text-danger fw-bold"">{item.SoTien.ToString("N0")}đ</td>
+                            <td>{item.NgayChi.ToString("dd/MM/yyyy")}</td>
+                            <td>{xeInfo}</td>
+                            <td>{ghiChu}</td>
+                            <td class=""text-center"">
+                                <a href=""/QuanLyChiTieu/Edit/{item.Id}"" class=""btn btn-warning btn-sm"" title=""Sửa"">
+                                    <i class=""bi bi-pencil-square""></i>
+                                </a>
+                                <button type=""button"" class=""btn btn-info btn-sm"" title=""Chi tiết"" onclick=""showChiTietModal({item.Id})"">
+                                    <i class=""bi bi-eye""></i>
+                                </button>
+                                <button type=""button"" class=""btn btn-danger btn-sm"" title=""Xóa"" onclick=""showDeleteModal({item.Id})"">
+                                    <i class=""bi bi-trash""></i>
+                                </button>
+                            </td>
+                        </tr>";
+                    tableRows.Add(row);
+                }
+
+                var result = new
+                {
+                    success = true,
+                    data = new
+                    {
+                        rows = tableRows,
+                        tongChi = tongChiFiltered,
+                        soLuong = soLuongFiltered,
+                        startDate = start?.ToString("yyyy-MM-dd"),
+                        endDate = end?.ToString("yyyy-MM-dd")
+                    }
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Có lỗi xảy ra: " + ex.Message });
+            }
+        }
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)

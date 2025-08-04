@@ -96,5 +96,7 @@ namespace bike.Models
         public bool CanUploadHinhAnhXe { get; set; } = false;
         public bool CanEditHinhAnhXe { get; set; } = false;
         public bool CanDeleteHinhAnhXe { get; set; } = false;
+        
+
     }
 } 

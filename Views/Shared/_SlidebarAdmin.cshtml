@@ -1,8 +1,11 @@
 ﻿@using bike.Repository
 @using Microsoft.EntityFrameworkCore
+@using bike.Services
 @inject BikeDbContext _context
+@inject IPermissionService _permissionService
 @{
     var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+    var userId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
     
     // Lấy số đơn chờ xử lý mới trong ngày
     int donChoXuLyMoi = 0;
@@ -13,6 +16,8 @@
             .CountAsync(d => (d.TrangThai == "Chờ xác nhận" || d.TrangThai == "Đang giữ chỗ") 
                            && d.NgayDat.Date == homNay);
     }
+    
+
 }
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
@@ -49,6 +54,7 @@
                     }
                 </a>
             </li>
+
             <li>
                 <a asp-controller="QuanLyHoaDon" asp-action="Index">
                     <i class="bi bi-receipt-cutoff"></i>
@@ -72,11 +78,7 @@
                     <i class="bi bi-wallet2"></i> <span class="menu-text">Quản lý chi tiêu</span>
                 </a>
             </li>
-            <li>
-                <a asp-controller="QuanLyThietHai" asp-action="Index">
-                    <i class="bi bi-exclamation-triangle"></i> <span class="menu-text">Quản lý thiệt hại</span>
-                </a>
-            </li>
+
             <li>
                 <a asp-controller="QuanLyBanner" asp-action="Index">
                     <i class="bi bi-image"></i> <span class="menu-text">Quản lý banner</span>

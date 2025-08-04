@@ -34,8 +34,6 @@
         </div>
     </div>
 
-
-
     <!-- Thống kê -->
     <div class="row mb-4">
         <div class="col-md-3">
@@ -63,10 +61,11 @@
             </div>
         </div>
     </div>
+
     <!-- Bộ lọc -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <input type="text" id="searchString" class="form-control" placeholder="Tìm kiếm xe..." value="@Context.Request.Query["searchString"]" />
+            <input type="text" id="searchString" class="form-control" placeholder="Tìm kiếm xe..." value="@ViewBag.CurrentSearchString" />
         </div>
         <div class="col-md-2">
             <select id="loaiXe" class="form-select">
@@ -100,6 +99,22 @@
                 }
             </select>
         </div>
+        <div class="col-md-2">
+            <select id="trangThai" class="form-select">
+                <option value="">Trạng thái xe</option>
+                @foreach (var item in ViewBag.TrangThaiList as SelectList)
+                {
+                    if (item.Value == ViewBag.CurrentTrangThai?.ToString())
+                    {
+                        <option value="@item.Value" selected>@item.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                }
+            </select>
+        </div>
         <div class="col-md-3">
             <button type="button" id="filterBtn" class="btn btn-secondary">
                 <i class="bi bi-funnel"></i> Lọc
@@ -109,6 +124,7 @@
             </button>
         </div>
     </div>
+
     <!-- Bảng danh sách -->
     <div class="card">
         <div class="card-header d-flex justify-content-between">
@@ -190,7 +206,7 @@
             });
 
             // Lọc real-time khi thay đổi dropdown
-            $('#loaiXe, #hangXe').on('change', function() {
+            $('#loaiXe, #hangXe, #trangThai').on('change', function() {
                 filterXe();
             });
 
@@ -211,19 +227,11 @@
             const searchString = $('#searchString').val();
             const loaiXe = $('#loaiXe').val();
             const hangXe = $('#hangXe').val();
+            const trangThai = $('#trangThai').val();
             const showDeleted = @(ViewBag.ShowDeleted == true ? "true" : "false");
             
-            // Debug: Log giá trị filter
-            console.log('Filter values:', {
-                searchString: searchString,
-                loaiXe: loaiXe,
-                hangXe: hangXe,
-                showDeleted: showDeleted
-            });
-            
             // Kiểm tra xem có filter nào được áp dụng không
-            const hasFilters = searchString || loaiXe || hangXe;
-            console.log('Has filters:', hasFilters);
+            const hasFilters = searchString || loaiXe || hangXe || trangThai;
             
             // Hiển thị/ẩn button xóa lọc dựa trên việc có filter hay không
             if (hasFilters) {
@@ -243,6 +251,7 @@
                     searchString: searchString,
                     loaiXe: loaiXe,
                     hangXe: hangXe,
+                    trangThai: trangThai,
                     showDeleted: showDeleted
                 },
                 headers: {
@@ -252,7 +261,7 @@
                     $('#xeTableContainer').html(result);
                     
                     // Cập nhật URL để lưu trạng thái filter
-                    updateUrl(searchString, loaiXe, hangXe, showDeleted);
+                    updateUrl(searchString, loaiXe, hangXe, trangThai, showDeleted);
                 },
                 error: function(xhr, status, error) {
                     $('#xeTableContainer').html('<div class="text-center py-4 text-danger"><i class="bi bi-exclamation-triangle"></i><br>Có lỗi xảy ra khi lọc dữ liệu</div>');
@@ -265,8 +274,9 @@
             const searchString = $('#searchString').val();
             const loaiXe = $('#loaiXe').val();
             const hangXe = $('#hangXe').val();
+            const trangThai = $('#trangThai').val();
             
-            const hasFilters = searchString || loaiXe || hangXe;
+            const hasFilters = searchString || loaiXe || hangXe || trangThai;
             
             if (hasFilters) {
                 $('#clearFilterBtn').show();
@@ -280,6 +290,7 @@
             $('#searchString').val('');
             $('#loaiXe').val('');
             $('#hangXe').val('');
+            $('#trangThai').val('');
             
             // Ẩn button xóa lọc
             $('#clearFilterBtn').hide();
@@ -287,12 +298,14 @@
             // Lọc lại với dữ liệu rỗng
             filterXe();
         }
+
         // Hàm cập nhật URL để lưu trạng thái filter
-        function updateUrl(searchString, loaiXe, hangXe, showDeleted) {
+        function updateUrl(searchString, loaiXe, hangXe, trangThai, showDeleted) {
             const params = new URLSearchParams();
             if (searchString) params.append('searchString', searchString);
             if (loaiXe) params.append('loaiXe', loaiXe);
             if (hangXe) params.append('hangXe', hangXe);
+            if (trangThai) params.append('trangThai', trangThai);
             if (showDeleted) params.append('showDeleted', showDeleted);
             
             const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
@@ -324,6 +337,7 @@
                 }
             });
         }
+
         // Function to close custom modal
         function closeCustomModal() {
             const modal = document.getElementById('customXeDetailsModal');

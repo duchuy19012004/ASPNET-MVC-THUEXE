@@ -230,7 +230,8 @@ namespace bike.Services.QuanLyUsers
                 ChiTieuPermission = GetPermissionLevel(permission.CanViewChiTieu, permission.CanCreateChiTieu, permission.CanEditChiTieu, permission.CanDeleteChiTieu),
                 ThietHaiPermission = GetPermissionLevel(permission.CanViewThietHai, permission.CanCreateThietHai, permission.CanEditThietHai, permission.CanDeleteThietHai),
                 BaoCaoPermission = GetBaoCaoPermissionLevel(permission.CanViewBaoCao, permission.CanViewThongKe, permission.CanExportBaoCao),
-                HinhAnhXePermission = GetPermissionLevel(permission.CanViewHinhAnhXe, permission.CanUploadHinhAnhXe, permission.CanEditHinhAnhXe, permission.CanDeleteHinhAnhXe)
+                HinhAnhXePermission = GetPermissionLevel(permission.CanViewHinhAnhXe, permission.CanUploadHinhAnhXe, permission.CanEditHinhAnhXe, permission.CanDeleteHinhAnhXe),
+
             };
         }
 
@@ -288,6 +289,8 @@ namespace bike.Services.QuanLyUsers
                 UpdatePermissionFromLevel(permission, model.HinhAnhXePermission,
                     "CanViewHinhAnhXe", "CanUploadHinhAnhXe", "CanEditHinhAnhXe", "CanDeleteHinhAnhXe");
 
+
+
                 await _userRepository.UpdateUserPermissionAsync(permission);
                 return true;
             }
@@ -319,7 +322,8 @@ namespace bike.Services.QuanLyUsers
                     CanCheckout = true,
                     CanDatCho = true,
                     CanViewDatCho = true,
-                    CanViewHinhAnhXe = true
+                    CanViewHinhAnhXe = true,
+
                 };
 
                 await _userRepository.CreateUserPermissionAsync(permission);

@@ -52,6 +52,8 @@ namespace bike.ViewModel
         [Display(Name = "Quản lý hình ảnh xe")]
         public string HinhAnhXePermission { get; set; } = "View";
         
+
+        
         // Các tùy chọn quyền
         public static List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> PermissionOptions => new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>
         {

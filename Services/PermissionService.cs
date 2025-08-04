@@ -76,6 +76,7 @@ namespace bike.Services
                 "CanViewHinhAnhXe" => permission.CanViewHinhAnhXe,
                 "CanUploadHinhAnhXe" => permission.CanUploadHinhAnhXe,
                 "CanDeleteHinhAnhXe" => permission.CanDeleteHinhAnhXe,
+
                 _ => false
             };
         }

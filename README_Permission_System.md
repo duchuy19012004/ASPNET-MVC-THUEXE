@@ -133,7 +133,7 @@ public class SomeController : Controller
 - `CanViewThietHai`, `CanCreateThietHai`, `CanEditThietHai`, `CanDeleteThietHai`, `CanThanhToanThietHai`: Quyền thiệt hại
 - `CanViewBaoCao`, `CanViewThongKe`, `CanExportBaoCao`: Quyền báo cáo
 - `CanViewCart`, `CanCheckout`: Quyền giỏ hàng
-- `CanDatCho`, `CanViewDatCho`: Quyền đặt chỗ
+
 - `CanViewHinhAnhXe`, `CanUploadHinhAnhXe`, `CanDeleteHinhAnhXe`: Quyền hình ảnh xe
 
 ## Lưu ý quan trọng

@@ -64,6 +64,10 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     }
 
+    .stat-icon.red {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    }
+
     .stat-value {
         font-size: 32px;
         font-weight: bold;
@@ -160,8 +164,8 @@
                 <div class="stat-icon blue text-white">
                     <i class="bi bi-cash-stack"></i>
                 </div>
-                <div class="stat-value">@Model.DoanhThuHomNay.ToString("N0")đ</div>
-                <div class="stat-label">Doanh thu tháng này</div>
+                <div class="stat-value" id="doanhThuValue">@Model.DoanhThuHomNay.ToString("N0")đ</div>
+                <div class="stat-label" id="doanhThuLabel">Doanh thu tháng này</div>
             </div>
         </div>
 
@@ -170,8 +174,8 @@
                 <div class="stat-icon green text-white">
                     <i class="bi bi-calendar-check"></i>
                 </div>
-                <div class="stat-value">@Model.TongDonDatXe</div>
-                <div class="stat-label">Đơn đặt tháng này</div>
+                <div class="stat-value" id="donDatValue">@Model.TongDonDatXe</div>
+                                        <div class="stat-label" id="donDatLabel">Đơn đặt tháng này</div>
             </div>
         </div>
 
@@ -180,7 +184,7 @@
                 <div class="stat-icon purple text-white">
                     <i class="bi bi-bicycle"></i>
                 </div>
-                <div class="stat-value">@Model.XeDangChoThue</div>
+                <div class="stat-value" id="xeDangThueValue">@Model.XeDangChoThue</div>
                 <div class="stat-label">Xe đang cho thuê</div>
             </div>
         </div>
@@ -190,8 +194,18 @@
                 <div class="stat-icon orange text-white">
                     <i class="bi bi-person-plus"></i>
                 </div>
-                <div class="stat-value">@Model.KhachHangMoi</div>
-                <div class="stat-label">Khách hàng mới tháng này</div>
+                <div class="stat-value" id="khachHangMoiValue">@Model.KhachHangMoi</div>
+                                        <div class="stat-label" id="khachHangMoiLabel">Khách hàng mới tháng này</div>
+            </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon red text-white">
+                    <i class="bi bi-cash-coin"></i>
+                </div>
+                <div class="stat-value" id="tongChiTieuValue">@Model.TongChiTieu.ToString("N0")đ</div>
+                <div class="stat-label" id="tongChiTieuLabel">Tổng chi tiêu tháng này</div>
             </div>
         </div>
     </div>
@@ -201,6 +215,7 @@
                          <div class="col-md-6">
                  <label class="form-label">Lọc dữ liệu theo:</label>
                  <select id="chartFilter" class="form-select">
+                     <option value="today">Hôm nay</option>
                      <option value="7days">7 ngày gần nhất</option>
                      <option value="week">Tuần này</option>
                      <option value="month">30 ngày gần nhất</option>
@@ -255,7 +270,6 @@
             </div>
         </div>
     </div>
-
     <!-- Charts Row 2 -->
     <div class="row">
         <!-- Biểu đồ thống kê loại xe (Horizontal Bar Chart) -->
@@ -270,8 +284,35 @@
         </div>
             </div>
         </div>
+        <!-- Biểu đồ thống kê hợp đồng theo trạng thái (Line Chart) -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="mb-0" id="contractStatusTitle">Thống kê hợp đồng theo trạng thái</h5>
+                    <small class="text-muted">Số lượng hợp đồng</small>
+                </div>
+                <div id="contractStatusChartContainer" style="width: 100%; height: auto;">
+                    <canvas id="contractStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Charts Row 3 - Biểu đồ chi tiêu -->
+    <div class="row">
+        <!-- Biểu đồ chi tiêu (Line Chart) -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="mb-0" id="expensesTitle">Biểu đồ chi tiêu theo thời gian</h5>
+                    <small class="text-muted">Đơn vị: VNĐ</small>
+                </div>
+                <div id="expensesChartContainer" style="width: 100%; height: auto;">
+                    <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
     <!-- Tables Row -->
     <div class="row">
         <!-- Top xe thuê nhiều -->
@@ -359,7 +400,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
                  // Biến global để lưu chart instances
-         let revenueChart, topVehiclesChart, vehicleTypesChart;
+         let revenueChart, topVehiclesChart, vehicleTypesChart, contractStatusChart, expensesChart;
          let currentRevenueChartType = 'bar'; // Loại biểu đồ doanh thu hiện tại
 
         // Biểu đồ doanh thu (Horizontal Bar Chart với 2 màu)
@@ -620,6 +661,158 @@
             document.getElementById('vehicleTypesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu loại xe</div>';
         }
 
+        // Biểu đồ thống kê hợp đồng theo trạng thái (Line Chart)
+        const contractStatusCtx = document.getElementById('contractStatusChart').getContext('2d');
+        const contractStatusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoHopDongTrangThai.Select(x => x.Label).ToList()));
+        const contractStatusData = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.BieuDoHopDongTrangThai.Select(x => x.Value).ToList()));
+        
+        if (contractStatusLabels && contractStatusLabels.length > 0 && contractStatusData.some(value => value > 0)) {
+            // Màu sắc cho từng trạng thái
+            const statusColors = {
+                'Đang thuê': 'rgba(255, 193, 7, 1)',      // Vàng
+                'Hoàn thành': 'rgba(40, 167, 69, 1)',     // Xanh lá
+                'Hủy': 'rgba(220, 53, 69, 1)'             // Đỏ
+            };
+            
+            const backgroundColor = contractStatusLabels.map(label => statusColors[label] || 'rgba(108, 117, 125, 1)');
+            
+            contractStatusChart = new Chart(contractStatusCtx, {
+                type: 'line',
+                data: {
+                    labels: contractStatusLabels,
+                    datasets: [{
+                        label: 'Số lượng hợp đồng',
+                        data: contractStatusData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: backgroundColor,
+                        pointBorderColor: backgroundColor,
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Số lượng: ' + context.parsed.y + ' hợp đồng';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return value + ' hợp đồng';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 20,
+                            bottom: 20
+                        }
+                    }
+                }
+            });
+        } else {
+            // Hiển thị thông báo khi không có dữ liệu hợp đồng
+            document.getElementById('contractStatusChart').style.display = 'none';
+            document.getElementById('contractStatusChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu hợp đồng</div>';
+        }
+
+        // Biểu đồ chi tiêu (Line Chart)
+        const expensesCtx = document.getElementById('expensesChart').getContext('2d');
+        const expensesData = @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Value).ToList())); // Tạm thời dùng dữ liệu doanh thu, sẽ được cập nhật qua AJAX
+        const expensesLabels = @Html.Raw(Json.Serialize(Model.BieuDoDoanhThu.Select(x => x.Label).ToList()));
+        
+        if (expensesLabels && expensesLabels.length > 0) {
+            expensesChart = new Chart(expensesCtx, {
+                type: 'line',
+                data: {
+                    labels: expensesLabels,
+                    datasets: [{
+                        label: 'Chi tiêu',
+                        data: expensesData,
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(255, 99, 132, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Chi tiêu: ' + context.parsed.y.toLocaleString('vi-VN') + 'đ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString('vi-VN') + 'đ';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 30,
+                            bottom: 30
+                        }
+                    }
+                }
+            });
+        } else {
+            // Hiển thị thông báo khi không có dữ liệu chi tiêu
+            document.getElementById('expensesChart').style.display = 'none';
+            document.getElementById('expensesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu chi tiêu</div>';
+        }
+
                  // Function để tạo biểu đồ tuyến tính
          function createLineChart(ctx, labels, data) {
              return new Chart(ctx, {
@@ -714,8 +907,10 @@
                         
                         // Kiểm tra xem có dữ liệu doanh thu thực sự không
                         const hasRevenueData = data.doanhThu.data.some(value => value > 0);
+                        const hasChiTieuData = data.chiTieu && data.chiTieu.data.some(value => value > 0);
                         const hasTopXeData = data.topXe.data.some(value => value > 0);
                         const hasLoaiXeData = data.loaiXe.data.some(value => value > 0);
+                        const hasContractStatusData = data.hopDongTrangThai && data.hopDongTrangThai.data.some(value => value > 0);
                         
                         if (revenueChart) {
                              // Kiểm tra nếu cần thay đổi loại biểu đồ
@@ -878,6 +1073,42 @@
                             document.getElementById('vehicleTypesChart').style.display = 'none';
                             document.getElementById('vehicleTypesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu loại xe</div>';
                         }
+
+                        if (contractStatusChart && hasContractStatusData) {
+                            contractStatusChart.data.labels = data.hopDongTrangThai.labels;
+                            contractStatusChart.data.datasets[0].data = data.hopDongTrangThai.data;
+                            
+                            // Cập nhật màu sắc cho từng trạng thái
+                            const statusColors = {
+                                'Đang thuê': 'rgba(255, 193, 7, 1)',      // Vàng
+                                'Hoàn thành': 'rgba(40, 167, 69, 1)',     // Xanh lá
+                                'Hủy': 'rgba(220, 53, 69, 1)'             // Đỏ
+                            };
+                            
+                            const backgroundColor = data.hopDongTrangThai.labels.map(label => statusColors[label] || 'rgba(108, 117, 125, 1)');
+                            
+                            contractStatusChart.data.datasets[0].pointBackgroundColor = backgroundColor;
+                            contractStatusChart.data.datasets[0].pointBorderColor = backgroundColor;
+                            
+                            contractStatusChart.update();
+                        } else if (contractStatusChart) {
+                            // Hiển thị thông báo khi không có dữ liệu hợp đồng
+                            contractStatusChart.destroy();
+                            document.getElementById('contractStatusChart').style.display = 'none';
+                            document.getElementById('contractStatusChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu hợp đồng</div>';
+                        }
+
+                        // Cập nhật biểu đồ chi tiêu
+                        if (expensesChart && hasChiTieuData) {
+                            expensesChart.data.labels = data.chiTieu.labels;
+                            expensesChart.data.datasets[0].data = data.chiTieu.data;
+                            expensesChart.update();
+                        } else if (expensesChart) {
+                            // Hiển thị thông báo khi không có dữ liệu chi tiêu
+                            expensesChart.destroy();
+                            document.getElementById('expensesChart').style.display = 'none';
+                            document.getElementById('expensesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu chi tiêu</div>';
+                        }
                     } else {
                         console.error('Error:', data.message);
                     }
@@ -890,24 +1121,61 @@
                 });
         }
 
+        // Function để cập nhật thống kê tổng quan
+        function updateStatistics(filter) {
+            fetch(`/ThongKeBaoCao/GetStatistics?filter=${filter}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Cập nhật giá trị
+                        document.getElementById('doanhThuValue').textContent = data.doanhThu.toLocaleString('vi-VN') + 'đ';
+                        document.getElementById('tongChiTieuValue').textContent = data.tongChiTieu.toLocaleString('vi-VN') + 'đ';
+                        document.getElementById('donDatValue').textContent = data.tongDonDat;
+                        document.getElementById('khachHangMoiValue').textContent = data.khachHangMoi;
+                        document.getElementById('xeDangThueValue').textContent = data.xeDangChoThue;
+                        
+                        // Cập nhật nhãn theo thời gian
+                        const periodLabels = {
+                            'today': 'hôm nay',
+                            '7days': '7 ngày gần nhất',
+                            'week': 'tuần này',
+                            'month': '30 ngày gần nhất',
+                            'year': '12 tháng gần nhất'
+                        };
+                        
+                        const period = periodLabels[filter] || 'hôm nay';
+                        document.getElementById('doanhThuLabel').textContent = `Doanh thu ${period}`;
+                        document.getElementById('tongChiTieuLabel').textContent = `Tổng chi tiêu ${period}`;
+                        document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;
+                        document.getElementById('khachHangMoiLabel').textContent = `Khách hàng mới ${period}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching statistics:', error);
+                });
+        }
+
         // Function để cập nhật titles
         function updateChartTitles(filter) {
             const titles = {
+                'today': 'hôm nay',
                 '7days': '7 ngày gần nhất',
                 'week': 'tuần này',
                 'month': '30 ngày gần nhất', 
                 'year': '12 tháng gần nhất'
             };
             
-            const period = titles[filter] || '7 ngày gần nhất';
+            const period = titles[filter] || 'hôm nay';
             document.getElementById('revenueTitle').textContent = `Doanh thu theo thời gian ${period}`;
             document.getElementById('topVehiclesTitle').textContent = `Top 5 xe được thuê nhiều nhất ${period}`;
             document.getElementById('vehicleTypesTitle').textContent = `Thống kê loại xe theo danh mục`;
+            document.getElementById('contractStatusTitle').textContent = `Thống kê hợp đồng theo trạng thái ${period}`;
+            document.getElementById('expensesTitle').textContent = `Biểu đồ chi tiêu theo thời gian ${period}`;
         }
 
         // Function để hiển thị loading
         function showChartLoading(show) {
-            const charts = ['revenueChart', 'topVehiclesChart', 'vehicleTypesChart'];
+            const charts = ['revenueChart', 'topVehiclesChart', 'vehicleTypesChart', 'contractStatusChart', 'expensesChart'];
             charts.forEach(chartId => {
                 const canvas = document.getElementById(chartId);
                 if (canvas) {
@@ -920,6 +1188,7 @@
          document.getElementById('chartFilter').addEventListener('change', function() {
              const selectedFilter = this.value;
              updateCharts(selectedFilter);
+             updateStatistics(selectedFilter); // Cập nhật thống kê khi filter thay đổi
          });
 
          // Event listener cho chart type dropdown
@@ -927,6 +1196,7 @@
              const selectedChartType = this.value;
              const selectedFilter = document.getElementById('chartFilter').value;
              updateCharts(selectedFilter, selectedChartType);
+             updateStatistics(selectedFilter); // Cập nhật thống kê khi loại biểu đồ thay đổi
          });
 
         // Set giá trị mặc định cho filter dropdown
@@ -935,8 +1205,26 @@
         // Cập nhật titles ban đầu
         updateChartTitles('@Model.ChartFilter');
         
+        // Cập nhật nhãn thống kê ban đầu
+        const initialFilter = '@Model.ChartFilter';
+        const periodLabels = {
+            'today': 'hôm nay',
+            '7days': '7 ngày gần nhất',
+            'week': 'tuần này',
+            'month': '30 ngày gần nhất',
+            'year': '12 tháng gần nhất'
+        };
+        
+        const period = periodLabels[initialFilter] || 'hôm nay';
+        document.getElementById('doanhThuLabel').textContent = `Doanh thu ${period}`;
+        document.getElementById('tongChiTieuLabel').textContent = `Tổng chi tiêu ${period}`;
+                        document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;
+        document.getElementById('khachHangMoiLabel').textContent = `Khách hàng mới ${period}`;
+        
         // Điều chỉnh chiều cao ban đầu cho các biểu đồ
         adjustChartHeight('revenueChart', revenueData.length);
         adjustChartHeight('vehicleTypesChart', vehicleTypeLabels.length);
+        adjustChartHeight('contractStatusChart', contractStatusLabels.length);
+        adjustChartHeight('expensesChart', expensesLabels.length);
     </script>
 } 

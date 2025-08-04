@@ -24,7 +24,7 @@ namespace bike.Repository
         public DbSet<HoaDon> HoaDon { get; set; }
         public DbSet<Banner> Banner { get; set; }
         public DbSet<ChiTietHopDong> ChiTietHopDong { get; set; }
-        public DbSet<BaoCaoThietHai> BaoCaoThietHai { get; set; }
+
         public DbSet<HinhAnhXe> HinhAnhXe { get; set; }
 
         // cấu hình thêm cho database (nếu cần)
@@ -94,27 +94,7 @@ namespace bike.Repository
                  .OnDelete(DeleteBehavior.NoAction);
             });
 
-            // Cấu hình BaoCaoThietHai
-            modelBuilder.Entity<BaoCaoThietHai>(e =>
-            {
-                e.Property(p => p.ChiPhiSuaChuaUocTinh).HasColumnType("decimal(18, 2)");
-                e.Property(p => p.ChiPhiSuaChuaThucTe).HasColumnType("decimal(18, 2)");
-                e.Property(p => p.PhiDenBuKhachHang).HasColumnType("decimal(18, 2)");
-                e.Property(p => p.GiaTriXeTruocKhiHong).HasColumnType("decimal(18, 2)");
-                e.Property(p => p.GiaTriXeSauKhiHong).HasColumnType("decimal(18, 2)");
-                
-                // Cấu hình quan hệ với ChiTietHopDong
-                e.HasOne(b => b.ChiTietHopDong)
-                 .WithMany()
-                 .HasForeignKey(b => b.MaChiTiet)
-                 .OnDelete(DeleteBehavior.Cascade);
-                 
-                // Cấu hình quan hệ với User (NguoiTao)
-                e.HasOne(b => b.NguoiTao)
-                 .WithMany()
-                 .HasForeignKey(b => b.MaNguoiTao)
-                 .OnDelete(DeleteBehavior.NoAction);
-            });
+
 
             // Cấu hình HinhAnhXe
             modelBuilder.Entity<HinhAnhXe>(e =>
