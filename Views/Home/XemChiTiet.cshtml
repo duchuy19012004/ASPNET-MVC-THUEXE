@@ -906,20 +906,13 @@
             if (ngayNhanXe && ngayTraXe) {
                 const startDate = new Date(ngayNhanXe);
                 const endDate = new Date(ngayTraXe);
-                const dayDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
+                                    const dayDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
                 
                 if (dayDiff > 0) {
                     const giaThue = @Model.GiaThue;
-                    let finalPrice = giaThue;
                     
-                    // Apply pricing tiers
-                    if (dayDiff <= 2) {
-                        finalPrice = giaThue * 1.2;
-                    } else if (dayDiff >= 25) {
-                        finalPrice = giaThue * 0.8;
-                    }
-                    
-                    const tongTien = dayDiff * finalPrice;
+                    // Tính giá thuê đơn giản: giá thuê * số ngày
+                    const tongTien = dayDiff * giaThue;
                     
                     document.getElementById('soNgayThue').textContent = dayDiff;
                     document.getElementById('tongTien').textContent = tongTien.toLocaleString() + 'đ';

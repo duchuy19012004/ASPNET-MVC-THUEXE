@@ -115,7 +115,7 @@ namespace bike.Models
         [NotMapped]
         public int SoNgayThue => ChiTietHopDong.Any() 
             ? ChiTietHopDong.Max(ct => ct.SoNgayThueTinhToan)
-            : (NgayTraXeDuKien - NgayNhanXe).Days + 1;
+            : (NgayTraXeDuKien - NgayNhanXe).Days;
 
         [NotMapped]
         public decimal TongTienXe => ChiTietHopDong.Sum(ct => ct.ThanhTienTinhToan);

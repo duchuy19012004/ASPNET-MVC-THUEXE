@@ -692,7 +692,7 @@ function calculateTotal() {
   var phuPhi = parseFloat($("#PhuPhi").val()) || 0;
 
   if (ngayNhan && ngayTra && ngayTra > ngayNhan && totalDailyRate > 0) {
-    var soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
+    var soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
     var tienThue = soNgay * totalDailyRate;
     var tongTien = tienThue + tienCoc + phuPhi;
 
@@ -735,7 +735,7 @@ function calculateFromDays(days) {
 
   var startDate = new Date(ngayNhan);
   var endDate = new Date(startDate);
-  endDate.setDate(startDate.getDate() + days - 1);
+  endDate.setDate(startDate.getDate() + days);
 
   var endDateStr = endDate.toISOString().split("T")[0];
   $("#NgayTraXeDuKien").val(endDateStr);
@@ -767,7 +767,7 @@ function updateRentalDaysFromDates() {
   var ngayTra = new Date($("#NgayTraXeDuKien").val());
 
   if (ngayNhan && ngayTra && ngayTra >= ngayNhan) {
-    var days = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
+    var days = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
     $("#rentalDays").val(days);
     updatePresetButtons();
   }
@@ -1122,7 +1122,7 @@ function showConfirmModal(vehicleCount) {
 
   var ngayNhan = new Date($("#NgayNhanXe").val());
   var ngayTra = new Date($("#NgayTraXeDuKien").val());
-  var soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
+  var soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
   $("#rentalDateText").text(
     ngayNhan.toLocaleDateString("vi-VN") +
       " - " +

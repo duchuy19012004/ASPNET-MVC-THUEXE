@@ -238,7 +238,7 @@ namespace bike.Controllers
                 foreach (var item in cart.Items)
                 {
                     var xe = await _context.Xe.FindAsync(item.MaXe);
-                    var soNgayThue = (item.NgayTraXe - item.NgayNhanXe).Days + 1;
+                    var soNgayThue = (item.NgayTraXe - item.NgayNhanXe).Days;
 
                     var chiTiet = new ChiTietHopDong
                     {

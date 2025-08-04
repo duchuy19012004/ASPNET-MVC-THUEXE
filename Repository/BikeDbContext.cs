@@ -26,6 +26,7 @@ namespace bike.Repository
         public DbSet<ChiTietHopDong> ChiTietHopDong { get; set; }
 
         public DbSet<HinhAnhXe> HinhAnhXe { get; set; }
+        public DbSet<ThietHai> ThietHai { get; set; }
 
         // cấu hình thêm cho database (nếu cần)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -93,9 +94,6 @@ namespace bike.Repository
                  .HasForeignKey(h => h.MaNguoiTao)
                  .OnDelete(DeleteBehavior.NoAction);
             });
-
-
-
             // Cấu hình HinhAnhXe
             modelBuilder.Entity<HinhAnhXe>(e =>
             {

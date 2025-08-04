@@ -26,7 +26,7 @@ namespace bike.Models
         public string? GhiChu { get; set; }
 
         // Calculated properties
-        public int SoNgayThue => (NgayTraXe - NgayNhanXe).Days + 1;
+        public int SoNgayThue => (NgayTraXe - NgayNhanXe).Days;
         public decimal TongTien => GiaThue * SoNgayThue;
         
         // For display

@@ -55,6 +55,21 @@ namespace bike.Controllers
                 });
             }
 
+            // 1.1. Dữ liệu biểu đồ thiệt hại
+            foreach (var period in chartPeriods)
+            {
+                var thietHaiNgay = await _context.ThietHai
+                    .Where(t => t.NgayXayRa.Date >= period.StartDate &&
+                               t.NgayXayRa.Date <= period.EndDate)
+                    .SumAsync(t => t.SoTienDenBu);
+
+                viewModel.BieuDoThietHai.Add(new BieuDoItem
+                {
+                    Label = period.Label,
+                    Value = thietHaiNgay
+                });
+            }
+
             // 2. Dữ liệu biểu đồ hợp đồng hoàn thành
             foreach (var period in chartPeriods)
             {
@@ -149,6 +164,12 @@ namespace bike.Controllers
             viewModel.TongChiTieu = chiTieu; // Lưu tổng chi tiêu
             viewModel.DoanhThuHomNay = Math.Max(0, doanhThuGross - chiTieu);
 
+            // Tổng tiền thiệt hại theo filter được chọn
+            viewModel.TongThietHai = await _context.ThietHai
+                .Where(t => t.NgayXayRa.Date >= chartPeriods.First().StartDate &&
+                           t.NgayXayRa.Date <= chartPeriods.Last().EndDate)
+                .SumAsync(t => t.SoTienDenBu);
+
             // Tổng đơn đặt theo filter được chọn
             viewModel.TongDonDatXe = await _context.DatCho
                 .Where(d => d.NgayDat.Date >= chartPeriods.First().StartDate && 
@@ -205,6 +226,7 @@ namespace bike.Controllers
                 // Dữ liệu doanh thu
                 var doanhThuData = new List<decimal>();
                 var chiTieuData = new List<decimal>();
+                var thietHaiData = new List<decimal>();
                 var donDatData = new List<int>();
                 var khachHangMoiData = new List<int>();
                 var labels = new List<string>();
@@ -228,6 +250,14 @@ namespace bike.Controllers
 
                     doanhThuData.Add(doanhThu);
                     chiTieuData.Add(chiTieu);
+
+                    // Tổng tiền thiệt hại
+                    var thietHai = await _context.ThietHai
+                        .Where(t => t.NgayXayRa.Date >= period.StartDate &&
+                                   t.NgayXayRa.Date <= period.EndDate)
+                        .SumAsync(t => t.SoTienDenBu);
+
+                    thietHaiData.Add(thietHai);
 
                     // Đơn đặt xe
                     var donDat = await _context.DatCho
@@ -297,6 +327,7 @@ namespace bike.Controllers
                     success = true,
                     doanhThu = new { labels, data = doanhThuData },
                     chiTieu = new { labels, data = chiTieuData },
+                    thietHai = new { labels, data = thietHaiData },
                     donDat = new { labels, data = donDatData },
                     khachHangMoi = new { labels, data = khachHangMoiData },
                     topXe = new { 
@@ -343,6 +374,12 @@ namespace bike.Controllers
 
                 var doanhThu = Math.Max(0, doanhThuGross - chiTieu);
 
+                // Tổng tiền thiệt hại theo filter được chọn
+                var tongThietHai = await _context.ThietHai
+                    .Where(t => t.NgayXayRa.Date >= chartPeriods.First().StartDate &&
+                               t.NgayXayRa.Date <= chartPeriods.Last().EndDate)
+                    .SumAsync(t => t.SoTienDenBu);
+
                 // Tổng đơn đặt xe theo filter được chọn
                 var tongDonDat = await _context.DatCho
                     .Where(d => d.NgayDat >= chartPeriods.First().StartDate && 
@@ -374,6 +411,7 @@ namespace bike.Controllers
                     success = true,
                     doanhThu = doanhThu,
                     tongChiTieu = chiTieu,
+                    tongThietHai = tongThietHai,
                     tongDonDat = tongDonDat,
                     khachHangMoi = khachHangMoi,
                     xeDangChoThue = xeDangChoThue,

@@ -286,8 +286,11 @@
             const phuPhi = parseFloat(document.getElementById('PhuPhi').value) || 0;
 
             if (ngayNhan && ngayTra && ngayTra > ngayNhan) {
-                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
-                const tienThue = soNgay * giaThue;
+                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
+                
+                // Tính giá thuê đơn giản: giá thuê * số ngày
+                const tienThue = giaThue * soNgay;
+                
                 const tongTien = tienThue + tienCoc + phuPhi; // Tính tổng với tiền cọc user nhập
 
                 // Cập nhật hiển thị

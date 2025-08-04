@@ -432,8 +432,8 @@ namespace bike.Controllers
                 GiaThueNgay = datCho.Xe.GiaThue,
                 NgayNhanXe = datCho.NgayNhanXe,
                 NgayTraXeDuKien = datCho.NgayTraXe,
-                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1,
-                ThanhTien = datCho.Xe.GiaThue * ((datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1),
+                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days,
+                ThanhTien = datCho.Xe.GiaThue * ((datCho.NgayTraXe - datCho.NgayNhanXe).Days),
                 TrangThaiXe = "Đang thuê"
             }
         };
@@ -468,7 +468,7 @@ namespace bike.Controllers
                                 GiaThueNgay = datCho.Xe.GiaThue,
                                 NgayNhanXe = datCho.NgayNhanXe,
                                 NgayTraXeDuKien = datCho.NgayTraXe,
-                                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1
+                                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days
                             }
                         };
                     }
@@ -497,7 +497,7 @@ namespace bike.Controllers
                     }
 
                     // Tính toán chi tiết hợp đồng từ DatCho
-                    var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
+                    var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days;
                     var tienThueXe = datCho.Xe.GiaThue * soNgay;
                     hopDong.TongTien = tienThueXe + hopDong.PhuPhi;
 
@@ -555,7 +555,7 @@ namespace bike.Controllers
                                 GiaThueNgay = datCho.Xe.GiaThue,
                                 NgayNhanXe = datCho.NgayNhanXe,
                                 NgayTraXeDuKien = datCho.NgayTraXe,
-                                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days + 1
+                                SoNgayThue = (datCho.NgayTraXe - datCho.NgayNhanXe).Days
                             }
                         };
                     }
@@ -619,7 +619,9 @@ namespace bike.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [PermissionAuthorize("CanEditHopDong")]
-        public async Task<IActionResult> TraXe(int id, DateTime ngayTraThucTe, decimal phuPhi, string ghiChu)
+        public async Task<IActionResult> TraXe(int id, DateTime ngayTraThucTe, decimal phuPhi, string ghiChu, 
+            string tinhTrangXe, string? loaiThietHai = null, DateTime? ngayXayRaThietHai = null, 
+            string? moTaThietHai = null, decimal chiPhiThietHai = 0)
         {
             var hopDong = await _context.HopDong
                 .Include(h => h.ChiTietHopDong)
@@ -644,14 +646,49 @@ namespace bike.Controllers
                 {
                     // Cập nhật thông tin cơ bản
                     ct.NgayTraXeThucTe = ngayTraThucTe;
-                    var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days + 1;
+                    var soNgayThucTe = (ngayTraThucTe - ct.NgayNhanXe).Days;
                     ct.SoNgayThue = soNgayThucTe;
                     ct.ThanhTien = ct.GiaThueNgay * soNgayThucTe;
 
-                    // Xe trả về trạng thái sẵn sàng
-                    ct.Xe.TrangThai = "Sẵn sàng";
-                    ct.TrangThaiXe = "Đã trả";
-                    ct.PhiDenBu = 0;
+                    // Cập nhật tình trạng xe
+                    ct.TinhTrangTraXe = tinhTrangXe;
+                    
+                    if (tinhTrangXe == "Bình thường")
+                    {
+                        // Xe trả về trạng thái sẵn sàng
+                        ct.Xe.TrangThai = "Sẵn sàng";
+                        ct.TrangThaiXe = "Đã trả";
+                        ct.PhiDenBu = 0;
+                    }
+                    else if (tinhTrangXe == "Có sự cố")
+                    {
+                        // Xe bị hư hỏng
+                        ct.Xe.TrangThai = "Hư hỏng";
+                        ct.TrangThaiXe = "Đã trả - Có sự cố";
+                        ct.PhiDenBu = chiPhiThietHai;
+                        
+                        // Tạo báo cáo thiệt hại
+                        if (!string.IsNullOrEmpty(loaiThietHai) && !string.IsNullOrEmpty(moTaThietHai))
+                        {
+                            var thietHai = new ThietHai
+                            {
+                                MaXe = ct.MaXe,
+                                MaHopDong = hopDong.MaHopDong,
+                                LoaiThietHai = loaiThietHai,
+                                MoTaThietHai = moTaThietHai,
+                                NgayXayRa = ngayXayRaThietHai ?? DateTime.Now,
+                                MaKhachHang = hopDong.MaKhachHang,
+                                TrangThaiXuLy = "Chưa xử lý",
+                                ChiPhiXuLy = chiPhiThietHai,
+                                SoTienDenBu = 0,
+                                GhiChu = $"Tự động tạo từ quá trình trả xe. {ghiChu}",
+                                MaNguoiBaoCao = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)),
+                                NgayTao = DateTime.Now
+                            };
+                            
+                            _context.ThietHai.Add(thietHai);
+                        }
+                    }
                 }
 
                 // Tính lại tổng tiền
@@ -1038,7 +1075,7 @@ namespace bike.Controllers
                     hopDong.TrangThai = "Đang thuê";
 
                     // Tính tổng tiền từ tất cả xe
-                    var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days + 1;
+                    var soNgay = (hopDong.NgayTraXeDuKien - hopDong.NgayNhanXe).Days;
                     var tongTienThueXe = cacXeThue.Sum(xe => xe.GiaThue * soNgay);
                     hopDong.TongTien = tongTienThueXe + hopDong.PhuPhi;
 
@@ -1229,6 +1266,32 @@ namespace bike.Controllers
             }
 
             return Json(new { success = true, data = xe });
+        }
+
+        // API để lấy thông tin hợp đồng cho QuanLyThietHai
+        [HttpGet]
+        public async Task<IActionResult> GetHopDongInfo(int id)
+        {
+            var hopDong = await _context.HopDong
+                .Include(h => h.KhachHang)
+                .FirstOrDefaultAsync(h => h.MaHopDong == id);
+
+            if (hopDong == null)
+            {
+                return Json(new { success = false, message = "Không tìm thấy thông tin hợp đồng" });
+            }
+
+            var data = new
+            {
+                maHopDong = hopDong.MaHopDong,
+                maKhachHang = hopDong.MaKhachHang,
+                tenKhachHang = hopDong.KhachHang?.Ten ?? "Không xác định",
+                soDienThoai = hopDong.KhachHang?.SoDienThoai ?? "Không xác định",
+                ngayTao = hopDong.NgayTao.ToString("dd/MM/yyyy"),
+                trangThai = hopDong.TrangThai
+            };
+
+            return Json(new { success = true, data = data });
         }
         // GET: QuanLyHopDong/DonChoXuLy - Danh sách đơn chờ xử lý
         public async Task<IActionResult> DonChoXuLy(string searchString, DateTime? tuNgay, DateTime? denNgay)

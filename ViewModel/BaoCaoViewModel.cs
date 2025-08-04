@@ -16,6 +16,7 @@ namespace bike.ViewModels
         public int TongDonDatXe { get; set; }
         public decimal DoanhThuHomNay { get; set; }
         public decimal TongChiTieu { get; set; } // Tổng chi tiêu
+        public decimal TongThietHai { get; set; } // Tổng tiền thiệt hại
         public int XeDangChoThue { get; set; }
         public int HopDongHoatDong { get; set; }
         public int KhachHangMoi { get; set; } // Khách hàng đăng ký mới hôm nay
@@ -27,6 +28,7 @@ namespace bike.ViewModels
 
         // Dữ liệu cho biểu đồ
         public List<BieuDoItem> BieuDoDoanhThu { get; set; }
+        public List<BieuDoItem> BieuDoThietHai { get; set; }
         public List<BieuDoItem> BieuDoDonDat { get; set; }
         public List<BieuDoItem> BieuDoKhachHangMoi { get; set; }
         public List<BieuDoItem> BieuDoLoaiXe { get; set; }
@@ -41,6 +43,7 @@ namespace bike.ViewModels
         public BaoCaoViewModel()
         {
             BieuDoDoanhThu = new List<BieuDoItem>();
+            BieuDoThietHai = new List<BieuDoItem>();
             BieuDoDonDat = new List<BieuDoItem>();
             BieuDoKhachHangMoi = new List<BieuDoItem>();
             BieuDoLoaiXe = new List<BieuDoItem>();

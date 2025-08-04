@@ -528,7 +528,7 @@
             const ngayNhan = new Date(ngayNhanInput.value);
             if (ngayNhan) {
                 const ngayTra = new Date(ngayNhan);
-                ngayTra.setDate(ngayNhan.getDate() + soNgay - 1);
+                ngayTra.setDate(ngayNhan.getDate() + soNgay);
                 
                 // Cập nhật ngày trả
                 ngayTraInput.value = ngayTra.toISOString().split('T')[0];
@@ -537,7 +537,6 @@
                 calculatePrice();
             }
         }
-
         // Hàm set số ngày thuê từ các nút preset
         function setRentalDays(days) {
             const soNgayInput = document.getElementById('soNgayThueInput');
@@ -565,7 +564,7 @@
             const ngayTra = new Date(document.getElementById('NgayTraXe').value);
 
             if (ngayNhan && ngayTra && ngayTra >= ngayNhan) {
-                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
+                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
                 const tongTien = soNgay * giaThue;
 
                 document.getElementById('soNgayThue').textContent = soNgay + ' ngày';
@@ -714,7 +713,7 @@
                     // Cập nhật ngày trả dựa trên số ngày thuê hiện tại
                     const soNgayThue = parseInt($('#soNgayThueInput').val()) || 2;
                     const ngayTra = new Date(ngayNhan);
-                    ngayTra.setDate(ngayNhan.getDate() + soNgayThue - 1);
+                    ngayTra.setDate(ngayNhan.getDate() + soNgayThue);
                     $('#NgayTraXe').val(ngayTra.toISOString().split('T')[0]);
                 }
 

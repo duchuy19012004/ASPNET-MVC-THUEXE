@@ -245,6 +245,60 @@
                 <small class="text-muted">Ví dụ: nhập 50000 cho phí xăng</small>
             </div>
 
+            <!-- Tình trạng xe -->
+            <div class="mb-3">
+                <label class="form-label">Tình trạng xe <span class="text-danger">*</span></label>
+                <select name="tinhTrangXe" class="form-control" required onchange="handleTinhTrangXeChange()" id="tinhTrangXeSelect">
+                    <option value="">-- Chọn tình trạng xe --</option>
+                    <option value="Bình thường">Bình thường</option>
+                    <option value="Có sự cố">Có sự cố</option>
+                </select>
+                <small class="text-muted">Chọn "Có sự cố" nếu xe bị hư hỏng hoặc có vấn đề</small>
+            </div>
+
+            <!-- Form thiệt hại (ẩn mặc định) -->
+            <div id="thietHaiForm" style="display: none;" class="mb-3">
+                <div class="card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Báo cáo thiệt hại</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Loại thiệt hại <span class="text-danger">*</span></label>
+                                    <select name="loaiThietHai" class="form-control" id="loaiThietHaiSelect">
+                                        <option value="">-- Chọn loại thiệt hại --</option>
+                                        <option value="Hư hỏng phụ kiện">Hư hỏng phụ kiện</option>
+                                        <option value="Hư hỏng thân xe">Hư hỏng thân xe</option>
+                                        <option value="Mất xe">Mất xe</option>
+                                        <option value="Khác">Khác</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Ngày xảy ra <span class="text-danger">*</span></label>
+                                    <input type="date" name="ngayXayRaThietHai" class="form-control" 
+                                           value="@DateTime.Now.ToString("yyyy-MM-dd")" id="ngayXayRaThietHai" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Mô tả thiệt hại <span class="text-danger">*</span></label>
+                            <textarea name="moTaThietHai" class="form-control" rows="3" 
+                                      placeholder="Mô tả chi tiết thiệt hại..." id="moTaThietHaiText"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Số tiền đền bù ước tính</label>
+                            <input type="number" name="chiPhiThietHai" class="form-control" value="0" 
+                                   placeholder="Số tiền đền bù ước tính..." id="chiPhiThietHai" />
+                            <small class="text-muted">Nhập 0 nếu chưa biết số tiền đền bù</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Ghi chú -->
             <div class="mb-3">
                 <label class="form-label">Ghi chú khi trả xe</label>
@@ -320,7 +374,7 @@
 
             if (ngayTra && ngayTra >= ngayNhan) {
                 // Tính số ngày thuê
-                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24)) + 1;
+                const soNgay = Math.ceil((ngayTra - ngayNhan) / (1000 * 60 * 60 * 24));
                 const tienThue = soNgay * giaThue;
                 const tongTien = tienThue + phuPhi;
 
@@ -331,6 +385,26 @@
             }
             } catch (error) {
                 console.error('Error in calculateFinal:', error);
+            }
+        }
+
+        // Xử lý thay đổi tình trạng xe
+        function handleTinhTrangXeChange() {
+            const tinhTrangXe = document.getElementById('tinhTrangXeSelect').value;
+            const thietHaiForm = document.getElementById('thietHaiForm');
+            
+            if (tinhTrangXe === 'Có sự cố') {
+                thietHaiForm.style.display = 'block';
+                // Đặt required cho các trường thiệt hại
+                document.getElementById('loaiThietHaiSelect').required = true;
+                document.getElementById('ngayXayRaThietHai').required = true;
+                document.getElementById('moTaThietHaiText').required = true;
+            } else {
+                thietHaiForm.style.display = 'none';
+                // Bỏ required cho các trường thiệt hại
+                document.getElementById('loaiThietHaiSelect').required = false;
+                document.getElementById('ngayXayRaThietHai').required = false;
+                document.getElementById('moTaThietHaiText').required = false;
             }
         }
 
@@ -353,6 +427,26 @@
                     e.preventDefault();
                     alert('Không thể trả xe vì hợp đồng thiếu thông tin xe!');
                     return false;
+                }
+                
+                // Kiểm tra tình trạng xe
+                const tinhTrangXe = document.getElementById('tinhTrangXeSelect').value;
+                if (!tinhTrangXe) {
+                    e.preventDefault();
+                    alert('Vui lòng chọn tình trạng xe!');
+                    return false;
+                }
+                
+                // Kiểm tra thông tin thiệt hại nếu có sự cố
+                if (tinhTrangXe === 'Có sự cố') {
+                    const loaiThietHai = document.getElementById('loaiThietHaiSelect').value;
+                    const moTaThietHai = document.getElementById('moTaThietHaiText').value;
+                    
+                    if (!loaiThietHai || !moTaThietHai.trim()) {
+                        e.preventDefault();
+                        alert('Vui lòng điền đầy đủ thông tin thiệt hại!');
+                        return false;
+                    }
                 }
                 
                 const confirmed = confirm('Xác nhận hoàn tất trả xe?');

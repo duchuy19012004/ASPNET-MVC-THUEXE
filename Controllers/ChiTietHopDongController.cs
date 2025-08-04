@@ -113,7 +113,7 @@ namespace bike.Controllers
                 {
                     // Set thông tin tự động
                     chiTiet.GiaThueNgay = xe.GiaThue;
-                    chiTiet.SoNgayThue = (chiTiet.NgayTraXeDuKien - chiTiet.NgayNhanXe).Days + 1;
+                    chiTiet.SoNgayThue = (chiTiet.NgayTraXeDuKien - chiTiet.NgayNhanXe).Days;
                     chiTiet.ThanhTien = chiTiet.GiaThueNgay * chiTiet.SoNgayThue;
                     chiTiet.NgayTao = DateTime.Now;
                     chiTiet.TrangThaiXe = "Đang thuê";
@@ -272,7 +272,7 @@ namespace bike.Controllers
                     chiTiet.GiaThueNgay = model.GiaThueNgay;
                     chiTiet.NgayNhanXe = model.NgayNhanXe;
                     chiTiet.NgayTraXeDuKien = model.NgayTraXeDuKien;
-                    chiTiet.SoNgayThue = (model.NgayTraXeDuKien - model.NgayNhanXe).Days + 1;
+                    chiTiet.SoNgayThue = (model.NgayTraXeDuKien - model.NgayNhanXe).Days;
                     chiTiet.ThanhTien = chiTiet.GiaThueNgay * chiTiet.SoNgayThue;
                     chiTiet.GhiChu = model.GhiChu;
 

@@ -17,6 +17,14 @@
                            && d.NgayDat.Date == homNay);
     }
     
+    // Lấy số thiệt hại chưa xử lý
+    int thietHaiChuaXuLy = 0;
+    if (userRole == "Admin" || userRole == "Staff")
+    {
+        thietHaiChuaXuLy = await _context.ThietHai
+            .CountAsync(t => t.TrangThaiXuLy == "Chưa xử lý" || t.TrangThaiXuLy == "Đang xử lý");
+    }
+    
 
 }
 <div class="sidebar" id="sidebar">
@@ -74,6 +82,16 @@
                 </a>
             </li>
             <li>
+                <a asp-controller="QuanLyThietHai" asp-action="Index" style="position: relative;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span class="menu-text">Quản lý thiệt hại</span>
+                    @if (thietHaiChuaXuLy > 0)
+                    {
+                        <span class="sidebar-notification-badge sidebar-notification-badge-warning">@thietHaiChuaXuLy</span>
+                    }
+                </a>
+            </li>
+            <li>
                 <a asp-controller="QuanLyChiTieu" asp-action="Index">
                     <i class="bi bi-wallet2"></i> <span class="menu-text">Quản lý chi tiêu</span>
                 </a>
@@ -128,6 +146,13 @@
         z-index: 10;
     }
 
+    /* Badge thông báo cho thiệt hại (màu cam) */
+    .sidebar-notification-badge-warning {
+        background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+        box-shadow: 0 2px 6px rgba(255, 167, 38, 0.4);
+        animation: pulse-sidebar-warning 2s infinite;
+    }
+
     /* Thêm thuộc tính để sidebar có thể cuộn dọc */
     .sidebar {
         height: 100vh;
@@ -160,6 +185,17 @@
         50% { 
             transform: scale(1.1); 
             box-shadow: 0 4px 12px rgba(255, 71, 87, 0.6);
+        }
+    }
+
+    @@keyframes pulse-sidebar-warning {
+        0%, 100% { 
+            transform: scale(1); 
+            box-shadow: 0 2px 6px rgba(255, 167, 38, 0.4);
+        }
+        50% { 
+            transform: scale(1.1); 
+            box-shadow: 0 4px 12px rgba(255, 167, 38, 0.6);
         }
     }
 

@@ -78,8 +78,8 @@ namespace bike.Models
         // Computed properties
         [NotMapped]
         public int SoNgayThueTinhToan => NgayTraXeThucTe.HasValue
-            ? (NgayTraXeThucTe.Value - NgayNhanXe).Days + 1
-            : (NgayTraXeDuKien - NgayNhanXe).Days + 1;
+            ? (NgayTraXeThucTe.Value - NgayNhanXe).Days
+            : (NgayTraXeDuKien - NgayNhanXe).Days;
 
         [NotMapped]
         public decimal ThanhTienTinhToan => GiaThueNgay * SoNgayThueTinhToan;

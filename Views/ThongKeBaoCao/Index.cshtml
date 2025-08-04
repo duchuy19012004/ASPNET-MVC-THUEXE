@@ -68,6 +68,10 @@
         background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
     }
 
+    .stat-icon.cyan {
+        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    }
+
     .stat-value {
         font-size: 32px;
         font-weight: bold;
@@ -208,6 +212,16 @@
                 <div class="stat-label" id="tongChiTieuLabel">Tổng chi tiêu tháng này</div>
             </div>
         </div>
+
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon cyan text-white">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="stat-value" id="tongThietHaiValue">@Model.TongThietHai.ToString("N0")đ</div>
+                <div class="stat-label" id="tongThietHaiLabel">Tổng tiền thiệt hại tháng này</div>
+            </div>
+        </div>
     </div>
     <!-- Filter Section -->
     <div class="filter-section">
@@ -298,7 +312,7 @@
         </div>
     </div>
 
-    <!-- Charts Row 3 - Biểu đồ chi tiêu -->
+    <!-- Charts Row 3 - Biểu đồ chi tiêu và thiệt hại -->
     <div class="row">
         <!-- Biểu đồ chi tiêu (Line Chart) -->
         <div class="col-lg-6 mb-4">
@@ -309,6 +323,19 @@
                 </div>
                 <div id="expensesChartContainer" style="width: 100%; height: auto;">
                     <canvas id="expensesChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Biểu đồ thiệt hại (Line Chart) -->
+        <div class="col-lg-6 mb-4">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="mb-0" id="thietHaiTitle">Biểu đồ tổng tiền thiệt hại theo thời gian</h5>
+                    <small class="text-muted">Đơn vị: VNĐ</small>
+                </div>
+                <div id="thietHaiChartContainer" style="width: 100%; height: auto;">
+                    <canvas id="thietHaiChart"></canvas>
                 </div>
             </div>
         </div>
@@ -400,7 +427,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
                  // Biến global để lưu chart instances
-         let revenueChart, topVehiclesChart, vehicleTypesChart, contractStatusChart, expensesChart;
+         let revenueChart, topVehiclesChart, vehicleTypesChart, contractStatusChart, expensesChart, thietHaiChart;
          let currentRevenueChartType = 'bar'; // Loại biểu đồ doanh thu hiện tại
 
         // Biểu đồ doanh thu (Horizontal Bar Chart với 2 màu)
@@ -813,6 +840,77 @@
             document.getElementById('expensesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu chi tiêu</div>';
         }
 
+        // Biểu đồ thiệt hại (Line Chart)
+        const thietHaiCtx = document.getElementById('thietHaiChart').getContext('2d');
+        const thietHaiData = @Html.Raw(Json.Serialize(Model.BieuDoThietHai.Select(x => x.Value).ToList()));
+        const thietHaiLabels = @Html.Raw(Json.Serialize(Model.BieuDoThietHai.Select(x => x.Label).ToList()));
+        
+        if (thietHaiLabels && thietHaiLabels.length > 0 && thietHaiData.some(value => value > 0)) {
+            thietHaiChart = new Chart(thietHaiCtx, {
+                type: 'line',
+                data: {
+                    labels: thietHaiLabels,
+                    datasets: [{
+                        label: 'Tổng tiền thiệt hại',
+                        data: thietHaiData,
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: 'rgba(220, 53, 69, 1)',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'Tổng tiền thiệt hại: ' + context.parsed.y.toLocaleString('vi-VN') + 'đ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString('vi-VN') + 'đ';
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 30,
+                            bottom: 30
+                        }
+                    }
+                }
+            });
+        } else {
+            // Hiển thị thông báo khi không có dữ liệu thiệt hại
+            document.getElementById('thietHaiChart').style.display = 'none';
+            document.getElementById('thietHaiChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu thiệt hại</div>';
+        }
+
                  // Function để tạo biểu đồ tuyến tính
          function createLineChart(ctx, labels, data) {
              return new Chart(ctx, {
@@ -908,6 +1006,7 @@
                         // Kiểm tra xem có dữ liệu doanh thu thực sự không
                         const hasRevenueData = data.doanhThu.data.some(value => value > 0);
                         const hasChiTieuData = data.chiTieu && data.chiTieu.data.some(value => value > 0);
+                        const hasThietHaiData = data.thietHai && data.thietHai.data.some(value => value > 0);
                         const hasTopXeData = data.topXe.data.some(value => value > 0);
                         const hasLoaiXeData = data.loaiXe.data.some(value => value > 0);
                         const hasContractStatusData = data.hopDongTrangThai && data.hopDongTrangThai.data.some(value => value > 0);
@@ -1109,6 +1208,18 @@
                             document.getElementById('expensesChart').style.display = 'none';
                             document.getElementById('expensesChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu chi tiêu</div>';
                         }
+
+                        // Cập nhật biểu đồ thiệt hại
+                        if (thietHaiChart && hasThietHaiData) {
+                            thietHaiChart.data.labels = data.thietHai.labels;
+                            thietHaiChart.data.datasets[0].data = data.thietHai.data;
+                            thietHaiChart.update();
+                        } else if (thietHaiChart) {
+                            // Hiển thị thông báo khi không có dữ liệu thiệt hại
+                            thietHaiChart.destroy();
+                            document.getElementById('thietHaiChart').style.display = 'none';
+                            document.getElementById('thietHaiChart').parentElement.innerHTML = '<div class="text-center text-muted p-4"><i class="bi bi-info-circle"></i> Chưa có dữ liệu thiệt hại</div>';
+                        }
                     } else {
                         console.error('Error:', data.message);
                     }
@@ -1130,6 +1241,7 @@
                         // Cập nhật giá trị
                         document.getElementById('doanhThuValue').textContent = data.doanhThu.toLocaleString('vi-VN') + 'đ';
                         document.getElementById('tongChiTieuValue').textContent = data.tongChiTieu.toLocaleString('vi-VN') + 'đ';
+                        document.getElementById('tongThietHaiValue').textContent = data.tongThietHai.toLocaleString('vi-VN') + 'đ';
                         document.getElementById('donDatValue').textContent = data.tongDonDat;
                         document.getElementById('khachHangMoiValue').textContent = data.khachHangMoi;
                         document.getElementById('xeDangThueValue').textContent = data.xeDangChoThue;
@@ -1146,6 +1258,7 @@
                         const period = periodLabels[filter] || 'hôm nay';
                         document.getElementById('doanhThuLabel').textContent = `Doanh thu ${period}`;
                         document.getElementById('tongChiTieuLabel').textContent = `Tổng chi tiêu ${period}`;
+                        document.getElementById('tongThietHaiLabel').textContent = `Tổng tiền thiệt hại ${period}`;
                         document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;
                         document.getElementById('khachHangMoiLabel').textContent = `Khách hàng mới ${period}`;
                     }
@@ -1171,11 +1284,12 @@
             document.getElementById('vehicleTypesTitle').textContent = `Thống kê loại xe theo danh mục`;
             document.getElementById('contractStatusTitle').textContent = `Thống kê hợp đồng theo trạng thái ${period}`;
             document.getElementById('expensesTitle').textContent = `Biểu đồ chi tiêu theo thời gian ${period}`;
+            document.getElementById('thietHaiTitle').textContent = `Biểu đồ tổng tiền thiệt hại theo thời gian ${period}`;
         }
 
         // Function để hiển thị loading
         function showChartLoading(show) {
-            const charts = ['revenueChart', 'topVehiclesChart', 'vehicleTypesChart', 'contractStatusChart', 'expensesChart'];
+            const charts = ['revenueChart', 'topVehiclesChart', 'vehicleTypesChart', 'contractStatusChart', 'expensesChart', 'thietHaiChart'];
             charts.forEach(chartId => {
                 const canvas = document.getElementById(chartId);
                 if (canvas) {
@@ -1218,7 +1332,8 @@
         const period = periodLabels[initialFilter] || 'hôm nay';
         document.getElementById('doanhThuLabel').textContent = `Doanh thu ${period}`;
         document.getElementById('tongChiTieuLabel').textContent = `Tổng chi tiêu ${period}`;
-                        document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;
+        document.getElementById('tongThietHaiLabel').textContent = `Tổng tiền thiệt hại ${period}`;
+        document.getElementById('donDatLabel').textContent = `Đơn đặt ${period}`;
         document.getElementById('khachHangMoiLabel').textContent = `Khách hàng mới ${period}`;
         
         // Điều chỉnh chiều cao ban đầu cho các biểu đồ
@@ -1226,5 +1341,6 @@
         adjustChartHeight('vehicleTypesChart', vehicleTypeLabels.length);
         adjustChartHeight('contractStatusChart', contractStatusLabels.length);
         adjustChartHeight('expensesChart', expensesLabels.length);
+        adjustChartHeight('thietHaiChart', thietHaiLabels.length);
     </script>
 } 

@@ -60,7 +60,7 @@ namespace bike.Models
 
         // Tính số ngày thuê
         [NotMapped]
-        public int SoNgayThue => (NgayTraXe - NgayNhanXe).Days + 1;
+        public int SoNgayThue => (NgayTraXe - NgayNhanXe).Days;
 
         // Tính tổng tiền dự kiến
         [NotMapped]
